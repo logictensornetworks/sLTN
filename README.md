@@ -1,199 +1,148 @@
-![build status](https://github.com/tommasocarraro/LTNtorch/actions/workflows/build.yml/badge.svg)
-[![coverage status](https://coveralls.io/repos/github/tommasocarraro/LTNtorch/badge.svg?branch=main)](https://coveralls.io/github/tommasocarraro/LTNtorch?branch=main)
-[![PyPi](https://img.shields.io/pypi/v/LTNtorch.svg)](https://pypi.python.org/pypi/LTNtorch)
-[![docs link](https://img.shields.io/badge/docs-github.io-blue)](https://tommasocarraro.github.io/LTNtorch/)
-[![MIT license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
-![python version](https://img.shields.io/badge/python-3.7|3.8|3.9-blue)
-[![DOI BADGE](https://zenodo.org/badge/DOI/10.5281/zenodo.7778157.svg)](https://doi.org/10.5281/zenodo.7778157)
+# sLTN — Structural Logic Tensor Networks
 
-# LTNtorch: PyTorch implementation of Logic Tensor Networks
+**sLTN** is a PyTorch framework for neural-symbolic learning based on differentiable first-order logic. It extends [LTNtorch](https://github.com/logictensornetworks/LTNtorch) with a typed symbolic interface, string-parsed first-order logic formulas, named tensor axes, and structural dimensions for reasoning over temporal, sequential, graph-based, and other structured data.
 
-Welcome to the PyTorch's implementation of [Logic Tensor Networks](https://arxiv.org/abs/2012.13635)!
+A detailed description is available in the companion paper: [arXiv:268.11136](https://arxiv.org/abs/2608.11136).
 
-### Basic idea of the framework
+## Key Features
 
-Logic Tensor Network (LTN) is a Neural-Symbolic (NeSy) framework which supports learning of neural networks using the
-satisfaction of a first-order logic knowledge base as an objective. In other words, LTN uses logical reasoning on the
-knowledge base to guide the learning of a potentially deep neural network. 
-
-The idea of the framework is simple: 
-- we have a first-order logic knowledge base containing a set of axioms;
-- we have some predicates, functions, or logical constants appearing in these axioms that we want to learn;
-- we have some data available that we can use to learn the parameters of those symbols.
-
-The idea is to use the logical axioms as a loss function for our Logic Tensor Network. The objective is to find solutions
-in the hypothesis space that maximally satisfy all the axioms contained in our knowledge base.
-
-### Learning in LTN
-
-In LTN, the learnable parameters are contained in the predicates, functions, and possibly learnable logical constants
-that appear in the logical axioms of the knowledge base. 
-
-During the forward step of the back-propagation algorithm, LTN
-computes the truth values of the logical formulas contained in the knowledge base, using the available data to ground
-(or instantiate) the logical formulas. As we have already said, these formulas 
-will contain some predicates and functions which are represented as learnable models. 
-
-At the end of the forward phase,
-the truth values computed for the formulas are aggregated and used in the loss function. Our objective is to maximize
-the aggregated truth value, namely maximally satisfy all the axioms.
-
-During the backward step, the
-learnable parameters of predicates, functions, and possibly learnable logical constants are changed in such a way to move
-towards a solution in the hypothesis space which better satisfies all the axioms in the knowledge base.
-
-At the end of the training, the parameters of predicates, functions, and constants will have been updated in such a way the 
-logical formulas in the knowledge base are maximally satisfied. In particular, the parameters will have been learned by using both
-data (to ground the formulas) and logical reasoning (at the loss function).
-
-After learning, it is possible to query predicates and functions on new data which was not available during training. Also,
-it is possible to query the truth values of new formulas which were not included in the knowledge base during training. In addition,
-if some logical constants have been learned, their parameters can be interpreted as embeddings.
-
-### Real Logic logical language
-
-To make this learning possible, LTN uses a differentiable first-order logic language, called Real Logic, which enables 
-the incorporation of data and logic.
-
-Real Logic defines the concept of `grounding` (different from the grounding of logic), which is a mapping from the logical domain (i.e., constants, variables, and logical symbols)
-to tensors in the Real field or operations based on tensors. These operations could be, for instance, mathematical functions or learnable neural networks. In other words,
-a `grounding`, denoted as 𝒢, is a function which maps a logical symbol into a real tensor or an operation on tensors.
-
-In particular, the grounding is defined as follows. Let us assume that *c* is a constant, *x* is a logical 
-variable, *P* is a predicate, and *f* is a logical function:
-![Grounding_in LTN](https://github.com/tommasocarraro/LTNtorch/blob/main/images/grounding.png?raw=true)
-
-The `grounding` defines also how the logical connectives (∧, ∨, ¬, ⇒, ↔) and quantifiers
-(∀, ∃) are mapped in the Real domain. In particular, logical connectives are grounded using fuzzy logic semantics, while
-quantifiers are grounded using fuzzy aggregators. Please, **carefully** read the paper if you have some doubts on these notions.
-
-Examples of possible groundings are showed in the following figure. In the figure, `friend(Mary, John)` is an
-atomic formula (predicate), while `∀x(friend(John, x) ⇒ friend(Mary, x))` is a closed formula (all the variables are
-quantified). The letter 𝒢, again, is the grounding, the function which maps the logical domain into the Real domain.
-
-![Grounding_illustration](https://github.com/tommasocarraro/LTNtorch/blob/main/images/framework_grounding.png?raw=true)
-
-### LTN as PyTorch computational graphs
-
-In practice, LTN converts Real Logic formulas (e.g., `∀x∃y(friend(x,y) ∧ italian(y))`, which states that everybody has a friend that is Italian) into [PyTorch](https://www.pytorch.org/) 
-computational graphs. Such formulas can express complex queries about the data, prior knowledge to satisfy during 
-learning, statements to prove, etc. The following figure shows an example of how LTN converts such formulas into PyTorch 
-computational graphs.
-
-![Computational_graph_illustration](https://github.com/tommasocarraro/LTNtorch/blob/main/images/framework_computational_graph.png?raw=true)
-
-Let us assume we have 6 people which are denoted using 4 real-valued features.
-The previous figure illustrates the following:
-![Computational_graph_explanation](https://github.com/tommasocarraro/LTNtorch/blob/main/images/computational_graph_explanation.png?raw=true)
-
-### Conclusion
-
-Using LTN, one can represent and effectively compute some of the most important tasks of deep learning. Examples of such 
-tasks are classification, regression, clustering, and so on.
-
-The [Getting Started](#getting-started) section of the README links to tutorials and examples to learn how to code Logic
-Tensor Networks in PyTorch.
-
-However, we suggest to carefully read the [paper](https://arxiv.org/pdf/2012.13635.pdf) before going through the tutorials and examples.
+- **Formula domain-specific language.** Write first-order logic formulas and knowledge bases as strings using compact notation close to standard logic.
+- **Typed symbolic interface.** Define a typed vocabulary through a `Signature`, including sorts, dimensions, predicates, functions, variables, and structural relations.
+- **Separation of syntax and grounding.** Declare symbolic objects independently of tensors, then bind them through an `Interpretation` to PyTorch tensors, modules, or callables.
+- **Named and typed tensor axes.** Track each tensor axis by name and role, distinguishing variable, structural, and domain axes.
+- **Structural dimensions.** Represent axes such as time, sequence position, video frames, or graph nodes, and quantify over them independently from first-order variables.
+- **Differentiable Real Logic semantics.** Preserve the fuzzy-logic semantics of LTN/LTNtorch, including fuzzy connectives, product logic, p-mean aggregation, guarded quantification, and diagonal quantification.
+- **Training utilities.** optional `torchjd` support for multi-objective satisfaction of knowledge bases, via `kb_describe`, `kb_eval`, and `kb_backward` API.
 
 
-# Installation
+## Installation
 
-It is possible to install LTNtorch using `pip`.
+Requires Python 3.10+.
 
-`pip install LTNtorch`
+Create and activate a virtual environment:
 
-Alternatively, it is possible to install LTNtorch by cloning this repository. In this case, make sure to install all the 
-requirements.
+```bash
+uv venv
+source .venv/bin/activate
+```
 
-`pip3 install -r requirements.txt`
+Install sLTN in editable mode from the repository root:
+```
+uv pip install -e .                   # core sLTN (torch)
+```
 
-# Structure of repository
-
-- `ltn/core.py`: this module contains the implementation of the LTN framework. In particular, it contains the definition 
-of constants, variables, predicates, functions, connectives and quantifiers;
-- `ltn/fuzzy_ops.py`: this module contains the implementation of common fuzzy logic semantics using PyTorch primitives;
-- `tutorials/`: this folder contains some important tutorials to getting started with coding in LTN;
-- `examples/`: this folder contains various problems approached using LTN and presented in the "Reach of Logic Tensor 
-Networks" section of the paper;
-- `tests/`: this folder contains unit tests that have been used to test the `core` and `fuzzy_ops` modules. The coverage 
-is 100%.
-
-# Tests
-
-The `core` and `fuzzy_ops` modules of this repository have been entirely tested using `pytest`, with a coverage of 100%.
-The examples included in the documentation have also been tested, using `doctest`.
-
-# Documentation
-
-The [documentation](https://tommasocarraro.github.io/LTNtorch/) has been created with 
-[Sphinx](https://www.sphinx-doc.org/en/master/index.html), using the 
-[Read the Docs Sphinx Theme](https://sphinx-rtd-theme.readthedocs.io/en/stable/).
-
-# Getting Started
-
-## Tutorials
-
-`tutorials/` contains some important tutorials to getting started with coding in LTN. We suggest completing the tutorials in order.
-The tutorials cover the following topics:
-1. [Grounding in LTN (part 1)](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/tutorials/1-grounding_non_logical_symbols.ipynb): Real Logic, constants, predicates, functions, variables;
-2. [Grounding in LTN (part 2)](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/tutorials/2-grounding_connectives.ipynb): connectives and quantifiers (+ [complement](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/tutorials/2b-operators-and-gradients.ipynb): choosing appropriate operators for learning);
-3. [Learning in LTN](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/tutorials/3-knowledgebase-and-learning.ipynb): using satisfiability of LTN formulas as a training objective.
-
-The tutorials are implemented using jupyter notebooks.
-
-## Examples
-
-`examples/` contains the series of examples included in the "Reach of Logic Tensor Networks" section of the paper. Their objective 
-is to show how the language of Real Logic can be used to specify a number of tasks that involve learning from data and 
-reasoning about logical knowledge. 
-
-The examples covered are the following:
-1. [Binary classification](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/1-binary_classification.ipynb): illustrates, in the simplest setting, how to ground a binary classifier as a predicate in LTN;
-2. [Multi-class single-label classification](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/2-multi_class_single_label_classification.ipynb): illustrate how to ground predicates that can classify samples in several mutually-exclusive classes;
-3. [Multi-class multi-label classification](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/3-multi_class_multi_label_classification.ipynb): illustrate how to ground predicates that can classify samples in several classes which are not mutually-exclusive;
-4. [Semi-supervised pattern recognition](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/4-semi-supervised_pattern_recognition.ipynb): showcases the power of LTN in dealing with semi-supervised learning tasks;
-5. [Regression](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/5-regression.ipynb): illustrates how to ground a regressor as a function symbol in LTN;
-6. [Clustering](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/6-clustering.ipynb): illustrates how LTN can solve a unsupervised tasks using first-order logical constraints;
-7. [Learning embeddings with LTN](https://nbviewer.jupyter.org/github/tommasocarraro/LTNtorch/blob/main/examples/7-learning_embeddings_with_LTN.ipynb): illustrates how LTN can learn embeddings using learnable logical constants.
-
-The examples are presented using jupyter notebooks.
-
-# License
-
-This project is licensed under the MIT License - see the [LICENSE](https://nbviewer.jupyter.org/github/bmxitalia/LTNtorch/blob/main/LICENSE) file for details.
-
-# Acknowledgements
-
-LTN has been developed thanks to active contributions and discussions with the following people (in alphabetical order):
-- Alessandro Daniele (FBK)
-- Artur d’Avila Garcez (City)
-- Benedikt Wagner (City)
-- Emile van Krieken (VU Amsterdam)
-- Francesco Giannini (UniSiena)
-- Giuseppe Marra (UniSiena)
-- Ivan Donadello (FBK)
-- Lucas Bechberger (UniOsnabruck)
-- Luciano Serafini (FBK)
-- Marco Gori (UniSiena)
-- Michael Spranger (Sony AI)
-- Michelangelo Diligenti (UniSiena)
-- Samy Badreddine (Sony AI)
-- Tommaso Carraro (FBK)
-
-# Citing this repo
-
-If you are using **LTNtorch** in your work, please consider citing this repository using the following BibTex entry.
+Optional extras can be installed from the same directory:
 
 ```
-@misc{LTNtorch,
-  author       = {Tommaso Carraro},
-  title        = {{LTNtorch: PyTorch implementation of Logic Tensor Networks}},
-  month        = {mar},
-  year         = {2023},
-  howpublished = {Zenodo},
-  version      = {v1.0.1},
-  doi          = {10.5281/zenodo.7778157}
-  url          = {https://doi.org/10.5281/zenodo.7778157}
+uv pip install -e ".[multiobjective]" # + torchjd for multi-objective training
+uv pip install -e ".[notebooks]"      # + tutorial notebook dependencies (JupyterLab, etc.)
+uv pip install -e ".[test]"           # + pytest
+uv pip install -e ".[examples]"       # + examples
+uv pip install -e ".[multiobjective,notebooks,examples,test]" # complete installation
+```
+
+## Quickstart
+
+The following example illustrates the separation between symbolic declaration and tensor-level grounding.
+
+```python
+import torch
+import torch.nn as nn
+import sltn
+from sltn import Signature, Interpretation
+from sltn import kb_backward, kb_describe
+
+# --- 1. Declare the domain and symbols --------------------------------
+sig = Signature("animals")
+sig.sort("Animal")
+sig.predicate("isDog", ["Animal"])
+sig.predicate("likes", ["Animal", "Animal"])
+sig.variable("x", Animal), sig.variable("y", Animal)
+
+# --- 2. Bind values ---------------------------------------------------
+class Likes(nn.Module):
+    """A binary predicate net must take one argument per predicate slot."""
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(8, 1), nn.Sigmoid())
+
+    def forward(self, x, y):
+        return self.net(torch.cat([x, y], dim=-1))
+
+interp = Interpretation(sig)
+interp["Animal"] = sltn.Type("Animal", shape=(4,))  # 4-dim feature vectors
+interp["x"]      = torch.randn(50, 4)
+interp["y"]      = torch.randn(50, 4)
+interp["isDog"]  = nn.Sequential(nn.Linear(4, 1), nn.Sigmoid())
+interp["likes"]  = Likes()
+```
+
+In this design, the Signature specifies what symbolic objects exist, while the Interpretation specifies how they are grounded computationally. The signature is independent of tensors and neural modules, which allows formulas to be parsed into reusable syntax trees and re-evaluated across different batches or interpretations.
+
+### Structural dimensions
+
+Some domains require reasoning over structured axes rather than only over independent individuals. Examples include temporal signals, ordered sequences, video data, and graph-structured representations. `sLTN` exposes such axes as structural dimensions declared in the signature.
+
+```python
+sig = Signature("seq")
+sig.sort("S")
+sig.dimension("T")
+sig.predicate("A", ["S"], input_dims=["T"], output_dims=["T"])
+sig.structural_relation("next", ["T", "T"])
+sig.structural_variable("t","T")
+
+# "A is preserved across consecutive steps"
+phi = sig.parse("forall t, t1 | next(t, t1): (A(x[t])[t] -> A(x[t1])[t1])")
+```
+
+Here, `"T"` denotes a structural dimension, while next defines a structural relation over that dimension. The parsed formula states that if A holds at one structural position, then it should also hold at the next related position.
+
+## Running tests
+
+```bash
+source .venv/bin/activate
+pytest -v tests/
+```
+
+
+## Generating datasets
+
+The datasets used in `notebooks/ltn_examples/` can be downloaded from the original LTN repository with:
+
+```bash
+python notebooks/datasets/datasets_generation/download_original_datasets.py
+```
+
+
+
+## Notebooks
+
+
+| Folder                      | Contents                                                                                                                                                                                                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `notebooks/tutorials_sltn/` | Step-by-step tutorials, in order: (1) signatures and interpretations, (2) FOL formulas — connectives and quantifiers, (3) fuzzy operators and gradients, (4) knowledge bases and learning, (5) structural LTN. |
+| `notebooks/ltn_examples/`   | Classic LTN benchmark tasks reimplemented in sLTN: classification, regression, clustering, embedding learning.                                                                                                 |
+| `notebooks/examples/`       | Worked examples: the running example (`0_Running_example.ipynb`) used in companion paper, combining the full tutorial series, multi-digit addition, and LTLf-style temporal reasoning in sLTN.                 |
+
+
+
+
+## Citation
+
+If you use sLTN in your research, please cite the accompanying paper:
+
+```bibtex
+@misc{rinaldi2026sltn,
+  title         = {sLTN: Structural Logic Tensor Networks},
+  author        = {Rinaldi, Davide and Serafini, Luciano},
+  year          = {2026},
+  eprint        = {2608.11136},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2608.11136}
 }
 ```
+
+## Note on AI-Assisted Development
+
+Large language models (LLMs) were used to assist with selected development tasks, including tests, tutorials, and bug fixing.
+
