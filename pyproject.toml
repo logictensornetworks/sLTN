@@ -1,0 +1,57 @@
+[project]
+name = "sltn"
+version = "0.1.0"
+description = "Structural Logic Tensor Networks (sLTN)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Davide Rinaldi", email = "davide.rinaldi@nokia-bell-labs.com" },
+    { name = "Luciano Serafini", email = "serafini@fbk.eu" },
+]
+keywords = ["fuzzy logic", "logic tensor networks", "neuro-symbolic", "pytorch"]
+dependencies = [
+    "torch>=2.10.0",
+]
+
+[project.urls]
+Repository = "https://github.com/logictensornetworks/sltn"
+Repository2 = "https://github.com/Nokia-Bell-Labs/logictensornetworks-sLTN"
+ArXiv = "https://arxiv.org/abs/2608.11136"
+[project.optional-dependencies]
+multiobjective = [
+    "torchjd[quadprog_projector]",
+]
+notebooks = [
+    "ipywidgets>=8.1.6",
+    "jupyterlab>=4.4.0",
+    "matplotlib>=3.10.1",
+    "seaborn==0.13.2",
+    "numpy>=2.2.4",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.6.1",
+    "torchvision>=0.25.0",
+    "tqdm>=4.67.1",
+]
+examples = [
+    "ltlf2dfa==2.0.0",
+    "python-sat==1.9.dev13",
+    "torchmetrics==1.9.0",
+]
+test = [
+    "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["sltn"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
