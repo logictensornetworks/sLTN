@@ -135,7 +135,7 @@ class Logic:
 
         if self.Or is None:
             or_op = (
-                disjunction.OrDual(and_op, not_op, stable=stable, eps=eps)
+                disjunction.OrDual(and_op, not_op)
                 if derive_connectives
                 else disjunction.OrProbSum(stable, eps)
             )
@@ -144,7 +144,7 @@ class Logic:
 
         if self.Implies is None:
             implies_op = (
-                implication.ImpliesDual(and_op, not_op, stable=stable, eps=eps)
+                implication.ImpliesDual(and_op, not_op)
                 if derive_connectives
                 else implication.ImpliesGoguen(stable, eps)
             )

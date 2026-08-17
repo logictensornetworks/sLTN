@@ -9,20 +9,10 @@ class ImpliesDual(BinaryConnectiveOperator):
     """
     Given a conjunction and a negation, return the implication A -> B = not (A and not B)
     """
-    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: BinaryConnectiveOperator, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: BinaryConnectiveOperator):
         
         self.and_op = and_op
         self.neg_op = neg_op
-        self.stable = stable
-        self.eps = eps
-
-        if stable:
-            if hasattr(self.and_op, 'stable'):
-                self.and_op.stable = stable
-                self.and_op.eps = eps
-            if hasattr(self.neg_op, 'stable'):
-                self.neg_op.stable = stable
-                self.neg_op.eps = eps
 
     def __repr__(self) -> str:
         return f"ImpliesDual(and_op={self.and_op}, neg_op={self.neg_op})"
@@ -47,7 +37,9 @@ class ImpliesReichenbach(ImpliesDual):
     Reichenbach fuzzy implication operator: A -> B = 1 - A - A*B
     """
     def __init__(self, stable=False, eps=DEFAULT_EPS):
-        super().__init__(and_op=AndProd(), neg_op=NotStandard(), stable=stable, eps=eps)
+        super().__init__(and_op=AndProd(stable=stable, eps=eps), neg_op=NotStandard())
+        self.stable = stable
+        self.eps = eps
 
     def __repr__(self) -> str:
         return f"ImpliesReichenbach(stable={self.stable}, eps={self.eps})"
@@ -58,7 +50,9 @@ class ImpliesLuk(ImpliesDual):
     Lukasiewicz fuzzy implication operator.
     """
     def __init__(self, stable=False, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
-        super().__init__(and_op=AndLuk(stable=stable, eps=eps, beta=beta, smoothing_method=smoothing_method), neg_op=NotStandard(), stable=stable, eps=eps)
+        super().__init__(and_op=AndLuk(stable=stable, eps=eps, beta=beta, smoothing_method=smoothing_method), neg_op=NotStandard())
+        self.stable = stable
+        self.eps = eps
         self.beta = beta
         self.smoothing_method = smoothing_method
 
