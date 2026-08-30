@@ -15,6 +15,30 @@ A detailed description is available in the companion paper: [arXiv:268.11136](ht
 - **Training utilities.** optional `torchjd` support for multi-objective satisfaction of knowledge bases, via `kb_describe`, `kb_eval`, and `kb_backward` API.
 
 
+## Citation
+
+If you use sLTN in your research, please cite the accompanying preprint:
+
+```bibtex
+@misc{rinaldi2026sltn,
+  title         = {sLTN: Structural Logic Tensor Networks},
+  author        = {Rinaldi, Davide and Serafini, Luciano},
+  year          = {2026},
+  eprint        = {2608.11136},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2608.11136}
+}
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+sLTN has been developed, starting from the original implentation of LTNtorch, by Davide Rinaldi (Nokia Bell Labs) and Luciano Serafini (FBK).
+
+
 ## Installation
 
 Requires Python 3.10+.
@@ -104,7 +128,6 @@ source .venv/bin/activate
 pytest -v tests/
 ```
 
-
 ## Generating datasets
 
 The datasets used in `notebooks/ltn_examples/` can be downloaded from the original LTN repository with:
@@ -112,8 +135,6 @@ The datasets used in `notebooks/ltn_examples/` can be downloaded from the origin
 ```bash
 python notebooks/datasets/datasets_generation/download_original_datasets.py
 ```
-
-
 
 ## Notebooks
 
@@ -124,23 +145,6 @@ python notebooks/datasets/datasets_generation/download_original_datasets.py
 | `notebooks/ltn_examples/`   | Classic LTN benchmark tasks reimplemented in sLTN: classification, regression, clustering, embedding learning.                                                                                                 |
 | `notebooks/examples/`       | Worked examples: the running example (`0_Running_example.ipynb`) used in companion paper, combining the full tutorial series, multi-digit addition, and LTLf-style temporal reasoning in sLTN.                 |
 
-
-
-
-## Citation
-
-If you use sLTN in your research, please cite the accompanying paper:
-
-```bibtex
-@misc{rinaldi2026sltn,
-  title         = {sLTN: Structural Logic Tensor Networks},
-  author        = {Rinaldi, Davide and Serafini, Luciano},
-  year          = {2026},
-  eprint        = {2608.11136},
-  archivePrefix = {arXiv},
-  url           = {https://arxiv.org/abs/2608.11136}
-}
-```
 
 ## Note on AI-Assisted Development
 
