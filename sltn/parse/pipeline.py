@@ -210,6 +210,13 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                             sig._structural_variables[vname] = alias_sv
                             sig._structural_variables_aliases[vname] = real_base
                             resolved = True
+                    elif base in sig._variables or base in sig._variables_aliases:
+                        real_base = sig._variables_aliases.get(base, base)
+                        base_var = sig._variables.get(real_base)
+                        if base_var is not None:
+                            sig._variables[vname] = VariableSymbol(name=vname, sort=base_var.sort, dims=base_var.structural_variables or None)
+                            sig._variables_aliases[vname] = real_base
+                            resolved = True
                     elif base in sig._dimensions:
                         dim = sig._dimensions[base]
                         if base not in sig._structural_variables:
@@ -539,15 +546,29 @@ def _build_infix_lists(sig: "Signature"):
 
 
 def _run_pipeline(ast, sig: "Signature", infix_preds, infix_fns):
-    """Expand definitions and run all annotation passes on *ast* in place."""
-    if sig._definitions:
-        ast = _expand_definitions(ast, sig._definitions, sig,
-                                  infix_preds=infix_preds, infix_fns=infix_fns)
-    _resolve_symbols(ast, sig)
-    _annotate_free_structural_variables(ast, sig)
-    _annotate_free_variables(ast, sig)
-    _validate_struct_quantifiers(ast, sig)
-    _validate_kb_clauses(ast)
+    """Expand definitions and run all annotation passes on *ast* in place.
+
+    Symbols auto-registered while resolving names (aliases such as ``x1`` or
+    ``t'``) are rolled back if any pass fails, so a failed parse leaves *sig*
+    unchanged.
+    """
+    registries = (sig._variables, sig._variables_aliases,
+                  sig._structural_variables, sig._structural_variables_aliases)
+    snapshot = [dict(r) for r in registries]
+    try:
+        if sig._definitions:
+            ast = _expand_definitions(ast, sig._definitions, sig,
+                                      infix_preds=infix_preds, infix_fns=infix_fns)
+        _resolve_symbols(ast, sig)
+        _annotate_free_structural_variables(ast, sig)
+        _annotate_free_variables(ast, sig)
+        _validate_struct_quantifiers(ast, sig)
+        _validate_kb_clauses(ast)
+    except BaseException:
+        for registry, saved in zip(registries, snapshot):
+            registry.clear()
+            registry.update(saved)
+        raise
     return ast
 
 

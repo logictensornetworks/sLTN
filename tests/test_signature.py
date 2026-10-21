@@ -415,6 +415,48 @@ def test_variable_alias_resolution():
     assert isinstance(phi, AtomicFormula)
 
 
+@pytest.mark.parametrize("formula", ["forall u1: C(u1)", "forall u': C(u')", "forall u, u1: B(u, u1)"])
+def test_variable_alias_as_quantified_name(formula):
+    """A variable alias can be quantified without first appearing free."""
+    sig = Signature("s")
+    S = sig.sort("S")
+    sig.predicate("B", ["S", "S"])
+    sig.predicate("C", ["S"])
+    sig.variable("u", S)
+    phi = sig.parse(formula)
+    assert isinstance(phi, Forall)
+
+
+def test_quantified_variable_alias_shares_base_grounding():
+    sig = Signature("s")
+    S = sig.sort("S")
+    sig.predicate("B", ["S", "S"])
+    sig.variable("u", S)
+    interp = Interpretation(sig)
+    interp[S] = Real
+    interp["u"] = torch.tensor([[0.0], [1.0], [2.0]])
+    interp["B"] = lambda a, b: torch.sigmoid(a - b)
+    # u1 ranges over the same 3 individuals as u: the result aggregates the full 3x3 grid
+    grid = torch.sigmoid(torch.tensor([0.0, 1.0, 2.0])[:, None] - torch.tensor([0.0, 1.0, 2.0])[None, :])
+    expected = interp.logic.with_defaults().Forall(grid.reshape(-1), dim=0)
+    assert torch.allclose(interp(sig.parse("forall u, u1: B(u, u1)")).value.reshape(()), expected)
+
+
+def test_failed_parse_does_not_register_aliases():
+    sig = Signature("s")
+    S = sig.sort("S")
+    sig.predicate("C", ["S"])
+    sig.variable("u", S)
+    sig.dimension("T")
+    before = (dict(sig._variables), dict(sig._variables_aliases),
+              dict(sig._structural_variables), dict(sig._structural_variables_aliases))
+    with pytest.raises(NameError):
+        sig.parse("forall T: C(u2) and Nope(u)")
+    after = (sig._variables, sig._variables_aliases,
+             sig._structural_variables, sig._structural_variables_aliases)
+    assert after == before
+
+
 def test_define_formula_expanded_in_nested_fnapp():
     """A definition with a formula body may appear as an argument to another defined call."""
     sig = Signature("s")
