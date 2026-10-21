@@ -195,6 +195,15 @@ def test_equiv_similarity_matches_definition() -> None:
     assert torch.allclose(op(x, y), expected)
 
 
+def test_equiv_similarity_applies_pi0_only_when_stable() -> None:
+    # float64, so that the eps shift of pi_0 is visible
+    x = torch.tensor([0.4], dtype=torch.float64)
+
+    assert torch.equal(fuzzy_ops.EquivSimilarity(stable=False)(x, x), torch.ones_like(x))
+    assert torch.all(fuzzy_ops.EquivSimilarity(stable=True)(x, x) < 1.0)
+    assert torch.equal(fuzzy_ops.EquivSimilarity(stable=True)(x, x, stable=False), torch.ones_like(x))
+
+
 def test_equiv_similarity_is_symmetric() -> None:
     op = fuzzy_ops.EquivSimilarity(p=2, stable=True)
     x = torch.tensor([0.1, 0.9])

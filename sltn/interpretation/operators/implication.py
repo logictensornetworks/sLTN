@@ -34,7 +34,7 @@ class ImpliesKleeneDienes(ImpliesDual):
 
 class ImpliesReichenbach(ImpliesDual):
     """
-    Reichenbach fuzzy implication operator: A -> B = 1 - A - A*B
+    Reichenbach fuzzy implication operator: A -> B = 1 - A + A*B
     """
     def __init__(self, stable=False, eps=DEFAULT_EPS):
         super().__init__(and_op=AndProd(stable=stable, eps=eps), neg_op=NotStandard())
@@ -169,5 +169,9 @@ class EquivSimilarity(BinaryConnectiveOperator):
     def __repr__(self) -> str:
         return f"EquivSimilarity(p={self.p}, stable={self.stable}, eps={self.eps})"
 
-    def __call__(self, x, y) -> torch.Tensor:
-        return 1.0 - torch.pow(pi_0(torch.abs(x - y), self.eps), self.p)
+    def __call__(self, x, y, stable=None) -> torch.Tensor:
+        stable = self.stable if stable is None else stable
+        diff = torch.abs(x - y)
+        if stable:
+            diff = pi_0(diff, self.eps)
+        return 1.0 - torch.pow(diff, self.p)
