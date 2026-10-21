@@ -87,7 +87,7 @@ class AggregGeometricMean(AggregationOperator):
     Parameters
     ----------
     stable : bool
-        If ``True``, clamps inputs away from 1 before taking the log to
+        If ``True``, clamps inputs away from 0 before taking the log to
         prevent gradient blow-up at the boundary.
     eps : float
         Clamping epsilon used when *stable* is ``True``.
@@ -113,7 +113,7 @@ class AggregGeometricMean(AggregationOperator):
         stable = self.stable if stable is None else stable
 
         if stable:
-            xs = pi_1(xs, self.eps)
+            xs = pi_0(xs, self.eps)
 
         if mask is not None:
             # Accept both bool masks (hard guard) and float tensors in [0,1];
