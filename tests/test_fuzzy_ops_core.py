@@ -77,8 +77,9 @@ def test_andcos_matches_definition() -> None:
     x = torch.tensor([0.3, 0.6])
     y = torch.tensor([0.4, 0.7])
 
-    expected = x * y - torch.sqrt(1 - x**2) * torch.sqrt(1 - y**2)
+    expected = torch.clamp(x * y - torch.sqrt(1 - x**2) * torch.sqrt(1 - y**2), min=0.0)
     assert torch.allclose(op(x, y), expected)
+    assert torch.all(op(x, y) >= 0.0)
 
 
 def test_andluk_hard_matches_definition() -> None:

@@ -77,7 +77,7 @@ class AndCos(BinaryConnectiveOperator):
         stable = self.stable if stable is None else stable
         if stable:
             x, y = pi_1(x, self.eps), pi_1(y, self.eps)
-        return torch.mul(x, y) - torch.sqrt(1-x**2) * torch.sqrt(1-y**2)
+        return torch.clamp(torch.mul(x, y) - torch.sqrt(1-x**2) * torch.sqrt(1-y**2), min=0.)
 
 
 class AndLuk(BinaryConnectiveOperator):
