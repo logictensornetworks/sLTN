@@ -107,7 +107,8 @@ class AndLuk(BinaryConnectiveOperator):
             beta = self.beta if self.beta is not None else DEFAULT_BETA
             smoothing_method = self.smoothing_method or "squareplus"
             x, y = pi_0(x, self.eps), pi_0(y, self.eps)
-            return smooth_clamp(x + y - 1., min=0., beta=beta, smoothing_method=smoothing_method)
+            res = smooth_clamp(x + y - 1., min=0., beta=beta, smoothing_method=smoothing_method)
+            return torch.clamp(res, max=1.)
         else:
             return torch.clamp(x + y - 1., min=0.)
 

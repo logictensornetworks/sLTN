@@ -288,3 +288,39 @@ def test_smooth_clamp_with_nonzero_min():
     y = smooth_clamp(x, min=0.2, max=1.0, beta=1000.0)
     assert torch.allclose(y, torch.tensor([0.2, 0.5, 0.7, 1.0]), atol=1e-3)
 
+
+# ---------------------------------------------------------------------------
+# Stable Łukasiewicz operators
+# ---------------------------------------------------------------------------
+
+def test_stable_lukasiewicz_operators_stay_in_unit_interval():
+    """found-bugs.md #50: AndLuk(stable=True)(1, 1) was 1.024, so OrLuk / ImpliesLuk went negative."""
+    from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk
+    v = torch.tensor([0.0, 0.25, 0.5, 0.75, 1.0])
+    x, y = torch.meshgrid(v, v, indexing="ij")
+    for op in (AndLuk(stable=True), OrLuk(stable=True), ImpliesLuk(stable=True)):
+        r = op(x, y)
+        assert torch.all((r >= 0.0) & (r <= 1.0)), op
+    one, zero = torch.tensor(1.0), torch.tensor(0.0)
+    assert AndLuk(stable=True)(one, one) == 1.0
+    assert OrLuk(stable=True)(zero, zero) == 0.0
+    assert ImpliesLuk(stable=True)(one, zero) == 0.0
+
+
+def test_stable_lukasiewicz_and_in_a_formula_with_crisp_values():
+    """found-bugs.md #50: a crisp A(x) & B(x) failed the Bool check."""
+    from sltn import Signature, Interpretation, Type
+    from sltn.interpretation import Logic
+    from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk
+    sig = Signature("luk")
+    sig.sort("S"); sig.variable("x", "S")
+    sig.predicate("A", ["S"]); sig.predicate("B", ["S"])
+    i = Interpretation(sig)
+    i.logic = Logic(And=AndLuk(stable=True), Or=OrLuk(stable=True), Implies=ImpliesLuk(stable=True))
+    i["S"] = Type("S", shape=(1,), axis_names=["feat"])
+    i["x"] = torch.rand(4, 1)
+    i["A"] = lambda a: torch.ones_like(a)
+    i["B"] = lambda a: torch.ones_like(a)
+    assert torch.all(i("A(x) & B(x)").value == 1.0)
+    assert torch.all(i("A(x) -> B(x)").value <= 1.0)
+
