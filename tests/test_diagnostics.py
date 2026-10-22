@@ -84,3 +84,48 @@ def test_cache_benchmark_with_backward_compute():
     phi = sig.parse("forall x: P(x)")
     result = cache_benchmark(interp, phi, n_runs=2, backward_compute=True)
     assert result["speedup"] > 0.0
+
+
+def test_cache_benchmark_backward_leaves_parameter_grads_untouched():
+    # found-bugs.md #67: every run's gradients accumulated into the model.
+    sig = Signature("diag_net")
+    S = sig.sort("S")
+    sig.predicate("P", ["S"])
+    sig.predicate("Q", ["S"])
+    x = sig.variable("x", S)
+    net = torch.nn.Sequential(torch.nn.Linear(1, 4), torch.nn.Linear(4, 1), torch.nn.Sigmoid())
+    hidden = torch.nn.Linear(1, 1)   # used only inside a lambda (not in interp.parameters())
+
+    interp = Interpretation(sig)
+    interp[S] = Type("S", shape=(1,))
+    interp[x] = torch.rand(4, 1)
+    interp[sig.get_predicate("P")] = net
+    interp[sig.get_predicate("Q")] = lambda v: torch.sigmoid(hidden(v))
+
+    cache_benchmark(interp, "forall x: (P(x) & Q(x))", n_runs=3, backward_compute=True)
+    for p in list(net.parameters()) + list(hidden.parameters()):
+        assert p.grad is None
+
+
+def test_cache_benchmark_warms_up_and_alternates_modes(kb_interp, monkeypatch):
+    # found-bugs.md #67: no warm-up, and the no-cache mode always ran first.
+    sig, interp = kb_interp
+    modes = []
+    original_call = type(interp).__call__
+
+    def recording_call(self, *args, **kwargs):
+        modes.append(self.use_cache)
+        return original_call(self, *args, **kwargs)
+
+    monkeypatch.setattr(type(interp), "__call__", recording_call)
+    cache_benchmark(interp, "forall x: P(x)", n_runs=4, n_warmup=2)
+
+    assert len(modes) == 2 * (2 + 4)
+    timed = modes[4:]
+    assert timed == [False, True, True, False, False, True, True, False]
+
+
+def test_cache_benchmark_backward_without_grad_raises(kb_interp):
+    sig, interp = kb_interp   # lambdas and data with no parameters
+    with pytest.raises(ValueError, match="requires grad"):
+        cache_benchmark(interp, "forall x: P(x)", n_runs=1, backward_compute=True)
