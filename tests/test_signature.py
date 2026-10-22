@@ -651,3 +651,34 @@ def test_axis_annotation_must_match_the_dimension_it_renames():
         with pytest.raises(ValueError, match="ranges over dimension"):
             sig.parse(bad)
         assert set(sig._structural_variables) == before   # failed parse rolled back
+
+
+def test_quantifier_rejects_duplicate_and_unused_variables():
+    # found-bugs.md #29: duplicate bound names and unused individual variables
+    # were accepted, while an unused structural variable raised.
+    sig = Signature("bound_vars")
+    I = sig.sort("Img")
+    T = sig.dimension("T")
+    sig.variable("x", I, dims=[T])
+    sig.variable("y", I)
+    sig.variable("z", I)
+    sig.structural_variable("t", T)
+    sig.predicate("C", ["Img"])
+    sig.predicate("R", ["Img", "Img"])
+
+    for bad, msg in (("forall y, y: C(y)", "more than once"),
+                     ("forall t, t: C(x[t])[t]", "more than once"),
+                     ("forall y: C(x)", "never used"),
+                     ("exists y, z: C(y)", "never used"),
+                     ("forall y: forall y: C(y)", "never used")):
+        with pytest.raises(ValueError, match=msg):
+            sig.parse(bad)
+
+    for ok in ("forall y, z: R(y, z)",
+               "forall y1: C(y1)",
+               "forall y | C(y): C(z)",
+               "forall y: (C(y) & forall y: C(y))",
+               "forall x, t: C(x[t])[t]",
+               "{ forall y: C(y), forall z: C(z) }"):
+        sig.parse(ok)
+

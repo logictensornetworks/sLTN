@@ -8,7 +8,8 @@ after the grammar produces a raw AST.  The pipeline runs in this order:
 2. :func:`_resolve_symbols`                  — replace string names with Symbol objects
 3. :func:`_annotate_free_structural_variables` — compute d(node) for each AST node
 4. :func:`_annotate_free_variables`          — compute free FOL variables per node
-5. :func:`_validate_struct_quantifiers`      — check alias StructuralVariables are used
+5. :func:`_validate_quantifiers`            — check bound names are distinct and used
+6. :func:`_validate_kb_clauses`             — check every clause of a parsed KB is closed
 """
 from __future__ import annotations
 
@@ -278,7 +279,7 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Explicit-axis collection (used by _validate_struct_quantifiers)
+# Explicit-axis collection (used by _validate_quantifiers)
 # ---------------------------------------------------------------------------
 
 def _collect_explicit_axis_names(node: Formula | Term) -> set:
@@ -338,18 +339,41 @@ def _collect_explicit_axis_names(node: Formula | Term) -> set:
 # Quantifier validation
 # ---------------------------------------------------------------------------
 
-def _validate_struct_quantifiers(node: Formula | Term, sig: Signature) -> None:
-    """Validate that every alias StructuralVariableSymbol in a quantifier is used in the body.
+def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
+    """Validate the names bound by every quantifier.
 
-    An *alias* StructuralVariableSymbol is one whose name differs from its base Dimension name
-    (e.g. ``t1``, ``t'``).  If such an alias appears in a ``forall``/``exists``
-    but never in any explicit axis annotation inside the body, it has no effect
-    and is almost certainly a mistake.
+    - A quantifier must not bind the same name twice (``forall y, y``).
+    - Every bound individual variable must occur free in the body or the guard;
+      otherwise the quantifier is vacuous (``forall y: C(x)``).
+    - Every bound *alias* StructuralVariableSymbol (one whose name differs from its
+      base Dimension name, e.g. ``t1``, ``t'``) must appear as an explicit axis
+      annotation in the body or the guard; otherwise the aggregation would reduce
+      nothing, because the default axis name is the dimension name.
+
+    Nested shadowing is allowed when the outer variable is used
+    (``forall y: (C(y) & forall y: C(y))``). In ``forall y: forall y: C(y)``
+    the outer ``y`` is vacuous and is rejected.
 
     Raises :class:`ValueError` if a violation is found.
     """
     match node:
         case _BoundFormula():
+            duplicates = sorted({v for v in node.var_names if list(node.var_names).count(v) > 1})
+            if duplicates:
+                raise ValueError(
+                    f"Quantifier binds {', '.join(map(repr, duplicates))} more than once: "
+                    f"{list(node.var_names)}."
+                )
+            free = set(node.formula.free_variables)
+            if node.guard is not None:
+                free |= node.guard.free_variables
+            for vname in node.var_names:
+                if vname in sig._variables and vname not in free:
+                    raise ValueError(
+                        f"Variable '{vname}' is declared in the quantifier but never used "
+                        f"in the formula body or guard, so the quantifier has no effect. "
+                        f"Remove '{vname}' from the quantifier or use it in the body."
+                    )
             mentioned = _collect_explicit_axis_names(node.formula)
             if node.guard is not None:
                 mentioned |= _collect_explicit_axis_names(node.guard)
@@ -363,21 +387,21 @@ def _validate_struct_quantifiers(node: Formula | Term, sig: Signature) -> None:
                             f"Add e.g. `A(x)[{vname}]` or remove '{vname}' from the quantifier. "
                             f"Axis names found in body: {sorted(mentioned) or '(none)'}."
                         )
-            _validate_struct_quantifiers(node.formula, sig)
+            _validate_quantifiers(node.formula, sig)
             if node.guard is not None:
-                _validate_struct_quantifiers(node.guard, sig)
+                _validate_quantifiers(node.guard, sig)
         case And() | Or() | Implies() | Equivalent():
-            _validate_struct_quantifiers(node.left, sig)
-            _validate_struct_quantifiers(node.right, sig)
+            _validate_quantifiers(node.left, sig)
+            _validate_quantifiers(node.right, sig)
         case Not():
-            _validate_struct_quantifiers(node.operand, sig)
+            _validate_quantifiers(node.operand, sig)
         case KB():
             for c in node.clauses:
-                _validate_struct_quantifiers(c, sig)
+                _validate_quantifiers(c, sig)
         case TermFormula():
-            _validate_struct_quantifiers(node.term, sig)
+            _validate_quantifiers(node.term, sig)
         case FormulaAxisSelect():
-            _validate_struct_quantifiers(node.base_formula, sig)
+            _validate_quantifiers(node.base_formula, sig)
 
 
 # ---------------------------------------------------------------------------
@@ -599,7 +623,7 @@ def _run_pipeline(ast, sig: "Signature", infix_preds, infix_fns):
         _resolve_symbols(ast, sig)
         _annotate_free_structural_variables(ast, sig)
         _annotate_free_variables(ast, sig)
-        _validate_struct_quantifiers(ast, sig)
+        _validate_quantifiers(ast, sig)
         _validate_kb_clauses(ast)
     except BaseException:
         for registry, saved in zip(registries, snapshot):
