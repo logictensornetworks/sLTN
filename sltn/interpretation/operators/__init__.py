@@ -6,10 +6,13 @@ aggregation operators used by :class:`~sltn.interpretation.Logic` and
 :class:`~sltn.interpretation.Interpretation`.
 
 Connectives:
-  - :mod:`.conjunction`  — And (min, product, pMean, cosine, Łukasiewicz)
-  - :mod:`.disjunction`  — Or (max, probabilistic sum, classical, Łukasiewicz)
-  - :mod:`.negation`     — Not (standard, Gödel)
-  - :mod:`.implication`  — Implies (Kleene-Dienes, Gödel, Reichenbach, Goguen, Łukasiewicz, classical)
+  - :mod:`.conjunction`  — And: AndMin, AndProd, AndPMean, AndCos, AndLuk
+  - :mod:`.disjunction`  — Or: OrMax, OrProbSum, OrLuk, OrDual (¬(¬A ∧ ¬B) from any And/Not),
+                           and XOrClassical
+  - :mod:`.negation`     — Not: NotStandard, NotGodel
+  - :mod:`.implication`  — Implies: ImpliesKleeneDienes, ImpliesGodel, ImpliesReichenbach,
+                           ImpliesGoguen, ImpliesLuk, ImpliesDual (¬(A ∧ ¬B) from any And/Not);
+                           equivalence: Equiv, EquivSimilarity
 
 Aggregation:
   - :mod:`.aggregator`   — AggregMin, AggregMax, AggregGeometricMean, AggregPMean, AggregPMeanError

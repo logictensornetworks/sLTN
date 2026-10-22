@@ -14,6 +14,7 @@ from sltn.signature import (
 )
 from .formula import (
     Formula,
+    TermFormula,
     FormulaAxisSelect,
     AtomicFormula,
     And,
@@ -26,6 +27,7 @@ from .formula import (
     KB,
     StructuralForall,
     StructuralExists,
+    StructuralRelation,
 )
 from .term import Term, Variable, Constant, StructuralVariable, FunctionApplication, TermAxisSelect
 
@@ -41,6 +43,7 @@ __all__ = [
     "StructuralRelationSymbol",
     "Signature",
     "Formula",
+    "TermFormula",
     "FormulaAxisSelect",
     "AtomicFormula",
     "And",
@@ -53,6 +56,7 @@ __all__ = [
     "KB",
     "StructuralForall",
     "StructuralExists",
+    "StructuralRelation",
     "Term",
     "Variable",
     "Constant",

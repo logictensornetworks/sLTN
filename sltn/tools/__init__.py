@@ -5,6 +5,5 @@ __all__ = [
     "kb_backward",
     "kb_describe",
     "kb_eval",
-    "CrispnessScheduler",
     "cache_benchmark",
 ]
