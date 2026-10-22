@@ -297,3 +297,30 @@ def test_masked_mean_is_exact_and_empty_guard_is_finite(op):
     xs = torch.ones(5)
     assert op(xs, dim=0, mask=torch.ones(5, dtype=torch.bool)) == 1.0
     assert torch.isfinite(op(xs, dim=0, mask=torch.zeros(5, dtype=torch.bool)))
+
+
+# found-bugs.md #53: AggregMin(bottom_k) / AggregMax(top_k) with k > 1
+
+def test_extremum_k_larger_than_reduced_size_averages_everything():
+    x = torch.tensor([0.9, 0.2, 0.6])
+    assert torch.isclose(fuzzy_ops.AggregMin(bottom_k=5)(x, dim=0), x.mean())
+
+
+def test_extremum_ignores_masked_entries_when_fewer_than_k_are_valid():
+    x = torch.tensor([0.9, 0.2, 0.6])
+    assert torch.isclose(fuzzy_ops.AggregMin(bottom_k=2)(x, dim=0, mask=torch.tensor([False, True, False])), torch.tensor(0.2))
+    # a valid 1.0 must not lose a tie against the masked-out entry
+    y = torch.tensor([0.2, 1.0, 0.5])
+    assert torch.isclose(fuzzy_ops.AggregMin(bottom_k=2)(y, dim=0, mask=torch.tensor([True, True, False])), torch.tensor(0.6))
+    empty = torch.zeros(3, dtype=torch.bool)
+    assert fuzzy_ops.AggregMin(bottom_k=2)(x, dim=0, mask=empty) == 1.0
+    assert fuzzy_ops.AggregMax(top_k=2)(x, dim=0, mask=empty) == 0.0
+
+
+def test_extremum_over_several_dims_takes_k_extremes_jointly():
+    x = torch.tensor([[0.1, 0.9], [0.8, 0.2]])
+    assert torch.isclose(fuzzy_ops.AggregMin(bottom_k=2)(x, dim=[0, 1]), torch.tensor(0.15))
+    X = torch.rand(4, 5, 6)
+    assert torch.allclose(fuzzy_ops.AggregMin()(X, dim=[1, 2]), X.amin(dim=(1, 2)))
+    assert fuzzy_ops.AggregMax()(X, dim=[1, 2], keepdim=True).shape == (4, 1, 1)
+

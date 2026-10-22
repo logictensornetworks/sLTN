@@ -27,18 +27,44 @@ class _AggregExtremum(AggregationOperator):
     def __call__(self, xs, dim=None, keepdim=False, mask=None, k=None):
         k = self.k if k is None else k
 
-        if mask is not None:
-            w  = mask.float() if mask.dtype == torch.bool else mask
-            xs = torch.where(w > 0, xs, torch.full_like(xs, self._mask_fill))
+        # Normalise dims; None reduces over every dim, as torch.mean does.
+        if dim is None:
+            dims = list(range(xs.ndim))
+        else:
+            dims = [dim] if isinstance(dim, int) else list(dim)
+        dims = sorted(d % xs.ndim for d in dims)
+        kept = [d for d in range(xs.ndim) if d not in dims]
 
-        dims   = [dim] if isinstance(dim, int) else (dim if dim is not None else [])
-        result = xs
-        for d in dims:
-            topk_res, _ = torch.topk(result, k=k, dim=d, largest=self._largest, sorted=False)
-            result      = torch.mean(topk_res, dim=d, keepdim=True)
+        # Flatten the reduced dims into one trailing dim, so that the k extreme
+        # values are taken over all of them jointly, not one dim at a time.
+        def flatten(t):
+            return t.permute(kept + dims).reshape(*[t.shape[d] for d in kept], -1)
 
-        if not keepdim:
-            result = torch.squeeze(result, dim=dims)
+        flat = flatten(xs)
+        k    = min(k, flat.shape[-1])
+
+        if mask is None:
+            vals, _ = torch.topk(flat, k=k, dim=-1, largest=self._largest, sorted=False)
+            result  = torch.mean(vals, dim=-1)
+        else:
+            # Masked-out entries are filled with -inf / +inf so they are only
+            # selected when fewer than k entries are valid; the mean is then
+            # taken over the valid selected entries only. An empty mask gives
+            # the neutral value (1 for min, 0 for max).
+            xs, valid = torch.broadcast_tensors(xs, mask > 0)
+            flat, valid = flatten(xs), flatten(valid)
+            fill = float("-inf") if self._largest else float("inf")
+            vals, idx = torch.topk(torch.where(valid, flat, fill), k=k, dim=-1,
+                                   largest=self._largest, sorted=False)
+            sel   = torch.gather(valid, -1, idx)
+            count = sel.sum(dim=-1)
+            total = torch.where(sel, vals, torch.zeros_like(vals)).sum(dim=-1)
+            result = torch.where(count > 0, total / count.clamp(min=1),
+                                 torch.full_like(total, self._mask_fill))
+
+        if keepdim:
+            for d in dims:
+                result = result.unsqueeze(d)
         return result
 
 
