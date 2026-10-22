@@ -2,7 +2,7 @@
 import pytest
 import torch
 import torch.nn as nn
-from sltn import Signature, Interpretation, Type
+from sltn import Signature, Interpretation, Type, Logic
 from sltn.tools.optim import kb_backward, kb_eval, kb_describe, CrispnessScheduler
 import sltn.interpretation.operators as fuzzy_ops
 
@@ -203,3 +203,34 @@ def test_kb_backward_invalid_aggregator_raises(single_pred_kb):
 def test_crispness_scheduler_raises_not_implemented():
     with pytest.raises(NotImplementedError):
         CrispnessScheduler()
+
+
+@pytest.mark.parametrize("make_logic", [
+    lambda: Logic(SatAgg=fuzzy_ops.AggregMin()),
+    lambda: Logic(SatAgg=fuzzy_ops.AggregMax()),
+    lambda: Logic.classical(struct_agg_axes=["T"]),
+], ids=["AggregMin", "AggregMax", "classical"])
+def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
+    # found-bugs.md #2: AggregMin/AggregMax reduced nothing with dim=None, so the
+    # SatAgg loss of a multi-clause KB was a vector and .backward() failed.
+    sig = Signature("minmax_satagg")
+    I = sig.sort("Img")
+    T = sig.dimension("T")
+    sig.variable("x", I, dims=[T])
+    sig.structural_variable("t", T)
+    sig.predicate("C", ["Img"])
+    kb = {"a": sig.parse("forall x: forall t: C(x[t])[t]"),
+          "b": sig.parse("exists x: forall t: C(x[t])[t]")}
+
+    mlp = nn.Linear(2, 1)
+    interp = Interpretation(sig)
+    interp["Img"] = Type("Img", shape=(2,), axis_names=["f"])
+    interp["x"] = torch.rand(3, 5, 2)
+    interp["C"] = nn.Sequential(mlp, nn.Sigmoid())
+    interp.logic = make_logic()
+    if interp.logic.StructAgg is None:
+        interp.logic["forall,t"] = fuzzy_ops.AggregPMeanError(p=2)
+
+    stats = kb_backward(torch.optim.SGD(mlp.parameters(), lr=0.1), interp, kb)
+    assert 0.0 <= stats["agg_loss"] <= 1.0
+    assert mlp.weight.grad is not None
