@@ -19,6 +19,14 @@ def pi_1(x, eps=DEFAULT_EPS):
     return (1 - eps) * x
 
 
+def safe_div(numerator, denominator, eps=DEFAULT_EPS):
+    """
+    numerator / denominator, with the denominator kept >= eps so that an empty guard (all weights 0) gives 0
+    instead of NaN. Unlike adding eps, this leaves the result exact whenever the denominator is >= eps.
+    """
+    return torch.div(numerator, torch.clamp(denominator, min=eps))
+
+
 def squareplus(x, beta = DEFAULT_BETA):
     return 0.5*(x+torch.sqrt(x**2+1/beta))
 

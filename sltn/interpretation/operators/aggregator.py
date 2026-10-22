@@ -1,6 +1,6 @@
 import torch
 from .base import AggregationOperator
-from .utils import DEFAULT_EPS, pi_0, pi_1
+from .utils import DEFAULT_EPS, pi_0, pi_1, safe_div
 
 
 class _AggregExtremum(AggregationOperator):
@@ -127,7 +127,7 @@ class AggregGeometricMean(AggregationOperator):
             log_xs      = torch.log(safe_xs)
             numerator   = torch.sum(w * log_xs, dim=dim, keepdim=keepdim)
             denominator = torch.sum(w,          dim=dim, keepdim=keepdim)
-            mean_log    = torch.div(numerator, denominator + 1e-6)
+            mean_log    = safe_div(numerator, denominator)
         else:
             mean_log = torch.mean(torch.log(xs), dim=dim, keepdim=keepdim)
 
@@ -162,7 +162,7 @@ class AggregPMean(AggregationOperator):
             w = mask.float() if mask.dtype == torch.bool else mask
             numerator   = torch.sum(w * xs_pow, dim=dim, keepdim=keepdim)
             denominator = torch.sum(w,          dim=dim, keepdim=keepdim)
-            mean_val    = torch.div(numerator, denominator + 1e-6)
+            mean_val    = safe_div(numerator, denominator)
             if stable:
                 mean_val = pi_0(mean_val, self.eps)
             return torch.pow(mean_val, 1 / p)

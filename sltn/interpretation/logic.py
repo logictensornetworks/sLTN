@@ -5,6 +5,7 @@ __all__ = ["Logic"]
 from typing import Dict, List, Optional, TYPE_CHECKING
 from sltn.interpretation.operators.base import AggregationOperator, UnaryConnectiveOperator, BinaryConnectiveOperator
 from sltn.interpretation.operators import aggregator, conjunction, disjunction, implication, negation
+from sltn.interpretation.operators.utils import DEFAULT_EPS
 
 if TYPE_CHECKING:
     from sltn.signature.signature import Signature
@@ -118,7 +119,7 @@ class Logic:
         self._signature: Optional["Signature"] = None
 
 
-    def with_defaults(self, stable = True, eps = 1E-12) -> Logic:
+    def with_defaults(self, stable = True, eps = DEFAULT_EPS) -> Logic:
         """Return a copy with any None field replaced by a sensible default.
 
         When both ``And`` and ``Not`` are set explicitly, any unset connectives

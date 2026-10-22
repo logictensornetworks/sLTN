@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 import sltn.interpretation.operators as fuzzy_ops
@@ -272,3 +273,27 @@ def test_agreggeometricmean_masked_excludes_zero_weight_entries() -> None:
     masked_result = op(x, dim=0, mask=mask)
     unmasked_result = op(x[mask], dim=0)
     assert torch.allclose(masked_result, unmasked_result, atol=1e-4)
+
+
+def test_default_logic_uses_default_eps():
+    # Logic.with_defaults hardcoded eps=1e-12, a no-op in float32 (found-bugs.md #12).
+    from sltn.interpretation import Logic
+    from sltn.interpretation.operators import DEFAULT_EPS
+    L = Logic().with_defaults()
+    for name in ("And", "Or", "Implies", "Forall", "Exists", "SatAgg"):
+        assert getattr(L, name).eps == DEFAULT_EPS, name
+
+
+def test_and_cos_stable_gradient_is_finite_at_one():
+    # found-bugs.md #51: sqrt(1 - x^2) has an infinite derivative at 1.
+    x = torch.tensor(1.0, requires_grad=True)
+    fuzzy_ops.AndCos(stable=True)(x, torch.tensor(0.5)).backward()
+    assert torch.isfinite(x.grad)
+
+
+@pytest.mark.parametrize("op", [fuzzy_ops.AggregPMean(), fuzzy_ops.AggregGeometricMean()])
+def test_masked_mean_is_exact_and_empty_guard_is_finite(op):
+    # The masked means divided by (sum of weights + 1e-6), so a full guard over ones gave < 1.
+    xs = torch.ones(5)
+    assert op(xs, dim=0, mask=torch.ones(5, dtype=torch.bool)) == 1.0
+    assert torch.isfinite(op(xs, dim=0, mask=torch.zeros(5, dtype=torch.bool)))
