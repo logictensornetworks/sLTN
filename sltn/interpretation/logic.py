@@ -123,9 +123,10 @@ class Logic:
         """Return a copy with any None field replaced by a sensible default.
 
         When both ``And`` and ``Not`` are set explicitly, any unset connectives
-        among ``Or``, ``Implies``, and ``Equiv`` are derived from them via the
-        classical de-Morgan definitions (``OrClassical``, ``ImpliesClassical``,
-        ``Equiv``).  Otherwise those fields keep their independent defaults.
+        among ``Or`` and ``Implies`` are derived from them via the classical
+        de-Morgan definitions (``OrDual``, ``ImpliesDual``).  Otherwise those
+        fields keep their independent defaults.  An unset ``Equiv`` is always
+        ``Equiv(And, Implies)``, built from the final ``And`` and ``Implies``.
 
         Note: ``StructAgg`` has no built-in default.  Every structural axis
         used in a formula must be declared explicitly.
@@ -153,11 +154,8 @@ class Logic:
             implies_op = self.Implies
 
         if self.Equiv is None:
-            equiv_op = (
-                implication.Equiv(and_op, implies_op)
-                if derive_connectives
-                else implication.Equiv(and_op, implication.ImpliesGoguen(stable, eps))
-            )
+            # Built from the final And and Implies, so a user-set Implies is used by <-> too.
+            equiv_op = implication.Equiv(and_op, implies_op)
         else:
             equiv_op = self.Equiv
 

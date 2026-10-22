@@ -399,3 +399,15 @@ def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
     r = repr(L)
     assert "(∀, T) : AggregMin" in r
     assert "(∃, T) : AggregMax" in r
+
+
+def test_equiv_default_uses_user_set_implies():
+    # found-bugs.md #23: Logic(Implies=...) left <-> on Goguen.
+    L = Logic(Implies=fuzzy_ops.ImpliesReichenbach()).with_defaults()
+    assert isinstance(L.Equiv.implies_op, fuzzy_ops.ImpliesReichenbach)
+    a, b = torch.tensor([0.9, 0.2, 0.6]), torch.tensor([0.3, 0.8, 0.6])
+    expected = L.And(L.Implies(a, b), L.Implies(b, a))
+    assert torch.allclose(L.Equiv(a, b), expected)
+    assert torch.allclose(L.Equiv(a, b), torch.tensor([0.359, 0.346, 0.578]), atol=1e-3)
+    # with nothing set, <-> still uses the default implication (Goguen)
+    assert isinstance(Logic().with_defaults().Equiv.implies_op, fuzzy_ops.ImpliesGoguen)
