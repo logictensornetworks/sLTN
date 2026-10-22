@@ -397,3 +397,16 @@ def test_expression_domain_names_compatibility():
     )
     assert e2.domain_type.axis_names == ["custom_name"]
 
+
+def test_type_shape_given_as_list_is_normalized_to_tuple():
+    # found-bugs.md #46: a list shape made every tensor fail the shape check.
+    t = Type(name="Img", shape=[2, 3])
+    assert t.shape == (2, 3)
+    assert t == Type(name="Img", shape=(2, 3))
+    e = Tensor(value=torch.rand(4, 2, 3), axes=[Axis("x", "variable")] + t.domain_axes, domain_type=t)
+    assert e.value.shape == (4, 2, 3)
+
+    # product_type accepts a list both as the prefix shape and in the base type
+    p = product_type(Type(name="D", shape=[2]), [3])
+    assert p.shape == (3, 2)
+

@@ -19,7 +19,7 @@ class Type:
     ) -> None:
 
         self.name = name
-        self.shape = shape
+        self.shape = tuple(shape)
         self.constraint = constraint
 
         if axis_names is None:
@@ -115,6 +115,7 @@ def product_type(
     """
     if not shape:
         return base_type
+    shape = tuple(shape)
     full_shape = shape + base_type.shape
     pnames = axis_names if axis_names is not None else [
         f'axis_{i}' for i in range(len(shape))
