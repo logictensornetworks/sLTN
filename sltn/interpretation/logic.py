@@ -290,7 +290,10 @@ class Logic:
             if f == 'StructAgg':
                 for ax, ops in val.items():
                     for q, op in ops.items():
-                        q = "∀" if q == "forall" else "∃"
+                        if q in _KIND_ALIASES["forall"]:
+                            q = "∀"
+                        elif q in _KIND_ALIASES["exists"]:
+                            q = "∃"
                         lines.append(f"    ({q}, {ax}) : {op}")
             else:
                 lines.append(f"    {_DEFAULT_SYMBOLS_DICT[f]}: {val}")

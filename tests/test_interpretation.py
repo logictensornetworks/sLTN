@@ -392,3 +392,10 @@ def test_logic_reused_across_interpretations_does_not_share_struct_agg():
     i1.logic["exists,T"] = fuzzy_ops.AggregMax()
     assert "exists" not in i2.logic.StructAgg["T"]
 
+
+def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
+    # found-bugs.md #57: every kind other than "forall" was printed as ∃.
+    L = Logic(StructAgg={"T": {"∀": fuzzy_ops.AggregMin(), "exists": fuzzy_ops.AggregMax()}})
+    r = repr(L)
+    assert "(∀, T) : AggregMin" in r
+    assert "(∃, T) : AggregMax" in r
