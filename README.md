@@ -2,7 +2,7 @@
 
 **sLTN** is a PyTorch framework for neural-symbolic learning based on differentiable first-order logic. It extends [LTNtorch](https://github.com/logictensornetworks/LTNtorch) with a typed symbolic interface, string-parsed first-order logic formulas, named tensor axes, and structural dimensions for reasoning over temporal, sequential, graph-based, and other structured data.
 
-A detailed description is available in the companion paper: [arXiv:268.11136](https://arxiv.org/abs/2608.11136).
+A detailed description is available in the companion paper: [arXiv:2608.11136](https://arxiv.org/abs/2608.11136).
 
 ## Key Features
 
@@ -81,7 +81,8 @@ sig = Signature("animals")
 sig.sort("Animal")
 sig.predicate("isDog", ["Animal"])
 sig.predicate("likes", ["Animal", "Animal"])
-sig.variable("x", Animal), sig.variable("y", Animal)
+sig.variable("x", "Animal")
+sig.variable("y", "Animal")
 
 # --- 2. Bind values ---------------------------------------------------
 class Likes(nn.Module):
@@ -111,15 +112,16 @@ Some domains require reasoning over structured axes rather than only over indepe
 sig = Signature("seq")
 sig.sort("S")
 sig.dimension("T")
+sig.structural_variable("t", "T")
+sig.variable("x", "S", dims=["T"])
 sig.predicate("A", ["S"], input_dims=["T"], output_dims=["T"])
 sig.structural_relation("next", ["T", "T"])
-sig.structural_variable("t","T")
 
 # "A is preserved across consecutive steps"
 phi = sig.parse("forall t, t1 | next(t, t1): (A(x[t])[t] -> A(x[t1])[t1])")
 ```
 
-Here, `"T"` denotes a structural dimension, while next defines a structural relation over that dimension. The parsed formula states that if A holds at one structural position, then it should also hold at the next related position.
+Here, `"T"` denotes a structural dimension and `t` a structural variable ranging over it (`t1` is an automatically created alias of `t`), while `next` defines a structural relation over that dimension. Structural axes in formulas are always named with structural variables, never with dimension names. The parsed formula states that if A holds at one structural position, then it should also hold at the next related position.
 
 ## Running tests
 
