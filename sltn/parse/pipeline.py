@@ -42,6 +42,41 @@ if TYPE_CHECKING:
 # Symbol resolution
 # ---------------------------------------------------------------------------
 
+def _annotation_dimension(name: str, sig: Signature) -> str | None:
+    """Return the dimension named by the axis annotation *name*, or ``None`` if unknown.
+
+    *name* can be a structural variable, an alias of one (``t1``), or a dimension name.
+    Nothing is registered in *sig*.
+    """
+    if name in sig._structural_variables:
+        return sig._structural_variables[name].dimension.name
+    if name in sig._dimensions:
+        return name
+    base = _base_name_of(name)
+    if base != name:
+        real_base = sig._structural_variables_aliases.get(base, base)
+        if real_base in sig._structural_variables:
+            return sig._structural_variables[real_base].dimension.name
+        if base in sig._dimensions:
+            return base
+    return None
+
+
+def _check_annotation_dimensions(name: str, dims: list, annotations: list, sig: Signature) -> None:
+    """Raise if an annotation in ``name[...]`` names a structural variable of another dimension.
+
+    Annotations rename the symbol's structural axes position by position, so the i-th
+    annotation must range over the i-th declared dimension. Unknown names are not checked.
+    """
+    for dim, ann in zip(dims, annotations):
+        ann_dim = _annotation_dimension(ann, sig)
+        if ann_dim is not None and ann_dim != dim.name:
+            raise ValueError(
+                f"Axis annotation '{ann}' in '{name}[{', '.join(annotations)}]' ranges over "
+                f"dimension '{ann_dim}', but the axis it renames has dimension '{dim.name}'."
+            )
+
+
 def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
     """Walk the AST and replace string names with Symbol objects from *sig*.
 
@@ -108,6 +143,8 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                     )
             # Promote _NameTerm in-place to typed term node.
             ann = list(node.axis_annotations)
+            if isinstance(resolved, (VariableSymbol, ConstantSymbol)):
+                _check_annotation_dimensions(name, resolved.structural_variables, ann, sig)
             match resolved:
                 case StructuralVariableSymbol():
                     node.__class__ = StructuralVariable

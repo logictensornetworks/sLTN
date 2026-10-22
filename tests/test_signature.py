@@ -620,3 +620,34 @@ def test_typed_struct_var_validates_trailing_feature_shape():
 
     with pytest.raises(ValueError, match="expects feature shape"):
         interp["t"] = torch.linspace(0.0, 1.0, steps=5)
+
+
+def test_axis_annotation_must_match_the_dimension_it_renames():
+    # found-bugs.md #43: x[u] with x over T and u over U was accepted, and the
+    # T axis was then aggregated with U's operator.
+    sig = Signature("ann_dims")
+    I = sig.sort("Img")
+    T, U = sig.dimension("T"), sig.dimension("U")
+    sig.variable("x", I, dims=[T])
+    sig.variable("z", I, dims=[T, U])
+    sig.constant("c", I, dims=[T])
+    sig.structural_variable("t", T)
+    sig.structural_variable("u", U)
+    sig.predicate("C", ["Img"])
+
+    for ok in ("forall x: forall t: C(x[t])[t]",
+               "forall x: forall t1: C(x[t1])[t1]",
+               "forall x: forall T: C(x[T])[T]",
+               "forall z: forall t, u: C(z[t, u])[t, u]",
+               "forall t: C(c[t])[t]"):
+        sig.parse(ok)
+
+    for bad in ("forall x: forall u: C(x[u])[u]",
+                "forall x: forall u1: C(x[u1])[u1]",
+                "forall x: forall U: C(x[U])[U]",
+                "forall z: forall t, u: C(z[u, t])[u, t]",
+                "forall u: C(c[u])[u]"):
+        before = set(sig._structural_variables)
+        with pytest.raises(ValueError, match="ranges over dimension"):
+            sig.parse(bad)
+        assert set(sig._structural_variables) == before   # failed parse rolled back
