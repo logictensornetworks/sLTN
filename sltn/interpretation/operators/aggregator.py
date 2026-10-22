@@ -177,6 +177,10 @@ class AggregPMean(AggregationOperator):
         p = self.p if p is None else p
         stable = self.stable if stable is None else stable
 
+        if p == 0:
+            # The p-mean tends to the geometric mean as p -> 0.
+            return AggregGeometricMean(stable=stable, eps=self.eps)(xs, dim=dim, keepdim=keepdim, mask=mask)
+
         if stable:
             # Protects inner pow for p < 1
             xs = pi_0(xs, self.eps)

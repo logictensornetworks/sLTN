@@ -19,12 +19,13 @@ def pi_1(x, eps=DEFAULT_EPS):
     return (1 - eps) * x
 
 
-def safe_div(numerator, denominator, eps=DEFAULT_EPS):
+def safe_div(numerator, denominator):
     """
-    numerator / denominator, with the denominator kept >= eps so that an empty guard (all weights 0) gives 0
-    instead of NaN. Unlike adding eps, this leaves the result exact whenever the denominator is >= eps.
+    numerator / denominator for weighted means, where both are sums over the same non-negative weights. An empty
+    guard (all weights 0) has numerator 0, so dividing it by 1 instead of 0 gives 0 rather than NaN, with no NaN in
+    the gradient either. Any positive denominator, however small, is used exactly.
     """
-    return torch.div(numerator, torch.clamp(denominator, min=eps))
+    return torch.div(numerator, torch.where(denominator > 0, denominator, torch.ones_like(denominator)))
 
 
 def squareplus(x, beta = DEFAULT_BETA):

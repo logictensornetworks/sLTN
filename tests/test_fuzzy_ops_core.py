@@ -324,3 +324,16 @@ def test_extremum_over_several_dims_takes_k_extremes_jointly():
     assert torch.allclose(fuzzy_ops.AggregMin()(X, dim=[1, 2]), X.amin(dim=(1, 2)))
     assert fuzzy_ops.AggregMax()(X, dim=[1, 2], keepdim=True).shape == (4, 1, 1)
 
+
+# found-bugs.md #54: weighted p-means
+
+def test_weighted_pmean_is_exact_with_tiny_weights():
+    x = torch.tensor([0.9, 0.2, 0.6])
+    w = torch.full((3,), 1e-9)
+    assert torch.isclose(fuzzy_ops.AggregPMean(p=1)(x, dim=0, mask=w), x.mean())
+    assert torch.isclose(fuzzy_ops.AggregPMeanError(p=1)(x, dim=0, mask=w), x.mean())
+
+
+def test_pmean_with_p_zero_is_the_geometric_mean():
+    x = torch.tensor([0.9, 0.2, 0.6])
+    assert torch.isclose(fuzzy_ops.AggregPMean(p=0)(x, dim=0), fuzzy_ops.AggregGeometricMean()(x, dim=0))
