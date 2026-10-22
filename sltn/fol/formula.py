@@ -355,16 +355,38 @@ class StructuralExists(Exists):
 # ---------------------------------------------------------------------------
 
 class KB(Formula):
-    """{ φ1, …, φn } — flat set of axiom clauses."""
+    """{ φ1, …, φn } — flat set of axiom clauses.
 
-    def __init__(self, clauses: Sequence[Formula | KB]) -> None:
+    Every clause must be a closed :class:`Formula` (see :meth:`check_clauses`).
+    ``validate=False`` skips the check; the parser uses it because it builds the
+    KB before names are resolved, and the parse pipeline validates it afterwards.
+    """
+
+    def __init__(self, clauses: Sequence[Formula | KB], *, validate: bool = True) -> None:
         flat: list[Formula] = []
         for c in clauses:
             if isinstance(c, KB):
                 flat.extend(c.clauses)
-            else:
+            elif isinstance(c, Formula):
                 flat.append(c)
+            else:
+                raise TypeError(f"KB clauses must be Formula objects, got {type(c).__name__}: {c!r}")
         self.clauses: list[Formula] = flat
+        if validate:
+            self.check_clauses()
+
+    def check_clauses(self) -> None:
+        """Raise ``ValueError`` if a clause is not closed (has free variables).
+
+        An open clause would otherwise be silently averaged over its free axes by SatAgg.
+        """
+        for clause in self.clauses:
+            if not clause.is_clause():
+                free = clause.free_variables | clause.free_structural_variables
+                raise ValueError(
+                    f"KB requires closed formulas (no free variables), "
+                    f"but found free {free!r} in: {clause!r}"
+                )
 
     def _compute_free_variables(self) -> set[str]:
         fvs: set[str] = set()
@@ -379,11 +401,15 @@ class KB(Formula):
         return fvs
 
     def __add__(self, other: Formula | KB) -> KB:
+        if not isinstance(other, Formula):
+            return NotImplemented
         if isinstance(other, KB):
             return KB(self.clauses + other.clauses)
         return KB(self.clauses + [other])
 
     def __radd__(self, other: Formula | KB) -> KB:
+        if not isinstance(other, Formula):
+            return NotImplemented
         if isinstance(other, KB):
             return KB(other.clauses + self.clauses)
         return KB([other] + self.clauses)

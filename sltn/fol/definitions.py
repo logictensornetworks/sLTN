@@ -475,7 +475,8 @@ def _substitute(
 
         case KB():
             return KB(
-                [_substitute(c, subst, param_axis_canonical=param_axis_canonical) for c in node.clauses]
+                [_substitute(c, subst, param_axis_canonical=param_axis_canonical) for c in node.clauses],
+                validate=False,   # names are not resolved yet; the pipeline validates the KB
             )
 
         case StructuralForall():

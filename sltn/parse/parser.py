@@ -375,7 +375,7 @@ class _Parser:
                 break
             self._consume()
         self._expect(TK.RBRACE)
-        return KB(clauses)
+        return KB(clauses, validate=False)   # validated by the pipeline after resolution
 
     # ── Term productions ──────────────────────────────────────────────────────
 

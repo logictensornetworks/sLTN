@@ -682,3 +682,35 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
                "{ forall y: C(y), forall z: C(z) }"):
         sig.parse(ok)
 
+
+def test_kb_built_in_python_is_validated():
+    # found-bugs.md #28: KB([...]) and `+` never checked their clauses.
+    from sltn.fol.formula import KB
+    sig = Signature("kb_python")
+    I = sig.sort("Img")
+    sig.variable("y", I)
+    sig.variable("z", I)
+    sig.constant("c", I)
+    sig.predicate("C", ["Img"])
+    sig.predicate("G", ["Img"])
+    closed = sig.parse("forall z: G(z)")
+
+    with pytest.raises(ValueError, match="closed formulas"):
+        KB([sig.parse("C(y)"), closed])
+    kb = KB([sig.parse("forall y: C(y)"), sig.parse("C(c)")])
+    with pytest.raises(ValueError, match="closed formulas"):
+        kb + sig.parse("G(z)")
+    with pytest.raises(TypeError):
+        kb + "garbage"
+    with pytest.raises(TypeError):
+        "garbage" + kb
+    with pytest.raises(TypeError, match="must be Formula"):
+        KB(["garbage"])
+
+    assert len((kb + closed).clauses) == 3
+    assert len((closed + kb).clauses) == 3
+    assert len((kb + kb).clauses) == 4
+    # a parsed KB is still validated by the pipeline
+    with pytest.raises(ValueError, match="closed formulas"):
+        sig.parse("{ C(y), forall z: G(z) }")
+

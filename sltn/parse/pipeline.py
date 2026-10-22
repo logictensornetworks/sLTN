@@ -570,13 +570,7 @@ def _validate_kb_clauses(node: Any) -> None:
     """Walk the AST and raise ValueError for any KB whose clauses are not closed."""
     match node:
         case KB():
-            for clause in node.clauses:
-                if not clause.is_clause():
-                    free = clause.free_variables | clause.free_structural_variables
-                    raise ValueError(
-                        f"KB requires closed formulas (no free variables), "
-                        f"but found free {free!r} in: {clause!r}"
-                    )
+            node.check_clauses()
         case And() | Or() | Implies() | Equivalent():
             _validate_kb_clauses(node.left)
             _validate_kb_clauses(node.right)
