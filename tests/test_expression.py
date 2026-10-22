@@ -410,3 +410,25 @@ def test_type_shape_given_as_list_is_normalized_to_tuple():
     p = product_type(Type(name="D", shape=[2]), [3])
     assert p.shape == (3, 2)
 
+
+def test_real_and_int_accept_any_float_or_integer_dtype():
+    # found-bugs.md #47: Real required float32 and Int required int64.
+    from sltn.interpretation.core.type import Int, PositiveReal
+    for dtype in (torch.float16, torch.bfloat16, torch.float32, torch.float64):
+        Real.validate(torch.zeros(3, 1, dtype=dtype))
+        PositiveReal.validate(torch.ones(3, 1, dtype=dtype))
+    for dtype in (torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64):
+        Int.validate(torch.zeros(3, 1, dtype=dtype))
+    for bad in (torch.zeros(3, 1), torch.zeros(3, 1, dtype=torch.bool)):
+        with pytest.raises(ValueError, match="'Int'"):
+            Int.validate(bad)
+    with pytest.raises(ValueError, match="'Real'"):
+        Real.validate(torch.zeros(3, 1, dtype=torch.int64))
+
+
+def test_type_is_hashable_and_equality_includes_the_name():
+    # found-bugs.md #47: Type was unhashable and __eq__ ignored the name.
+    assert Bool != Type("Prob", (1,), axis_names=["bool"])
+    assert Bool == Type("Bool", (1,), axis_names=["bool"])
+    assert hash(Bool) == hash(Type("Bool", (1,), axis_names=["bool"]))
+    assert len({Bool, Real, Type("Bool", (1,), axis_names=["bool"])}) == 2

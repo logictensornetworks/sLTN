@@ -42,7 +42,14 @@ class Type:
     def __eq__(self, other):
         if not isinstance(other, Type):
             return NotImplemented
-        return self.shape == other.shape and self.axis_names == other.axis_names
+        return (
+            self.name == other.name
+            and self.shape == other.shape
+            and self.axis_names == other.axis_names
+        )
+
+    def __hash__(self):
+        return hash((self.name, self.shape, tuple(self.axis_names)))
 
     def validate(self, tensor: torch.Tensor) -> None:
         if self.constraint and not self.constraint(tensor):
@@ -55,14 +62,14 @@ class Type:
 def _is_bool_like(x: torch.Tensor) -> bool:
     return (x >= 0).all() and (x <= 1).all()
 
-def _is_int64(x: torch.Tensor) -> bool:
-    return x.dtype == torch.int64
+def _is_int(x: torch.Tensor) -> bool:
+    return not x.is_floating_point() and not x.is_complex() and x.dtype != torch.bool
 
 def _is_float(x: torch.Tensor) -> bool:
-    return x.dtype == torch.float
+    return x.is_floating_point()
 
 def _is_positive_float(x: torch.Tensor) -> bool:
-    return (x > 0).all() and x.dtype == torch.float
+    return x.is_floating_point() and (x > 0).all()
 
 def _is_complex(x: torch.Tensor) -> bool:
     return torch.is_complex(x)
@@ -75,7 +82,7 @@ Bool = Type(name="Bool",
 
 Int = Type(name="Int", 
            shape=(1,), 
-           constraint=_is_int64, 
+           constraint=_is_int, 
            axis_names=["int"])
 
 Real = Type(name="Real", 

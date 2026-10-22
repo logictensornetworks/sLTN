@@ -356,3 +356,20 @@ def test_cache_skips_redundant_evaluations():
     assert calls_with_cache < calls_without_cache, (
         f"Cache did not reduce evaluations: {calls_with_cache} vs {calls_without_cache}"
     )
+
+def test_float64_data_through_a_real_sorted_function():
+    # found-bugs.md #47: float64 data failed every Real-sorted term.
+    sig = Signature("f64")
+    sig.sort("Img"); sig.sort("Scalar")
+    sig.variable("x", "Img")
+    sig.function("f", ["Img"], "Scalar")
+    sig.predicate("P", ["Scalar"])
+    interp = Interpretation(sig)
+    interp["Img"] = Type("Img", shape=(2,), axis_names=["feat"])
+    interp["Scalar"] = Real
+    interp["x"] = torch.rand(4, 2, dtype=torch.float64)
+    interp["f"] = lambda a: a.sum(-1, keepdim=True)
+    interp["P"] = lambda a: torch.sigmoid(a)
+    out = interp("P(f(x))")
+    assert out.value.dtype == torch.float64
+    assert out.value.shape == (4, 1)
