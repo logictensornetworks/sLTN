@@ -95,8 +95,9 @@ def apply_quantifier(
           produces a weighted power mean.
         * **bool** — hard filter; masked-out positions are excluded.
 
-        NaN values in *formula* are independently detected and merged into
-        the effective mask as a hard validity filter.
+        Missing data must be excluded with a mask (a guard). NaN values in
+        *formula* are not treated specially: they propagate, and the result
+        then fails the ``Bool`` check.
     symbol:
         Unicode quantifier symbol used in the output Tensor name.
     """
@@ -113,20 +114,8 @@ def apply_quantifier(
 
     value = formula.value
 
-    nan_valid = ~torch.isnan(value)
-    has_nan   = not nan_valid.all().item()
-    if has_nan:
-        value    = torch.where(nan_valid, value, torch.zeros_like(value))
-        nan_mask = nan_valid.float()
-    else:
-        nan_mask = None
-
-    if explicit_mask is not None and nan_mask is not None:
-        effective = explicit_mask.float() * nan_mask
-    elif explicit_mask is not None:
+    if explicit_mask is not None:
         effective = explicit_mask.float() if explicit_mask.dtype == torch.bool else explicit_mask
-    elif nan_mask is not None:
-        effective = nan_mask
     else:
         effective = None
 
@@ -148,9 +137,6 @@ def apply_quantifier(
         output = torch.full(rest_shape, identity, dtype=value.dtype, device=value.device)
     else:
         output = agg_op(value, dim=agg_indices, mask=effective)
-        if not torch.isfinite(output).all():
-            fill = torch.ones_like(output) if symbol == "∀" else torch.zeros_like(output)
-            output = torch.where(torch.isfinite(output), output, fill)
 
     new_axes = [d for d in formula.axes if d.name not in axis_names]
     return Tensor(value=output, axes=new_axes, domain_type=Bool)

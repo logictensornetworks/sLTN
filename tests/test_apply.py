@@ -1,5 +1,5 @@
 """Focused unit tests for sltn.interpretation.apply: apply_sat_agg and the
-mask / NaN-handling branches of apply_quantifier.
+mask branches of apply_quantifier.
 
 Formula tensors passed through `apply_quantifier`/`apply_sat_agg` always carry
 a trailing Bool domain axis (as produced by `apply_connective`), so the
@@ -104,35 +104,21 @@ def test_apply_quantifier_guard_via_interpretation():
 
 
 # ---------------------------------------------------------------------------
-# apply_quantifier — NaN handling
+# apply_quantifier — NaN is not treated as missing data
 # ---------------------------------------------------------------------------
 
-def test_apply_quantifier_nan_values_are_masked_out():
-    # Bool's constraint rejects NaN, so build this tensor without domain_type
-    # validation (mirroring a formula that produced NaN mid-computation).
+def test_apply_quantifier_does_not_mask_nan():
+    # found-bugs.md #59: the "NaN = missing data" branch and the fallback that
+    # replaced a non-finite result with the identity were removed. NaN now
+    # propagates and fails the Bool check of the result instead of silently
+    # becoming 1 (forall) or 0 (exists); missing data must be excluded with a guard.
     formula = Tensor(
         value=torch.tensor([0.2, float("nan"), 0.8]).unsqueeze(-1),
         axes=[Axis("x", "variable"), Axis("bool", "domain")],
     )
-    agg_op = fuzzy_ops.AggregMin()
-
-    result = apply_quantifier(agg_op, formula, ["x"], symbol="∀")
-    assert not torch.isnan(result.value).any()
-    assert torch.allclose(result.value, torch.tensor([0.2]))
-
-
-def test_apply_quantifier_all_nan_falls_back_to_identity():
-    formula = Tensor(
-        value=torch.tensor([float("nan"), float("nan")]).unsqueeze(-1),
-        axes=[Axis("x", "variable"), Axis("bool", "domain")],
-    )
-    agg_op = fuzzy_ops.AggregPMean(p=2.0, stable=True)
-
-    result_forall = apply_quantifier(agg_op, formula, ["x"], symbol="∀")
-    assert not torch.isnan(result_forall.value).any()
-
-    result_exists = apply_quantifier(agg_op, formula, ["x"], symbol="∃")
-    assert not torch.isnan(result_exists.value).any()
+    for symbol in ("∀", "∃"):
+        with pytest.raises(ValueError, match="constraints of type 'Bool'"):
+            apply_quantifier(fuzzy_ops.AggregPMean(p=2.0), formula, ["x"], symbol=symbol)
 
 
 def test_apply_quantifier_vacuous_axis_uses_identity_value():
