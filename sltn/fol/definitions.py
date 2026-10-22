@@ -544,6 +544,17 @@ def _expand_definitions(
             case _:
                 return None
 
+    def _axis_dim(ax: str) -> str:
+        """The dimension of axis *ax* (a structural variable or alias); *ax* if unknown."""
+        sv = sig._structural_variables.get(ax)
+        if sv is None:
+            base = _base_name_of(ax)
+            sv = sig._structural_variables.get(sig._structural_variables_aliases.get(base, base))
+        return sv.dimension.name if sv is not None else ax
+
+    def _drop(axes: set[str], consumed: set[str]) -> set[str]:
+        return {a for a in axes if _axis_dim(a) not in consumed}
+
     def _term_dim_names_for_definition(term: Any) -> set[str]:
         match term:
             case TermFormula():
@@ -590,12 +601,12 @@ def _expand_definitions(
                     pr = sig._predicates[sname]
                     consumed = {d.name for d in pr.input_dims}
                     out_names = axes if axes is not None else {d.name for d in pr.output_dims}
-                    return (arg_dims - consumed) | out_names
+                    return _drop(arg_dims, consumed) | out_names
                 if sname in definitions:
                     defn = definitions[sname]
                     consumed = {d.name for d in defn.input_dims}
                     out_names = axes if axes is not None else {d.name for d in defn.output_dims}
-                    return (arg_dims - consumed) | out_names
+                    return _drop(arg_dims, consumed) | out_names
                 return arg_dims if axes is None else arg_dims | axes
             case _CallTerm():
                 arg_dims: set[str] = set()
@@ -606,17 +617,17 @@ def _expand_definitions(
                     fn = sig._functions[sname]
                     consumed = {d.name for d in fn.input_dims}
                     out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in fn.output_dims}
-                    return (arg_dims - consumed) | out_names
+                    return _drop(arg_dims, consumed) | out_names
                 if sname in sig._predicates:
                     pr = sig._predicates[sname]
                     consumed = {d.name for d in pr.input_dims}
                     out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in pr.output_dims}
-                    return (arg_dims - consumed) | out_names
+                    return _drop(arg_dims, consumed) | out_names
                 if sname in definitions:
                     defn = definitions[sname]
                     consumed = {d.name for d in defn.input_dims}
                     out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in defn.output_dims}
-                    return (arg_dims - consumed) | out_names
+                    return _drop(arg_dims, consumed) | out_names
                 return arg_dims
             case _:
                 return set()
@@ -645,18 +656,7 @@ def _expand_definitions(
             present_axis_names: set[str] = set()
             for arg in args:
                 present_axis_names |= _term_dim_names_for_definition(arg)
-            present_dim_names: set[str] = set()
-            for ax in present_axis_names:
-                sv = sig._structural_variables.get(ax)
-                if sv is not None:
-                    present_dim_names.add(sv.dimension.name)
-                    continue
-                if ax in sig._dimensions:
-                    present_dim_names.add(ax)
-                    continue
-                # Axis name not registered yet (rare): strip numeric/prime suffix.
-                base = _base_name_of(ax)
-                present_dim_names.add(base if base in sig._dimensions else ax)
+            present_dim_names = {_axis_dim(ax) for ax in present_axis_names}
             missing = [d.name for d in defn.input_dims if d.name not in present_dim_names]
             if missing:
                 raise ValueError(

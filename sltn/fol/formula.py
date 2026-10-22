@@ -35,7 +35,7 @@ __all__ = [
 from abc import ABC
 from typing import Sequence
 
-from sltn.fol.term import Term
+from sltn.fol.term import Term, _call_axis_dims
 from sltn.signature.symbols import PredicateSymbol, FunctionSymbol, StructuralRelationSymbol
 
 
@@ -68,6 +68,10 @@ class Formula(ABC):
     def _compute_free_structural_variables(self) -> set[str]:
         return set()
 
+    def _axis_dimensions(self) -> dict:
+        """Free structural axis names, mapped to their Dimension (``None`` if not tracked)."""
+        return dict.fromkeys(self.free_structural_variables)
+
     def is_clause(self) -> bool:
         """Return True iff the formula has no free variables (normal or structural)."""
         return not self.free_variables and not self.free_structural_variables
@@ -88,6 +92,9 @@ class TermFormula(Formula):
 
     def _compute_free_structural_variables(self) -> set[str]:
         return self.term.free_structural_variables
+
+    def _axis_dimensions(self) -> dict:
+        return self.term._axis_dimensions()
 
     def __repr__(self) -> str:
         return str(self.term)
@@ -140,24 +147,21 @@ class AtomicFormula(Formula):
         return self.symbol if isinstance(self.symbol, str) else self.symbol.name
 
     def _compute_free_variables(self) -> set[str]:
-        if isinstance(self.symbol, PredicateSymbol) and self.symbol.consumes_args:
-            return set()
         fvs: set[str] = set()
         for arg in self.args:
             fvs.update(arg.free_variables)
         return fvs
 
     def _compute_free_structural_variables(self) -> set[str]:
-        arg_dims: set[str] = set()
+        return set(self._axis_dimensions())
+
+    def _axis_dimensions(self) -> dict:
+        if isinstance(self.symbol, (PredicateSymbol, FunctionSymbol)):
+            return _call_axis_dims(self.symbol, self.args, self.structural_axes)
+        axes: dict = {}
         for arg in self.args:
-            arg_dims.update(arg.free_structural_variables)
-        sym = self.symbol
-        if isinstance(sym, (PredicateSymbol, FunctionSymbol)):
-            in_dim_names = {d.name for d in sym.input_dims}
-            consumed = {alias for alias in arg_dims if alias in in_dim_names}
-            out_names = set(self.structural_axes) if self.structural_axes is not None else {d.name for d in sym.output_dims}
-            return (arg_dims - consumed) | out_names
-        return arg_dims
+            axes.update(arg._axis_dimensions())
+        return axes
 
     def __repr__(self) -> str:
         args_str = ", ".join(map(str, self.args))

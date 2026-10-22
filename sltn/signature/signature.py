@@ -142,6 +142,8 @@ class Signature:
         labels: Optional[list] = None,
     ) -> Dimension:
         self._check_name(name)
+        if name in self._structural_variables:
+            raise ValueError(f"'{name}' is already a structural variable; a dimension needs a different name.")
         self._warn_if_redeclared(self._dimensions, name, "Dimension")
         resolved_sort = self._resolve_sort(sort) if sort is not None else None
         d = Dimension(name=name, sort=resolved_sort, labels=labels)
@@ -225,6 +227,11 @@ class Signature:
                 f"structural_variable(name, dimension) expects a name string, got {type(name).__name__}."
             )
         self._check_name(name)
+        if name in self._dimensions:
+            raise ValueError(
+                f"'{name}' is already a dimension, and dimension names can't name axes. "
+                f"Use another name for the structural variable."
+            )
         dim = self._resolve_dim(dimension)
         self._warn_if_redeclared(self._structural_variables, name, "StructuralVariableSymbol")
         sv = StructuralVariableSymbol(name=name, dimension=dim)
@@ -376,7 +383,7 @@ class Signature:
         _section("Sorts",                 self._sorts.values())
         _section("Dimensions",            self._dimensions.values())
         _section("Structural variables",  self._structural_variables.values())
-        _section("Structural predicates", self._structural_relations.values())
+        _section("Structural relations", self._structural_relations.values())
         _section("Constants",             self._constants.values())
         _section("Variables",             self._variables.values())
         _section("Functions",             self._functions.values())

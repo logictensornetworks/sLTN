@@ -13,7 +13,8 @@ from sltn import Signature, Interpretation
 def sig_interp():
     sig = Signature("test")
     S   = sig.sort("S")
-    T   = sig.dimension("t")
+    T   = sig.dimension("T")
+    sig.structural_variable("t", T)
     A   = sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     B   = sig.predicate("B", ["S", "S"])
     x   = sig.variable("x", S, dims=[T])
@@ -51,8 +52,8 @@ def sig_interp():
 def test_forall_exists_over_structural_axis(sig_interp):
     """forall/exists over structural axis t produce correct shapes."""
     sig, interp = sig_interp
-    r1 = interp(sig.parse("forall t: A(x)[t]"))
-    r2 = interp(sig.parse("exists t: A(x)[t]"))
+    r1 = interp(sig.parse("forall t: A(x[t])[t]"))
+    r2 = interp(sig.parse("exists t: A(x[t])[t]"))
     assert r1.value.shape == torch.Size([4, 1])
     assert r2.value.shape == torch.Size([4, 1])
     assert not torch.allclose(r1.value, r2.value)
@@ -80,7 +81,7 @@ def test_guarded_quantification_with_next(sig_interp):
 def test_repr_shows_axis_annotations(sig_interp):
     """repr includes [t] / [t1] axis annotations."""
     sig, interp = sig_interp
-    phi_fa = sig.parse("forall t: A(x)[t]")
+    phi_fa = sig.parse("forall t: A(x[t])[t]")
     assert "[t]" in repr(phi_fa)
 
     phi_guard = sig.parse("forall t, t1 | next(t, t1): (A(x[t])[t] -> A(x[t1])[t1])")
@@ -91,7 +92,7 @@ def test_repr_shows_axis_annotations(sig_interp):
 def test_postfix_axis_syntax(sig_interp):
     """P(args)[axes] postfix parse sets structural_axes."""
     sig, interp = sig_interp
-    phi_suf = sig.parse("A(x)[t1]")
+    phi_suf = sig.parse("A(x[t1])[t1]")
     assert phi_suf.structural_axes == ["t1"]
 
 
@@ -119,12 +120,12 @@ def test_forall_two_struct_axes_no_guard(sig_interp):
     assert r_2t.value.shape == torch.Size([4, 1])
 
 
-def test_bare_predicate_uses_declared_output_dims(sig_interp):
-    """A(x) without annotation uses the declared output_dims [t]."""
-    sig, interp = sig_interp
-    r_no_annot = interp(sig.parse("A(x)"))
-    struct_out = r_no_annot.structural_axes
-    assert len(struct_out) == 1 and struct_out[0].name == "t"
+@pytest.mark.parametrize("src", ["A(x[t])", "A(x)[t]", "A(x[T])[T]", "forall T: A(x[t])[t]"])
+def test_unnamed_or_dimension_named_axes_rejected(sig_interp, src):
+    """Every axis must be named by a structural variable, never by a dimension."""
+    sig, _ = sig_interp
+    with pytest.raises((ValueError, NameError)):
+        sig.parse(src)
 
 
 def test_forall_t_leaves_t2_free(sig_interp):
@@ -180,8 +181,8 @@ def test_struct_agg_set_by_dimension_used_by_variable(dim_var_sig_interp):
             "exists": sltn.interpretation.operators.AggregPMean(p=2.0, stable=True, eps=1e-12),
         }
     }
-    r1 = interp(sig.parse("forall t: A(x)[t]"))
-    r2 = interp(sig.parse("exists t: A(x)[t]"))
+    r1 = interp(sig.parse("forall t: A(x[t])[t]"))
+    r2 = interp(sig.parse("exists t: A(x[t])[t]"))
     assert r1.value.shape == torch.Size([4, 1])
     assert not torch.allclose(r1.value, r2.value)
 
@@ -193,8 +194,8 @@ def test_struct_agg_shared_across_independent_variables_of_same_dimension(dim_va
     op_ex = sltn.interpretation.operators.AggregPMean(p=2.0, stable=True, eps=1e-12)
     interp.logic.StructAgg = {"T": {"forall": op_fa, "exists": op_ex}}
 
-    r_t = interp(sig.parse("forall t: A(x)[t]"))
-    r_s = interp(sig.parse("forall s: A(x)[s]"))
+    r_t = interp(sig.parse("forall t: A(x[t])[t]"))
+    r_s = interp(sig.parse("forall s: A(x[s])[s]"))
     assert torch.allclose(r_t.value, r_s.value)
 
 
@@ -211,7 +212,7 @@ def test_struct_agg_set_via_variable_binds_dimension(dim_var_sig_interp):
     assert interp.logic["∃,T"] is op_ex
 
     # And usable by an unrelated variable ("s") ranging over the same dimension.
-    r_s = interp(sig.parse("forall s: A(x)[s]"))
+    r_s = interp(sig.parse("forall s: A(x[s])[s]"))
     assert r_s.value.shape == torch.Size([4, 1])
 
 
@@ -224,8 +225,8 @@ def test_struct_agg_tolerates_symbol_inner_keys(dim_var_sig_interp):
             "exists": sltn.interpretation.operators.AggregPMean(p=2.0, stable=True, eps=1e-12),
         }
     }
-    r1 = interp(sig.parse("forall t: A(x)[t]"))
-    r2 = interp(sig.parse("exists t: A(x)[t]"))
+    r1 = interp(sig.parse("forall t: A(x[t])[t]"))
+    r2 = interp(sig.parse("exists t: A(x[t])[t]"))
     assert r1.value.shape == torch.Size([4, 1])
     assert not torch.allclose(r1.value, r2.value)
 
@@ -233,38 +234,26 @@ def test_struct_agg_tolerates_symbol_inner_keys(dim_var_sig_interp):
 # ---------------------------------------------------------------------------
 # Repeated-dimension groundings for VariableSymbol / ConstantSymbol
 #
-# sig.variable("x", "S", dims=["T", "T"]) grounds two structural axes that
-# both derive from the same dimension "T". Grounding deduplicates them the
-# same way StructuralRelationSymbol does ("T" -> "T0", "T1"), and formulas
-# can rename them positionally via postfix annotation (e.g. x[t, t1]).
+# sig.variable("x", "S", dims=["T", "T"]) has two structural axes over the
+# same dimension "T"; a formula names them positionally (e.g. x[t, t1]).
 # ---------------------------------------------------------------------------
 
-def test_variable_with_repeated_dimension_grounds_with_deduplicated_axes():
-    sig = Signature("repeated_dim_var")
-    S = sig.sort("S")
-    T = sig.dimension("T")
-    x = sig.variable("x", S, dims=[T, T])
-
-    interp = Interpretation(sig)
-    interp[S] = sltn.Type("R1", shape=(1,))
-    interp[x] = torch.rand(4, 5, 5, 1)
-
-    r = interp(sig.parse("x"))
-    assert set(r.axis_map) == {"x", "T0", "T1", "r1"}
-
-
-def test_constant_with_repeated_dimension_grounds_with_deduplicated_axes():
+def test_constant_with_repeated_dimension_needs_distinct_names():
     sig = Signature("repeated_dim_const")
     S = sig.sort("S")
     T = sig.dimension("T")
+    sig.structural_variable("t", T)
     c = sig.constant("c", S, dims=[T, T])
 
     interp = Interpretation(sig)
     interp[S] = sltn.Type("R1", shape=(1,))
     interp[c] = torch.rand(5, 5, 1)
 
-    r = interp(sig.parse("c"))
-    assert set(r.axis_map) == {"T0", "T1", "r1"}
+    for src in ("c", "c[t]", "c[t, t]"):
+        with pytest.raises(ValueError):
+            sig.parse(src)
+    r = interp(sig.parse("c[t, t1]"))
+    assert set(r.axis_map) == {"t", "t1", "r1"}
 
 
 def test_variable_with_repeated_dimension_can_be_renamed_and_quantified():

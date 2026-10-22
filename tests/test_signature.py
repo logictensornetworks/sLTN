@@ -146,10 +146,11 @@ def test_parse_resolves_symbols(basic_sig):
 def test_parse_structural_axis_annotation():
     sig = Signature("s")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
-    phi = sig.parse("A(x)[t]")
+    phi = sig.parse("A(x[t])[t]")
     assert isinstance(phi, AtomicFormula)
     assert phi.structural_axes == ["t"]
 
@@ -157,7 +158,8 @@ def test_parse_structural_axis_annotation():
 def test_parse_struct_guard():
     sig = Signature("s")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     A = sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     x = sig.variable("x", S, dims=[T])
     nxt = sig.structural_relation("next", [T, T])
@@ -169,11 +171,12 @@ def test_parse_struct_guard():
 def test_parse_formula_level_axis_select_on_compound_formula():
     sig = Signature("s")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("(A(x)[t] & A(x)[t])[t=0]")
+    phi = sig.parse("(A(x[t])[t] & A(x[t])[t])[t=0]")
     assert isinstance(phi, FormulaAxisSelect)
     assert phi.axis == "t"
     assert phi.index == 0
@@ -182,11 +185,12 @@ def test_parse_formula_level_axis_select_on_compound_formula():
 def test_parse_formula_level_axis_select_on_atomic_formula():
     sig = Signature("s")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("A(x)[t][t=0]")
+    phi = sig.parse("A(x[t])[t][t=0]")
     assert isinstance(phi, FormulaAxisSelect)
     assert phi.axis == "t"
     assert phi.index == 0
@@ -195,11 +199,12 @@ def test_parse_formula_level_axis_select_on_atomic_formula():
 def test_formula_level_axis_select_updates_free_structural_variables():
     sig = Signature("s")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("(A(x)[t] & A(x)[t])[t=0]")
+    phi = sig.parse("(A(x[t])[t] & A(x[t])[t])[t=0]")
     assert phi.free_structural_variables == set()
 
 
@@ -283,14 +288,16 @@ def test_define_metadata_input_dims_checked_during_parse():
 
 
 def test_define_input_dims_accepts_structural_axis_alias():
-    """``input_dims`` lists *dimensions*; call sites may use ``s1`` as an alias of ``s``."""
+    """``input_dims`` lists *dimensions*; call sites may use ``s1``, an alias of ``s`` over ``S``."""
     sig = Signature("s")
     Tok = sig.sort("Tok")
-    sig.dimension("s")
-    sig.dimension("d")
-    sig.predicate("P", [Tok], input_dims=[sig.get_dimension("s")], output_dims=[sig.get_dimension("d")])
-    sig.variable("x", Tok, dims=["s"])
-    sig.define("Emb", ["X"], "P(X[s])", input_dims=["s"], output_dims=["d"])
+    sig.dimension("S")
+    sig.dimension("D")
+    sig.structural_variable("s", "S")
+    sig.structural_variable("d", "D")
+    sig.predicate("P", [Tok], input_dims=[sig.get_dimension("S")], output_dims=[sig.get_dimension("D")])
+    sig.variable("x", Tok, dims=["S"])
+    sig.define("Emb", ["X"], "P(X[s])[d]", input_dims=["S"], output_dims=["D"])
     sig.parse("Emb(x[s1])")
 
 
@@ -301,10 +308,12 @@ def test_define_rewrites_template_output_axes_when_parameter_uses_struct_axis_al
 
     sig = Signature("s")
     Tok = sig.sort("Tok")
-    sdim = sig.dimension("s")
-    vdim = sig.dimension("v")
+    sdim = sig.dimension("S")
+    vdim = sig.dimension("V")
+    sig.structural_variable("s", sdim)
+    sig.structural_variable("v", vdim)
     sig.function("G", [Tok], "Tok", input_dims=[sdim], output_dims=[sdim, vdim])
-    sig.variable("x", Tok, dims=["s"])
+    sig.variable("x", Tok, dims=["S"])
     sig.define("F", ["X"], "G(X[s])[s,v]")
     term = sig.parse("F(x[s1])")
     assert isinstance(term, TermFormula)
@@ -324,28 +333,28 @@ def test_define_distinct_param_axis_indices_duplicate_subtree():
 
     sig = Signature("t")
     Tok = sig.sort("Tok")
-    sig.dimension("s")
-    sig.dimension("d")
-    sig.dimension("v")
-    sig.variable("x", Tok, dims=["s"])
-    sig.constant("Table", "Bool", dims=["v", "d"])
-    sig.function("OneHotEncoding", [Tok], "Bool", output_dims=["v"])
-    sig.predicate("=f", ["Bool", "Bool"], input_dims=["v", "v"], infix=True)
-    sig.predicate("Head", ["Bool", "Bool"], input_dims=["s", "s", "d"], output_dims=["s", "s"])
-    sig.function("Val", ["Bool"], "Bool", input_dims=["d"], output_dims=["d"])
+    for dim, sv in (("S", "s"), ("D", "d"), ("V", "v")):
+        sig.dimension(dim)
+        sig.structural_variable(sv, dim)
+    sig.variable("x", Tok, dims=["S"])
+    sig.constant("Table", "Bool", dims=["V", "D"])
+    sig.function("OneHotEncoding", [Tok], "Bool", output_dims=["V"])
+    sig.predicate("=f", ["Bool", "Bool"], input_dims=["V", "V"], infix=True)
+    sig.predicate("Head", ["Bool", "Bool"], input_dims=["S", "S", "D"], output_dims=["S", "S"])
+    sig.function("Val", ["Bool"], "Bool", input_dims=["D"], output_dims=["D"])
     sig.define(
         "Embed",
         ["X"],
-        "OneHotEncoding(X[s])[s,v] =f Table[v,d]",
+        "OneHotEncoding(X[s])[v] =f Table[v,d]",
         input_dims=[],
-        output_dims=["d"],
+        output_dims=["D"],
     )
     sig.define(
         "L0",
         ["X"],
-        "(∀ s1 | Head(X[s,d], X[s1,d])[s,s1] : Val(X[s1,d])) ∨ X[s,d]",
+        "(∀ s1 | Head(X[s,d], X[s1,d])[s,s1] : Val(X[s1,d])[d]) ∨ X[s,d]",
     )
-    phi = sig.parse("L0(Embed(x[s])[s,d])")
+    phi = sig.parse("L0(Embed(x[s]))")
     assert isinstance(phi, Or)
     forall = phi.left
     assert isinstance(forall, Forall)
@@ -354,42 +363,41 @@ def test_define_distinct_param_axis_indices_duplicate_subtree():
     fn0 = guard.args[0].args[0]
     fn1 = guard.args[1].args[0]
     assert isinstance(fn0, FunctionApplication) and isinstance(fn1, FunctionApplication)
-    assert fn0.output_axes[0] == "s"
-    assert fn1.output_axes[0] == "s1"
+    assert fn0.args[0].axis_annotations == ["s"]
+    assert fn1.args[0].axis_annotations == ["s1"]
 
 
 def test_define_input_dims_sees_structural_axes_on_defined_symbol_atomic_formula():
-    """Defined symbols used with ``name(args)[axes]`` parse as :class:`AtomicFormula`; dim checks must read ``structural_axes``."""
-    from sltn.fol.formula import AtomicFormula
-
+    """A defined symbol's result axes are seen by the ``input_dims`` check of an enclosing definition."""
     sig = Signature("t")
     sig.sort("Token")
-    sig.dimension("s")
-    sig.dimension("v")
-    sig.dimension("d")
-    sig.variable("x", "Token", dims=["s"])
-    sig.constant("Table", "Bool", dims=["v", "d"])
-    sig.function("OneHotEncoding", ["Token"], "Bool", output_dims=["v"])
-    sig.predicate("SimilarityV", ["Bool", "Bool"], input_dims=["v", "v"])
-    sig.predicate("SimilarityD", ["Bool", "Bool"], input_dims=["d", "d"])
+    for dim, sv in (("S", "s"), ("V", "v"), ("D", "d")):
+        sig.dimension(dim)
+        sig.structural_variable(sv, dim)
+    sig.variable("x", "Token", dims=["S"])
+    sig.constant("Table", "Bool", dims=["V", "D"])
+    sig.function("OneHotEncoding", ["Token"], "Bool", output_dims=["V"])
+    sig.predicate("SimilarityV", ["Bool", "Bool"], input_dims=["V", "V"])
+    sig.predicate("SimilarityD", ["Bool", "Bool"], input_dims=["D", "D"])
     sig.define(
         "Embed",
         ["X"],
-        "SimilarityV(OneHotEncoding(X[s])[s,v], Table[v,d])[s,d]",
-        input_dims=["s"],
-        output_dims=["d"],
+        "SimilarityV(OneHotEncoding(X[s])[v], Table[v,d])",
+        input_dims=["S"],
+        output_dims=["D"],
     )
     sig.define(
         "DeEmbed",
         ["X"],
-        "SimilarityD(X[s,d], Table[v,d])[s,v]",
-        input_dims=["d"],
-        output_dims=["v"],
+        "SimilarityD(X[s,d], Table[v,d])",
+        input_dims=["D"],
+        output_dims=["V"],
     )
-    inner = sig.parse("Embed(x[s])[s,d]")
-    assert isinstance(inner, AtomicFormula)
-    assert inner.structural_axes == ["s", "d"]
-    sig.parse("DeEmbed(Embed(x[s])[s,d])[s,v]")
+    inner = sig.parse("Embed(x[s])")
+    assert inner.free_structural_variables == {"s", "d"}
+    assert sig.parse("DeEmbed(Embed(x[s]))").free_structural_variables == {"s", "v"}
+    with pytest.raises(ValueError, match="missing required input structural dim"):
+        sig.parse("DeEmbed(OneHotEncoding(x[s])[v])")
 
 
 def test_define_metadata_output_sort_checked_during_parse():
@@ -482,13 +490,14 @@ def test_define_formula_body_quantifier_or_struct_symref_parses():
     """Bodies like ``(... forall ...) ∨ X[s,d]`` need ``X[s,d]`` as a formula primary."""
     sig = Signature("s")
     Tok = sig.sort("Tok")
-    s = sig.dimension("s")
-    sig.structural_variable("s1", s)
-    d = sig.dimension("d")
+    s = sig.dimension("S")
+    d = sig.dimension("D")
+    sig.structural_variable("s", s)
+    sig.structural_variable("d", d)
     sig.predicate("Head_L2", [Tok, Tok], output_dims=[s, s])
     sig.predicate("Value_L2", [Tok])
     sig.variable("X", Tok, dims=[s, d])
-    body = "(forall s1 | Head_L2(X[s], X[s1])[s,s1] : Value_L2(X[s])) ∨ X[s,d]"
+    body = "(forall s1 | Head_L2(X[s,d], X[s1,d])[s,s1] : Value_L2(X[s,d])) ∨ X[s,d]"
     sig.define("L2", ["X"], body)
     phi = sig.parse("L2(X)")
     assert isinstance(phi, Or)
@@ -512,16 +521,16 @@ def test_parse_term_with_sig_expands_sig_define():
 
     sig = Signature("t")
     sig.sort("Tok")
-    sig.dimension("s")
-    sig.dimension("v")
-    sig.dimension("d")
-    sig.variable("x", "Tok", dims=["s"])
-    sig.constant("Table", "Bool", dims=["v", "d"])
-    sig.function("OneHotEncoding", ["Tok"], "Bool", output_dims=["v"])
-    sig.predicate("=f", ["Bool", "Bool"], input_dims=["v", "v"], infix=True)
-    sig.define("Embed", ["X"], "OneHotEncoding(X[s])[s,v] =f Table[v,d]", input_dims=[], output_dims=["d"])
+    for dim, sv in (("S", "s"), ("V", "v"), ("D", "d")):
+        sig.dimension(dim)
+        sig.structural_variable(sv, dim)
+    sig.variable("x", "Tok", dims=["S"])
+    sig.constant("Table", "Bool", dims=["V", "D"])
+    sig.function("OneHotEncoding", ["Tok"], "Bool", output_dims=["V"])
+    sig.predicate("=f", ["Bool", "Bool"], input_dims=["V", "V"], infix=True)
+    sig.define("Embed", ["X"], "OneHotEncoding(X[s])[v] =f Table[v,d]", input_dims=[], output_dims=["D"])
 
-    ast = parse_term("Embed(x[s])[s,d]", sig)
+    ast = parse_term("Embed(x[s])", sig)
     assert not (
         isinstance(ast, FunctionApplication)
         and (ast.symbol if isinstance(ast.symbol, str) else ast.symbol.name) == "Embed"
@@ -532,12 +541,13 @@ def test_define_term_body_in_formula_position_parses():
     sig = Signature("s")
     S = sig.sort("Image")
     L = sig.sort("Logit")
-    D = sig.dimension("digit")
+    D = sig.dimension("Digit")
+    sig.structural_variable("d", D)
     sig.function("mnist", ["Image"], "Logit", output_dims=[D])
     sig.variable("x", S)
 
     # A derived predicate body may be provided as a bool-valued term.
-    sig.define("is_zero", ["a"], "mnist(a)[digit][digit=0]")
+    sig.define("is_zero", ["a"], "mnist(a)[d][d=0]")
     phi = sig.parse("is_zero(x)")
 
     assert isinstance(phi, TermFormula)
@@ -597,8 +607,8 @@ def test_repr_shows_defined_terms_section():
 def test_struct_var_can_be_typed_and_interpreted_as_expression():
     sig = Signature("s")
     sig.sort("Scalar")
-    sig.dimension("t", sort="Scalar")
-    sig.structural_variable("t", "t")
+    sig.dimension("T", sort="Scalar")
+    sig.structural_variable("t", "T")
 
     interp = Interpretation(sig)
     interp["Scalar"] = Real
@@ -613,8 +623,8 @@ def test_struct_var_can_be_typed_and_interpreted_as_expression():
 def test_typed_struct_var_validates_trailing_feature_shape():
     sig = Signature("s")
     sig.sort("Scalar")
-    sig.dimension("t", sort="Scalar")
-    sig.structural_variable("t", "t")
+    sig.dimension("T", sort="Scalar")
+    sig.structural_variable("t", "T")
 
     interp = Interpretation(sig)
     interp["Scalar"] = Real
@@ -636,18 +646,16 @@ def test_axis_annotation_must_match_the_dimension_it_renames():
     sig.structural_variable("u", U)
     sig.predicate("C", ["Img"])
 
-    for ok in ("forall x: forall t: C(x[t])[t]",
-               "forall x: forall t1: C(x[t1])[t1]",
-               "forall x: forall T: C(x[T])[T]",
-               "forall z: forall t: forall u: C(z[t, u])[t, u]",
-               "forall t: C(c[t])[t]"):
+    for ok in ("forall x: forall t: C(x[t])",
+               "forall x: forall t1: C(x[t1])",
+               "forall z: forall t: forall u: C(z[t, u])",
+               "forall t: C(c[t])"):
         sig.parse(ok)
 
-    for bad in ("forall x: forall u: C(x[u])[u]",
-                "forall x: forall u1: C(x[u1])[u1]",
-                "forall x: forall U: C(x[U])[U]",
-                "forall z: forall u: forall t: C(z[u, t])[u, t]",
-                "forall u: C(c[u])[u]"):
+    for bad in ("forall x: forall u: C(x[u])",
+                "forall x: forall u1: C(x[u1])",
+                "forall z: forall u: forall t: C(z[u, t])",
+                "forall u: C(c[u])"):
         before = set(sig._structural_variables)
         with pytest.raises(ValueError, match="ranges over dimension"):
             sig.parse(bad)
@@ -671,12 +679,12 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
     sig.predicate("R", ["Img", "Img"])
 
     for bad, msg in (("forall y, y: C(y)", "more than once"),
-                     ("forall t, t: C(x[t])[t]", "more than once"),
-                     ("forall y: C(x)", "never used"),
+                     ("forall t, t: C(x[t])", "more than once"),
+                     ("forall y: C(x[t])", "never used"),
                      ("exists y, z: C(y)", "never used"),
                      ("forall y: forall y: C(y)", "never used"),
-                     ("forall x, t: C(x[t])[t]", "mixes individual"),
-                     ("forall w: forall t, u: C(w[t, u])[t, u]", "different")):
+                     ("forall x, t: C(x[t])", "mixes individual"),
+                     ("forall w: forall t, u: C(w[t, u])", "different")):
         with pytest.raises(ValueError, match=msg):
             sig.parse(bad)
 
@@ -684,7 +692,7 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
                "forall y1: C(y1)",
                "forall y | C(y): C(z)",
                "forall y: (C(y) & forall y: C(y))",
-               "forall x: forall t, t1: (C(x[t])[t] & C(x[t1])[t1])",
+               "forall x: forall t, t1: (C(x[t]) & C(x[t1]))",
                "{ forall y: C(y), forall z: C(z) }"):
         sig.parse(ok)
 
@@ -722,14 +730,11 @@ def test_kb_built_in_python_is_validated():
 
 
 @pytest.mark.parametrize("text, expected", [
-    ("C(video[t])[t]", {"t"}),
-    ("forall t: C(video[t])[t]", set()),
-    ("C(video)", {"T"}),
-    ("C(grid[t])[t]", {"t", "U"}),
-    ("C(grid[t, u])[t, u]", {"t", "u"}),
-    ("C(z[t])[t]", {"t", "U"}),
-    ("C(z[t, u])[t, u]", {"t", "u"}),
-    ("C(z)", {"T", "U"}),
+    ("C(video[t])", {"t"}),
+    ("forall t: C(video[t])", set()),
+    ("C(grid[t, u])", {"t", "u"}),
+    ("C(z[t, u])", {"t", "u"}),
+    ("C(z[t1, u])", {"t1", "u"}),
 ])
 def test_fsv_of_annotated_variables_and_constants_matches_evaluation(text, expected):
     # found-bugs.md #24: a constant's annotations were ignored, and a variable

@@ -33,26 +33,6 @@ def _var_axis_names(vars: list) -> list[str]:
     return list(seen)
 
 
-def _deduplicate_axis_names(dims: list[str]) -> list[str]:
-    """Return unique axis names for *dims*, appending ``_0``, ``_1``, … when
-    the same :class:`Dimension` appears more than once (e.g. ``[T, T]`` →
-    ``['T_0', 'T_1']``).
-    """
-    seen: dict[str, int] = {}
-    for d in dims:
-        seen[d.name] = seen.get(d.name, 0) + 1
-    counts: dict[str, int] = {}
-    names: list[str] = []
-    for d in dims:
-        n = d.name
-        if seen[n] > 1:
-            idx = counts.get(n, 0)
-            counts[n] = idx + 1
-            names.append(f"{n}{idx}")
-        else:
-            names.append(n)
-    return names
-
 # ---------------------------------------------------------------------------
 # Public apply functions
 # ---------------------------------------------------------------------------
@@ -242,8 +222,16 @@ def _apply_batch_callable(
 
     if batch_size == 0:
         probe_inputs = [r.new_zeros((1,) + r.shape[1:]) for r in reshaped]
-        with torch.no_grad():   # only the output shape is needed
-            probe_out = func(*probe_inputs)
+        # Only the output shape is needed: eval mode keeps BatchNorm/Dropout state untouched.
+        modes = [(m, m.training) for m in func.modules()] if isinstance(func, torch.nn.Module) else []
+        try:
+            for m, _ in modes:
+                m.training = False
+            with torch.no_grad():
+                probe_out = func(*probe_inputs)
+        finally:
+            for m, mode in modes:
+                m.training = mode
         if not isinstance(probe_out, torch.Tensor):
             raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(probe_out)}.")
         output_flat = reshaped[0].new_zeros((0,) + probe_out.shape[1:])

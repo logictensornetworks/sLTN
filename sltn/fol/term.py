@@ -33,15 +33,52 @@ if TYPE_CHECKING:
     from sltn.signature.symbols import ConstantSymbol, VariableSymbol, StructuralVariableSymbol, FunctionSymbol
 
 
-def _annotated_axis_names(dims, annotations) -> set[str]:
-    """Structural axis names of ``x[a1, …]`` for a symbol declared over *dims*.
-
-    Mirrors the evaluator, which renames the axes position by position with
-    ``zip``: the first ``len(annotations)`` axes take the annotation names, and
-    the remaining axes keep their dimension names.
+def _deduplicate_axis_names(dims: list) -> list[str]:
+    """Return unique axis names for *dims*, appending ``0``, ``1``, … when
+    the same :class:`Dimension` appears more than once (``[T, T]`` → ``['T0', 'T1']``).
     """
-    names = [d.name for d in dims]
-    return set(annotations[:len(names)]) | set(names[len(annotations):])
+    seen: dict[str, int] = {}
+    for d in dims:
+        seen[d.name] = seen.get(d.name, 0) + 1
+    counts: dict[str, int] = {}
+    names: list[str] = []
+    for d in dims:
+        n = d.name
+        if seen[n] > 1:
+            idx = counts.get(n, 0)
+            counts[n] = idx + 1
+            names.append(f"{n}{idx}")
+        else:
+            names.append(n)
+    return names
+
+
+def _annotated_axis_dims(dims, annotations) -> dict:
+    """Structural axes of ``x[a1, …]`` declared over *dims*, mapped to their Dimension.
+
+    Mirrors the evaluator: repeated dimensions are named ``T0, T1, …`` (#26), then
+    the first ``len(annotations)`` axes are renamed position by position.
+    """
+    names = _deduplicate_axis_names(dims)
+    names[:len(annotations)] = annotations[:len(names)]
+    return dict(zip(names, dims))
+
+
+def _call_axis_dims(symbol, args, output_axes) -> dict:
+    """Structural axes of ``f(args)[a1, …]``, mapped to their Dimension.
+
+    The dimension of every axis comes from the symbols in the tree, so no
+    signature is needed (#71). Argument axes over one of ``input_dims`` are
+    consumed; ``a1, …`` name the ``output_dims`` in order (a name already on an
+    argument passes that axis through).
+    """
+    arg_axes: dict = {}
+    for arg in args:
+        arg_axes.update(arg._axis_dimensions())
+    in_names = {d.name for d in symbol.input_dims}
+    kept = {n: d for n, d in arg_axes.items() if d is None or d.name not in in_names}
+    names = output_axes if output_axes is not None else [d.name for d in symbol.output_dims]
+    return kept | dict(zip(names, symbol.output_dims))
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +112,11 @@ class Term(ABC):
         return self._compute_free_structural_variables()
 
     def _compute_free_structural_variables(self) -> set[str]:
-        return set()
+        return set(self._axis_dimensions())
+
+    def _axis_dimensions(self) -> dict:
+        """Free structural axis names of this term, mapped to their Dimension."""
+        return {}
 
 
 # ---------------------------------------------------------------------------
@@ -105,9 +146,6 @@ class _NameTerm(Term):
     def _compute_free_variables(self) -> set[str]:
         return {self.name}
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        return set()
-
     def __repr__(self) -> str:
         if self.axis_annotations:
             return f"{self.symbol}[{', '.join(self.axis_annotations)}]"
@@ -135,8 +173,8 @@ class Variable(Term):
     def _compute_free_variables(self) -> set[str]:
         return {self.name}
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        return _annotated_axis_names(self.symbol.structural_variables, self.axis_annotations)
+    def _axis_dimensions(self) -> dict:
+        return _annotated_axis_dims(self.symbol.structural_variables, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:
@@ -168,8 +206,8 @@ class Constant(Term):
     def _compute_free_variables(self) -> set[str]:
         return set()
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        return _annotated_axis_names(self.symbol.structural_variables, self.axis_annotations)
+    def _axis_dimensions(self) -> dict:
+        return _annotated_axis_dims(self.symbol.structural_variables, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:
@@ -197,8 +235,8 @@ class StructuralVariable(Term):
     def _compute_free_variables(self) -> set[str]:
         return set()
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        return {self.symbol.name}
+    def _axis_dimensions(self) -> dict:
+        return {self.symbol.name: self.symbol.dimension}
 
     def __repr__(self) -> str:
         if self.axis_annotations:
@@ -243,11 +281,11 @@ class _CallTerm(Term):
             fvs.update(arg.free_variables)
         return fvs
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        dims: set[str] = set()
+    def _axis_dimensions(self) -> dict:
+        axes: dict = {}
         for arg in self.args:
-            dims.update(arg.free_structural_variables)
-        return dims
+            axes.update(arg._axis_dimensions())
+        return axes
 
     def __repr__(self) -> str:
         args_str = ', '.join(map(str, self.args))
@@ -292,14 +330,8 @@ class FunctionApplication(Term):
             fvs.update(arg.free_variables)
         return fvs
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        arg_dims: set[str] = set()
-        for arg in self.args:
-            arg_dims.update(arg.free_structural_variables)
-        in_dim_names = {d.name for d in self.symbol.input_dims}
-        consumed = {alias for alias in arg_dims if alias in in_dim_names}
-        out_names = set(self.output_axes) if self.output_axes is not None else {d.name for d in self.symbol.output_dims}
-        return (arg_dims - consumed) | out_names
+    def _axis_dimensions(self) -> dict:
+        return _call_axis_dims(self.symbol, self.args, self.output_axes)
 
     def __repr__(self) -> str:
         args_str = ', '.join(map(str, self.args))
@@ -327,8 +359,10 @@ class TermAxisSelect(Term):
     def _compute_free_variables(self) -> set[str]:
         return self.base_term.free_variables
 
-    def _compute_free_structural_variables(self) -> set[str]:
-        return self.base_term.free_structural_variables - {self.axis}
+    def _axis_dimensions(self) -> dict:
+        axes = dict(self.base_term._axis_dimensions())
+        axes.pop(self.axis, None)
+        return axes
 
     def __repr__(self) -> str:
         return f"{self.base_term}[{self.axis}={self.index}]"

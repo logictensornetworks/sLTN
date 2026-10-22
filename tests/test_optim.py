@@ -219,8 +219,8 @@ def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
     sig.variable("x", I, dims=[T])
     sig.structural_variable("t", T)
     sig.predicate("C", ["Img"])
-    kb = {"a": sig.parse("forall x: forall t: C(x[t])[t]"),
-          "b": sig.parse("exists x: forall t: C(x[t])[t]")}
+    kb = {"a": sig.parse("forall x: forall t: C(x[t])"),
+          "b": sig.parse("exists x: forall t: C(x[t])")}
 
     mlp = nn.Linear(2, 1)
     interp = Interpretation(sig)

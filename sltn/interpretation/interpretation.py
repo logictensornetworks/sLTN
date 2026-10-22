@@ -28,7 +28,7 @@ from sltn.interpretation.core.tensor import Tensor
 
 from sltn.fol.term import (
     _NameTerm, Variable, Constant, StructuralVariable,
-    FunctionApplication, TermAxisSelect, Term,
+    FunctionApplication, TermAxisSelect, Term, _deduplicate_axis_names,
 )
 from sltn.fol.formula import (
     Formula, TermFormula, FormulaAxisSelect, AtomicFormula,
@@ -43,7 +43,7 @@ from sltn.signature import (
 
 from sltn.interpretation.apply import (
     apply_connective, apply_quantifier, apply_sat_agg,
-    _var_axis_names, _deduplicate_axis_names,
+    _var_axis_names,
     TensorCallable, _apply_callable
 )
 
@@ -72,6 +72,13 @@ def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
     """Wrap a tensor as an annotated sltn.Tensor for a VariableSymbol symbol."""
     if sort_type is None:
         raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
+    reserved = set(sort_type.axis_names) | set(Bool.axis_names)
+    if sym.name in reserved:
+        raise ValueError(
+            f"Variable '{sym.name}' has the same name as a domain axis "
+            f"({sorted(reserved)}) of its sort '{sym.sort.name}' or of predicate outputs. "
+            f"Rename the variable, or set the axis names with Type(..., axis_names=[...])."
+        )
     struct_names = _deduplicate_axis_names(sym.structural_variables)
     axes: list[Axis] = [Axis(sym.name, 'variable')]
     axes += [Axis(n, 'structural') for n in struct_names]
@@ -726,10 +733,7 @@ class Interpretation(torch.nn.Module):
                 f"Set Logic(StructAgg={{'{self._resolve_struct_axis(axis)}': {{'{kind}': <AggregOp>, ...}}}})"
             )
         canonical = self._resolve_struct_axis(axis)
-        # Dimension-level entries take precedence; also accept a literal entry
-        # keyed by the variable name itself, for callers that key StructAgg by
-        # a variable whose name happens to equal its dimension's.
-        entry = struct_agg.get(canonical, struct_agg.get(axis))
+        entry = self.logic._struct_entry(axis)
         if entry is None:
             raise ValueError(
                 f"No structural aggregation operator registered for axis '{axis}'. "
@@ -1026,10 +1030,8 @@ class Interpretation(torch.nn.Module):
 class _SymbolProxy:
     """Wraps a FunctionSymbol/PredicateSymbol with its grounding callable for one evaluation call.
 
-    ``axes_override``:
-      - ``None``  — use the symbol's declared output_dims
-      - ``[]``    — strip all structural output (A(x) with no annotation)
-      - ``[...]`` — rename output axes to annotation names (A(x)[t1])
+    ``axes_override`` names the symbol's ``output_dims`` in order (``A(x[t])[t1]``).
+    A name that is already an argument axis passes that axis through.
     """
 
     def __init__(
@@ -1047,67 +1049,26 @@ class _SymbolProxy:
 
     def __call__(self, *inputs: Tensor) -> Tensor:
         preserved = self._preserved_axes(inputs)
-
-        effective_out = (
-            [d.name for d in self._sym.output_dims]
-            if self._axes_override is None
-            else list(self._axes_override)
-        )
-
-        # When annotation names are given, ensure the matching input axes are
-        # not batched away by _apply_callable.
-        if self._axes_override:
-            sig = self._interp.signature
-            dim_to_input: dict[str, str] = {}
-            for inp in inputs:
-                for axis in inp.structural_axes:
-                    sv = sig._structural_variables.get(axis.name)
-                    dname = sv.dimension.name if sv else axis.name
-                    dim_to_input.setdefault(dname, axis.name)
-            for decl_dim, _ in zip(self._sym.output_dims, effective_out):
-                in_ax = dim_to_input.get(decl_dim.name)
-                if in_ax is not None:
-                    preserved.add(in_ax)
-
-        # If every annotation axis already lives in the inputs (passthrough),
-        # pass them directly so _apply_callable preserves the existing axes
-        # rather than creating new ones and renaming later.
-        all_input_struct = {
-            ax for inp in inputs for ax in inp.free_structural_variables
-        }
-        if (effective_out
-                and len(effective_out) == len(self._sym.output_dims)
-                and all(n in all_input_struct for n in effective_out)):
-            ax_names = list(effective_out)
-            preserved.update(effective_out)
+        out_dims = self._sym.output_dims
+        if self._axes_override is None:
+            names = [d.name for d in out_dims]
         else:
-            ax_names = [d.name for d in self._sym.output_dims]
-
-        result = self._call_symbol(inputs, preserved, ax_names)
-
-        # Rename declared dim names to annotation aliases where they differ.
-        if self._axes_override:
-            renames = {
-                decl.name: ann
-                for decl, ann in zip(self._sym.output_dims, effective_out)
-                if decl.name != ann
-                and decl.name in result._axis_map
-                and ann not in result._axis_map
-            }
-            if renames:
-                result = result.rename_axes(renames)
-
-        # Empty annotation [] → collapse all structural axes.
-        if self._axes_override is not None and not self._axes_override:
-            keep = result.variable_axes + result.domain_axes
-            if result.structural_axes:
-                struct_indices = [result.axis_map[ax.name] for ax in result.structural_axes]
-                val = result.value
-                for idx in sorted(struct_indices, reverse=True):
-                    val = val.mean(dim=idx)
-                result = Tensor(value=val, axes=keep, domain_type=result.domain_type)
-
-        return result
+            names = list(self._axes_override)
+            if len(names) != len(out_dims):
+                raise ValueError(
+                    f"'{self._sym.name}' has {len(out_dims)} output dimension(s), "
+                    f"got the output annotation {names}."
+                )
+        input_axes = {ax for inp in inputs for ax in inp.free_structural_variables}
+        clash = (input_axes - preserved) & set(names)
+        if self._axes_override is None and clash:
+            raise ValueError(
+                f"'{self._sym.name}' produces structural axis {sorted(clash)}, but its "
+                f"argument already has an axis with that name. Name the output axes, "
+                f"e.g. '{self._sym.name}(...)[t1]'."
+            )
+        preserved |= clash
+        return self._call_symbol(inputs, preserved, names)
 
     def _call_symbol(self, inputs, preserved, ax_names) -> Tensor:
         if self._is_pred:

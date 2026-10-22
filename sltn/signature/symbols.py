@@ -108,7 +108,7 @@ class Dimension(Symbol):
 
     The optional *labels* list associates a human-readable label with each
     index along the dimension (e.g. ``["EventA", "EventB"]`` or
-    ``[4, 5, 6, ..., 54]`` for time instants).
+    ``[4, 5, 6, ..., 54]`` for time instants). Labels are only used for display.
 
     Note: the *tensor-level* axis tag is :class:`~sltn.interpretation.core.axis.Axis`.
     """
@@ -224,7 +224,6 @@ class FunctionSymbol(Symbol):
 
     Computational attributes
     ~~~~~~~~~~~~~~~~~~~~~~~~
-    - ``output_axes``  — explicit axis names for output domain (overrides sort-derived axes)
     - ``infix``        — format name as ``a name b`` instead of ``name(a, b)``
 
     Bind a callable via :class:`~sltn.interpretation.Interpretation`:
@@ -238,7 +237,6 @@ class FunctionSymbol(Symbol):
         output_sort: Optional[Sort] = None,
         input_dims: Optional[Sequence[Dimension]] = None,
         output_dims: Optional[Sequence[Dimension]] = None,
-        output_axes: Optional[Sequence[str]] = None,
         infix: bool = False,
     ) -> None:
         super().__init__(name)
@@ -246,9 +244,6 @@ class FunctionSymbol(Symbol):
         self.output_sort:  Optional[Sort]  = output_sort
         self.input_dims:   list[Dimension] = list(input_dims or [])
         self.output_dims:  list[Dimension] = list(output_dims or [])
-        self.output_axes: Optional[tuple[str, ...]] = (
-            tuple(output_axes) if output_axes is not None else None
-        )
         self.infix: bool = infix
 
     def sig_line(self) -> str:
@@ -286,14 +281,12 @@ class PredicateSymbol(Symbol):
         input_dims: Optional[Sequence[Dimension]] = None,
         output_dims: Optional[Sequence[Dimension]] = None,
         infix: bool = False,
-        consumes_args: bool = False,
     ) -> None:
         super().__init__(name)
         self.input_sorts: list[Sort]      = list(input_sorts or [])
         self.input_dims:  list[Dimension] = list(input_dims or [])
         self.output_dims: list[Dimension] = list(output_dims or [])
         self.infix: bool = infix
-        self.consumes_args: bool = consumes_args
 
     def sig_line(self) -> str:
         lhs = " x ".join(s.name for s in self.input_sorts) or "ε"

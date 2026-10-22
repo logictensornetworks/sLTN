@@ -25,8 +25,10 @@ def perm_interp():
     """
     sig = Signature("perm")
     S = sig.sort("S")
-    Da = sig.dimension("a")
-    Dz = sig.dimension("z")
+    Da = sig.dimension("A")
+    Dz = sig.dimension("Z")
+    sig.structural_variable("a", Da)
+    sig.structural_variable("z", Dz)
     x = sig.variable("x", S, dims=[Dz, Da])
     sig.predicate("P", ["S"], input_dims=[Da], output_dims=[Da])
 
@@ -52,7 +54,7 @@ def test_nn_module_permutes_batched_before_preserved_structural(perm_interp):
 
     echo = ShapeEcho()
     interp[sig.get_predicate("P")] = echo
-    interp(sig.parse("P(x)"))
+    interp(sig.parse("P(x[z, a])[a]"))
 
     # Flattened batch = batch_z = 1 * 2 = 2; preserved axis a has size 3; domain 1.
     assert echo.last_shape == (2, 3, 1), echo.last_shape
@@ -73,7 +75,7 @@ def test_plain_callable_permutes_batched_before_preserved_structural(perm_interp
         return torch.sigmoid(t)
 
     interp[sig.get_predicate("P")] = recorder
-    interp(sig.parse("P(x)"))
+    interp(sig.parse("P(x[z, a])[a]"))
 
     # Flattened batch = batch_z = 1 * 2 = 2; preserved axis a has size 3; domain 1.
     assert last_shape["shape"] == (2, 3, 1), last_shape["shape"]

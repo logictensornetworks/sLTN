@@ -274,7 +274,8 @@ def test_function_call_uses_bool_sort_fallback_type():
     image = sig.sort("Image")
     if "Bool" not in sig._sorts:
         sig.sort("Bool")
-    digit = sig.dimension("digit")
+    digit = sig.dimension("Digit")
+    sig.structural_variable("d", digit)
     sig.variable("w", image)
     sig.function("mnist", ["Image"], "Bool", output_dims=[digit])
 
@@ -283,10 +284,10 @@ def test_function_call_uses_bool_sort_fallback_type():
     interp["w"] = torch.rand(4, 1)
     interp["mnist"] = nn.Sequential(nn.Linear(1, 10), nn.Sigmoid())
 
-    result = interp("mnist(w)")
+    result = interp("mnist(w)[d]")
     assert isinstance(result, Tensor)
     assert result.domain_type == Bool
-    assert "digit" in result.axis_names
+    assert "d" in result.axis_names
 
 
 def test_function_call_without_output_type_raises_clear_error():
@@ -308,7 +309,8 @@ def test_function_call_without_output_type_raises_clear_error():
 def test_formula_axis_select_matches_interpretation_at_projection():
     sig = Signature("demo_axis_select")
     S = sig.sort("S")
-    T = sig.dimension("t")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
     sig.predicate("P", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
@@ -317,8 +319,8 @@ def test_formula_axis_select_matches_interpretation_at_projection():
     interp["x"] = torch.rand(5, 3, 1)
     interp["P"] = lambda v: v
 
-    selected_inline = interp("(P(x)[t] & P(x)[t])[t=0]")
-    selected_at = interp("P(x) & P(x)", at={"t": 0})
+    selected_inline = interp("(P(x[t])[t] & P(x[t])[t])[t=0]")
+    selected_at = interp("P(x[t])[t] & P(x[t])[t]", at={"t": 0})
 
     assert torch.allclose(selected_inline.value, selected_at.value)
 

@@ -67,13 +67,13 @@ def tsig():
 
 
 def test_too_many_annotations_rejected(tsig):
-    with pytest.raises(ValueError, match="axis annotation"):
-        tsig.parse("forall x: forall t, t1: C(x[t, t1])[t, t1]")
+    with pytest.raises(ValueError, match="names 2 structural"):
+        tsig.parse("forall x: forall t, t1: C(x[t, t1])")
 
 
 def test_unknown_annotation_rejected(tsig):
     with pytest.raises(NameError, match="not a structural variable"):
-        tsig.parse("forall x: forall t: C(x[q])[t]")
+        tsig.parse("forall x: forall t: C(x[q])")
 
 
 def test_relation_argument_count_checked(tsig):
@@ -86,9 +86,9 @@ def test_relation_argument_must_be_a_bare_name(tsig):
         tsig.parse("forall t, t1: next(t, t1[t])")
 
 
-def test_selection_on_default_axis_name_rejected(tsig):
-    with pytest.raises(ValueError, match="default axis name"):
-        tsig.parse("forall x: C(x[T=0])")
+def test_selection_on_dimension_name_rejected(tsig):
+    with pytest.raises(ValueError, match="not a structural axis"):
+        tsig.parse("forall x: C(x[t][T=0])")
     tsig.parse("forall x: C(x[t][t=0])")
 
 
@@ -109,13 +109,13 @@ def _interp(sig):
 
 def test_mixed_quantifier_rejected(tsig):
     with pytest.raises(ValueError, match="mixes individual"):
-        tsig.parse("forall x, t: C(x[t])[t]")
+        tsig.parse("forall x, t: C(x[t])")
 
 
 def test_guard_not_spanning_quantified_axis(tsig):
     i = _interp(tsig)
-    guarded = i("forall x | G(y): C(x)").value
-    plain = i("forall x: C(x)").value
+    guarded = i("forall x | G(y): C(x[t])").value
+    plain = i("forall x: C(x[t])").value
     # G(y) is constant along x: per individual y, the weights cancel.
     assert torch.allclose(guarded, plain.unsqueeze(0).expand_as(guarded), atol=1e-6)
 

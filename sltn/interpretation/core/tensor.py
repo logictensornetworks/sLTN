@@ -319,6 +319,12 @@ class Tensor:
                     )
                 all_structural_axes[d.name] = d
 
+        both = all_variable_axes.keys() & all_structural_axes.keys()
+        if both:
+            raise ValueError(
+                f"Axis name(s) {sorted(both)} used both as a variable axis and as a "
+                f"structural axis; an axis name must have a single role."
+            )
         sorted_var_names    = sorted(all_variable_axes)
         sorted_struct_names = sorted(all_structural_axes)
         sorted_broadcast    = sorted_var_names + sorted_struct_names

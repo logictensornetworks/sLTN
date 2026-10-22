@@ -13,7 +13,8 @@ from sltn.parse.tokenizer import tokenize
 def sig():
     s = Signature("p")
     S = s.sort("S")
-    s.dimension("t")
+    s.dimension("T")
+    s.structural_variable("t", "T")
     s.predicate("A", [S])
     s.predicate("B", [S])
     s.predicate("Rain", [])
@@ -21,7 +22,7 @@ def sig():
     s.function("+", [S, S], S, infix=True)
     s.function("*", [S, S], S, infix=True)
     s.variable("x", S)
-    s.variable("y", S, dims=["t"])
+    s.variable("y", S, dims=["T"])
     return s
 
 

@@ -138,12 +138,15 @@ def test_define_call_site_axis_alias_does_not_corrupt_definition_body():
     """
     sig = Signature("s")
     Tok = sig.sort("Tok")
-    s = sig.dimension("s")
-    d = sig.dimension("d")
-    sig.predicate("Emb", [Tok], input_dims=[s], output_dims=[d])
+    s = sig.dimension("S")
+    d = sig.dimension("D")
+    sig.structural_variable("s", s)
+    sig.structural_variable("d", d)
+    sig.predicate("Emb", [Tok], output_dims=[d])
     sig.variable("x", Tok, dims=[s])
-    sig.define("Wrap", ["X"], "Emb(X[s])[s,d]")
+    sig.define("Wrap", ["X"], "Emb(X[s])[d]")
 
     phi = sig.parse("Wrap(x[s1])")
     assert isinstance(phi, AtomicFormula)
-    assert phi.structural_axes == ["s1", "d"]
+    assert phi.structural_axes == ["d"]
+    assert phi.free_structural_variables == {"s1", "d"}

@@ -185,19 +185,22 @@ class AggregPMean(AggregationOperator):
             # Protects inner pow for p < 1
             xs = pi_0(xs, self.eps)
 
-        xs_pow = torch.pow(xs, p)
-
         if mask is not None:
             # Accept both bool masks (hard guard) and float tensors in [0,1]
             w = mask.float() if mask.dtype == torch.bool else mask
+            # Masked-out entries get a finite placeholder: 0 ** p is inf for p < 0.
+            xs_pow      = torch.pow(torch.where(w > 0, xs, torch.ones_like(xs)), p)
             numerator   = torch.sum(w * xs_pow, dim=dim, keepdim=keepdim)
             denominator = torch.sum(w,          dim=dim, keepdim=keepdim)
+            empty       = denominator == 0
             mean_val    = safe_div(numerator, denominator)
             if stable:
                 mean_val = pi_0(mean_val, self.eps)
-            return torch.pow(mean_val, 1 / p)
+            # An empty guard gives 0 (so ∀ via pMeanError gives 1), also for p < 0.
+            result = torch.pow(torch.where(empty, torch.ones_like(mean_val), mean_val), 1 / p)
+            return torch.where(empty, torch.zeros_like(result), result)
         else:
-            mean_val = torch.mean(xs_pow, dim=dim, keepdim=keepdim)
+            mean_val = torch.mean(torch.pow(xs, p), dim=dim, keepdim=keepdim)
             if stable:
                 mean_val = pi_0(mean_val, self.eps)
             return torch.pow(mean_val, 1 / p)

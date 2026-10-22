@@ -229,6 +229,22 @@ class Logic:
             return self._signature.resolve_structural_axis(axis)
         return axis
 
+    def _struct_entry(self, axis: str) -> dict | None:
+        """The StructAgg entry for *axis*, matching keys by the dimension they resolve to.
+
+        Keys set before a signature was attached (e.g. ``"t"``) stay unresolved, so
+        they are compared through the signature here.
+        """
+        if not self.StructAgg:
+            return None
+        canonical = self._canonical_axis(axis)
+        if canonical in self.StructAgg:
+            return self.StructAgg[canonical]
+        for key, entry in self.StructAgg.items():
+            if self._canonical_axis(key) == canonical:
+                return entry
+        return None
+
     def __getitem__(self, key: str):
         """Read a logic operator by symbol or keyword.
 
@@ -251,8 +267,7 @@ class Logic:
             q = _parse_kind(q_sym, key)
             if self.StructAgg is None:
                 raise KeyError(f"No structural aggregation operators registered (key={key!r}).")
-            canonical = self._canonical_axis(axis)
-            entry = self.StructAgg.get(canonical, self.StructAgg.get(axis.strip()))
+            entry = self._struct_entry(axis)
             if entry is None:
                 raise KeyError(f"No structural aggregation operators registered for axis '{axis.strip()}'.")
             value = _lookup_kind(entry, q)
