@@ -117,6 +117,7 @@ class ImpliesGoguen(BinaryConnectiveOperator):
 
     def __call__(self, x, y, stable=None) -> torch.Tensor:
         stable = self.stable if stable is None else stable
+        x_raw = x
 
         # Smooth mode always needs a safe (non-zero) denominator; hard mode
         # only clamps when explicitly requested via `stable`.
@@ -134,7 +135,8 @@ class ImpliesGoguen(BinaryConnectiveOperator):
                                 smoothing_method=self.smoothing_method)
             return clamped_ratio + (1.0 - clamped_ratio) * gate
         else:
-            return torch.clamp(torch.div(y, x), max=1.0)
+            # The clamp keeps the unselected branch finite, so x = 0 gives no NaN value or gradient.
+            return torch.where(torch.le(x_raw, y), torch.ones_like(y), y / x.clamp_min(self.eps))
 
 
 # Equivalence operators

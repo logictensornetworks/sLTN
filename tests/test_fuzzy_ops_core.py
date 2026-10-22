@@ -31,6 +31,18 @@ def test_implies_goguen_is_one_when_x_leq_y() -> None:
     assert torch.allclose(out, torch.ones_like(x))
 
 
+@pytest.mark.parametrize("stable", [False, True])
+def test_implies_goguen_at_zero_antecedent(stable) -> None:  # found-bugs.md #10
+    op = fuzzy_ops.ImpliesGoguen(stable=stable)
+    x = torch.tensor([0.0, 0.0, 0.5], requires_grad=True)
+    y = torch.tensor([0.0, 0.3, 0.25], requires_grad=True)
+    out = op(x, y)
+    assert out[0].item() == 1.0 and out[1].item() == 1.0
+    assert out[2].item() == pytest.approx(0.25 / (0.5 if not stable else 0.5 * (1 - op.eps) + op.eps), rel=1e-5)
+    out.sum().backward()
+    assert torch.isfinite(x.grad).all() and torch.isfinite(y.grad).all()
+
+
 def test_aggreg_pmeanerror_definition() -> None:
     x = torch.tensor([[0.2, 0.8], [0.4, 0.6]])
     p = 2.0
