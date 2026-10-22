@@ -1,5 +1,5 @@
 import torch
-from .base import BinaryConnectiveOperator
+from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
 from .negation import NotStandard
 from .conjunction import AndProd, AndMin, AndLuk
 from .utils import DEFAULT_EPS, DEFAULT_BETA, pi_0, smooth_clamp
@@ -9,7 +9,7 @@ class ImpliesDual(BinaryConnectiveOperator):
     """
     Given a conjunction and a negation, return the implication A -> B = not (A and not B)
     """
-    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: BinaryConnectiveOperator):
+    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: UnaryConnectiveOperator):
         
         self.and_op = and_op
         self.neg_op = neg_op
@@ -57,7 +57,7 @@ class ImpliesLuk(ImpliesDual):
         self.smoothing_method = smoothing_method
 
     def __repr__(self) -> str:
-        return f"ImpliesLuk(stable={self.stable}, eps={self.eps}, beta={self.beta})"
+        return f"ImpliesLuk(stable={self.stable}, eps={self.eps}, beta={self.beta}, smoothing_method={self.smoothing_method})"
 
 
 class ImpliesGodel(BinaryConnectiveOperator):
@@ -66,7 +66,7 @@ class ImpliesGodel(BinaryConnectiveOperator):
     
     Use smooth conditional logic to maintain non-zero gradients everywhere.
     """
-    def __init__(self, smooth=False, beta=1., smoothing_method="softplus"):
+    def __init__(self, smooth=False, beta=DEFAULT_BETA, smoothing_method="softplus"):
         """
         Args:
             smooth: If True, use smooth conditional (non-zero gradients everywhere).

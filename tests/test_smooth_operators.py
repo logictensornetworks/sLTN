@@ -324,3 +324,23 @@ def test_stable_lukasiewicz_and_in_a_formula_with_crisp_values():
     assert torch.all(i("A(x) & B(x)").value == 1.0)
     assert torch.all(i("A(x) -> B(x)").value <= 1.0)
 
+
+# ---------------------------------------------------------------------------
+# Small connective issues (found-bugs.md #52)
+# ---------------------------------------------------------------------------
+
+def test_implies_godel_smooth_default_beta_matches_goguen():
+    assert ImpliesGodel(smooth=True).beta == ImpliesGoguen(smooth=True).beta
+    assert ImpliesGodel(smooth=True)(torch.tensor(1.0), torch.tensor(0.0)) < 0.01
+
+
+def test_not_godel_preserves_dtype():
+    from sltn.interpretation.operators import NotGodel
+    x = torch.tensor([0.0, 0.5], dtype=torch.float64)
+    assert NotGodel()(x).dtype == torch.float64
+
+
+def test_lukasiewicz_reprs_are_complete():
+    from sltn.interpretation.operators import AndLuk, ImpliesLuk
+    assert "eps=" in repr(AndLuk())
+    assert "smoothing_method=" in repr(ImpliesLuk())

@@ -17,4 +17,4 @@ class NotGodel(UnaryConnectiveOperator):
         return "NotGodel()"
 
     def __call__(self, x) -> torch.Tensor:
-        return torch.eq(x, 0.).float()
+        return torch.eq(x, 0.).to(x.dtype)

@@ -98,7 +98,7 @@ class AndLuk(BinaryConnectiveOperator):
             self.beta = None
 
     def __repr__(self) -> str:
-        return f"AndLuk(stable={self.stable}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return f"AndLuk(stable={self.stable}, eps={self.eps}, beta={self.beta}, smoothing_method={self.smoothing_method})"
 
     def __call__(self, x, y, stable=None) -> torch.Tensor:
         stable = self.stable if stable is None else stable

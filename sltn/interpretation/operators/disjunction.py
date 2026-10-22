@@ -1,4 +1,4 @@
-from .base import BinaryConnectiveOperator
+from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
 from .utils import DEFAULT_EPS, DEFAULT_BETA
 import torch
 
@@ -10,7 +10,7 @@ class OrDual(BinaryConnectiveOperator):
     """
     Classical fuzzy disjunction operator: A ∨ B = ¬ (¬A & ¬B)
     """
-    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: BinaryConnectiveOperator):
+    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: UnaryConnectiveOperator):
 
         self.and_op = and_op
         self.neg_op = neg_op
@@ -65,7 +65,7 @@ class XOrClassical(BinaryConnectiveOperator):
     """
     XOR fuzzy disjunction operator: A ⊕ B = ¬(¬A & ¬B) & ¬(A & B)
     """
-    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: BinaryConnectiveOperator):
+    def __init__(self, and_op: BinaryConnectiveOperator, neg_op: UnaryConnectiveOperator):
 
         self.and_op = and_op
         self.neg_op = neg_op
