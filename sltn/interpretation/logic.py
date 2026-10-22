@@ -170,7 +170,13 @@ class Logic:
             Forall=self.Forall or aggregator.AggregPMeanError(stable=stable, eps=eps),
             Exists=self.Exists or aggregator.AggregPMean(stable=stable, eps=eps),
             SatAgg=self.SatAgg or aggregator.AggregPMeanError(stable=stable, eps=eps),
-            StructAgg=self.StructAgg,
+            # Copy two levels deep, so that setting a structural aggregator on the
+            # result does not change this Logic or other Logics built from it.
+            StructAgg=(
+                {axis: dict(ops) for axis, ops in self.StructAgg.items()}
+                if self.StructAgg is not None
+                else None
+            ),
         )
         result._signature = self._signature
         return result

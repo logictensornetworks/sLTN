@@ -373,3 +373,22 @@ def test_float64_data_through_a_real_sorted_function():
     out = interp("P(f(x))")
     assert out.value.dtype == torch.float64
     assert out.value.shape == (4, 1)
+
+
+def test_logic_reused_across_interpretations_does_not_share_struct_agg():
+    # found-bugs.md #56: with_defaults passed the StructAgg dict through, so it was shared.
+    sig = Signature("shared_logic")
+    sig.dimension("T")
+    sig.structural_variable("t", "T")
+    L = Logic(StructAgg={"T": {"forall": fuzzy_ops.AggregPMeanError(p=2)}})
+    i1 = Interpretation(sig, logic=L)
+    i2 = Interpretation(sig)
+    i2.logic = L
+    i1.logic["forall,t"] = fuzzy_ops.AggregMin()
+    assert isinstance(i1.logic["forall,T"], fuzzy_ops.AggregMin)
+    assert isinstance(i2.logic["forall,T"], fuzzy_ops.AggregPMeanError)
+    assert isinstance(L.StructAgg["T"]["forall"], fuzzy_ops.AggregPMeanError)
+    # an axis added on one interpretation does not appear on the other
+    i1.logic["exists,T"] = fuzzy_ops.AggregMax()
+    assert "exists" not in i2.logic.StructAgg["T"]
+
