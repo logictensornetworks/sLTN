@@ -714,3 +714,47 @@ def test_kb_built_in_python_is_validated():
     with pytest.raises(ValueError, match="closed formulas"):
         sig.parse("{ C(y), forall z: G(z) }")
 
+
+@pytest.mark.parametrize("text, expected", [
+    ("C(video[t])[t]", {"t"}),
+    ("forall t: C(video[t])[t]", set()),
+    ("C(video)", {"T"}),
+    ("C(grid[t])[t]", {"t", "U"}),
+    ("C(grid[t, u])[t, u]", {"t", "u"}),
+    ("C(z[t])[t]", {"t", "U"}),
+    ("C(z[t, u])[t, u]", {"t", "u"}),
+    ("C(z)", {"T", "U"}),
+])
+def test_fsv_of_annotated_variables_and_constants_matches_evaluation(text, expected):
+    # found-bugs.md #24: a constant's annotations were ignored, and a variable
+    # with fewer annotations than dims dropped the unannotated axes.
+    from sltn import Type
+    from sltn.fol.definitions import _child_nodes
+    from sltn.interpretation.operators import AggregPMeanError
+    sig = Signature("fsv_ann")
+    I = sig.sort("Img")
+    T, U = sig.dimension("T"), sig.dimension("U")
+    sig.structural_variable("t", T)
+    sig.structural_variable("u", U)
+    sig.variable("z", I, dims=[T, U])
+    sig.constant("video", I, dims=[T])
+    sig.constant("grid", I, dims=[T, U])
+    sig.predicate("C", ["Img"])
+    i = Interpretation(sig)
+    i["Img"] = Type("Img", shape=(1,), axis_names=["f"])
+    i["z"] = torch.rand(2, 3, 4, 1)
+    i["video"] = torch.rand(3, 1)
+    i["grid"] = torch.rand(3, 4, 1)
+    i["C"] = lambda a: torch.sigmoid(a)
+    i.logic["forall,T"] = AggregPMeanError()
+
+    phi = sig.parse(text)
+    assert phi.free_structural_variables == expected
+    assert {a.name for a in i(phi).structural_axes} == expected
+
+    def wipe(node):   # the uncached path, as for a tree built in Python
+        node._free_structural_variables = None
+        for child in _child_nodes(node):
+            wipe(child)
+    wipe(phi)
+    assert phi.free_structural_variables == expected

@@ -21,7 +21,7 @@ from sltn.signature.symbols import (
 
 from sltn.fol.term import (
     _NameTerm, Variable, Constant, StructuralVariable,
-    FunctionApplication, _CallTerm, TermAxisSelect, Term
+    FunctionApplication, _CallTerm, TermAxisSelect, Term, _annotated_axis_names
 )
 from sltn.fol.formula import (
     AtomicFormula, StructuralRelation, And, Or,
@@ -436,9 +436,9 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
     Rules (structural domain calculus, alias-name edition):
 
     - d(StructuralVariableSymbol sv)                = {sv.name}
-    - d(VariableSymbol x)  no annotation   = {dim.name for dim in x.structural_variables}
-    - d(VariableSymbol x)  annotated       = set(axis_annotations)
-    - d(ConstantSymbol c)                  = {dim.name for dim in c.structural_variables}
+    - d(VariableSymbol x) / d(ConstantSymbol c), with annotations a₁…aₖ over dims D₁…Dₙ
+                                     = {a₁, …, a_min(k,n)} ∪ {D_k+1, …, Dₙ}
+      (the evaluator renames positionally; with no annotation this is {D₁, …, Dₙ})
     - d(Call/FunctionCall f)         = (∪ d(tᵢ) − consumed(f)) ∪ out_names(f)
     - d(AtomicFormula p)             = (∪ d(tᵢ) − consumed(p)) ∪ out_names(p)
     - d(∘(φ, ψ))                     = d(φ) ∪ d(ψ)
@@ -454,12 +454,8 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
         case StructuralVariable():
             dims = {node.symbol.name}
 
-        case Variable():
-            sym = node.symbol
-            dims = set(node.axis_annotations) if node.axis_annotations else {d.name for d in sym.structural_variables}
-
-        case Constant():
-            dims = {d.name for d in node.symbol.structural_variables}
+        case Variable() | Constant():
+            dims = _annotated_axis_names(node.symbol.structural_variables, node.axis_annotations)
 
         case _NameTerm():
             # Unresolved _NameTerm — structural set unknown here.

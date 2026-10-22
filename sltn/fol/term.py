@@ -33,6 +33,17 @@ if TYPE_CHECKING:
     from sltn.signature.symbols import ConstantSymbol, VariableSymbol, StructuralVariableSymbol, FunctionSymbol
 
 
+def _annotated_axis_names(dims, annotations) -> set[str]:
+    """Structural axis names of ``x[a1, …]`` for a symbol declared over *dims*.
+
+    Mirrors the evaluator, which renames the axes position by position with
+    ``zip``: the first ``len(annotations)`` axes take the annotation names, and
+    the remaining axes keep their dimension names.
+    """
+    names = [d.name for d in dims]
+    return set(annotations[:len(names)]) | set(names[len(annotations):])
+
+
 # ---------------------------------------------------------------------------
 # Term Base Class
 # ---------------------------------------------------------------------------
@@ -125,9 +136,7 @@ class Variable(Term):
         return {self.name}
 
     def _compute_free_structural_variables(self) -> set[str]:
-        if self.axis_annotations:
-            return set(self.axis_annotations)
-        return {d.name for d in self.symbol.structural_variables}
+        return _annotated_axis_names(self.symbol.structural_variables, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:
@@ -160,7 +169,7 @@ class Constant(Term):
         return set()
 
     def _compute_free_structural_variables(self) -> set[str]:
-        return {d.name for d in self.symbol.structural_variables}
+        return _annotated_axis_names(self.symbol.structural_variables, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:
