@@ -54,7 +54,7 @@ def smooth_clamp(x, min=None, max=None, beta = DEFAULT_BETA, smoothing_method="s
     if min is not None and max is not None:
         if not min < max:
             raise ValueError("min must be < max")
-        res = max - smoother(max - x, beta) - (min - smoother(min - x, beta))
+        res = max - smoother(max - x, beta) + smoother(min - x, beta)
         return torch.clamp(res, min, max)
     elif min is not None:
         res = min + smoother(x - min, beta)

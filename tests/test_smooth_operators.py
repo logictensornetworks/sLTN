@@ -280,3 +280,11 @@ def test_implies_goguen_smooth_no_nan_inf():
 
     assert not torch.isnan(result).any(), "Result should not contain NaN"
     assert not torch.isinf(result).any(), "Result should not contain Inf"
+
+
+def test_smooth_clamp_with_nonzero_min():
+    """found-bugs.md #49: the two-sided branch shifted the output down by min."""
+    x = torch.tensor([-5.0, 0.5, 0.7, 5.0])
+    y = smooth_clamp(x, min=0.2, max=1.0, beta=1000.0)
+    assert torch.allclose(y, torch.tensor([0.2, 0.5, 0.7, 1.0]), atol=1e-3)
+
