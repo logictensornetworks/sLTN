@@ -94,16 +94,15 @@ def test_cache_benchmark_backward_leaves_parameter_grads_untouched():
     sig.predicate("Q", ["S"])
     x = sig.variable("x", S)
     net = torch.nn.Sequential(torch.nn.Linear(1, 4), torch.nn.Linear(4, 1), torch.nn.Sigmoid())
-    hidden = torch.nn.Linear(1, 1)   # used only inside a lambda (not in interp.parameters())
 
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
     interp[x] = torch.rand(4, 1)
     interp[sig.get_predicate("P")] = net
-    interp[sig.get_predicate("Q")] = lambda v: torch.sigmoid(hidden(v))
+    interp[sig.get_predicate("Q")] = lambda v: 1 - interp["P"](v)   # reuses a grounded module
 
     cache_benchmark(interp, "forall x: (P(x) & Q(x))", n_runs=3, backward_compute=True)
-    for p in list(net.parameters()) + list(hidden.parameters()):
+    for p in net.parameters():
         assert p.grad is None
 
 

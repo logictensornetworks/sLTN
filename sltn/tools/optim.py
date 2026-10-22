@@ -285,10 +285,16 @@ def kb_backward(
         }
 
     agg = _resolve_aggregator(aggregator)
+    params = list({
+        id(p): p
+        for group in optimizer.param_groups for p in group["params"] if p.requires_grad
+    }.values())
+    if not params:
+        raise ValueError("kb_backward: the optimizer has no parameters that require grad.")
     losses_t = 1.0 - sat_vals
-    backward(losses_t, inputs=interp.parameters(), parallel_chunk_size=parallel_chunk_size)
+    backward(losses_t, inputs=params, parallel_chunk_size=parallel_chunk_size)
 
-    raw_weights = jac_to_grad(interp.parameters(), agg)
+    raw_weights = jac_to_grad(params, agg)
     weights: list[float] | None = None
     if raw_weights is not None:
         weights = raw_weights.tolist()

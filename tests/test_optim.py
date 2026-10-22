@@ -47,7 +47,7 @@ def single_pred_kb():
         interp = Interpretation(sig)
         interp[S] = Type("S", shape=(1,))
         interp[sig.get_variable("x")] = x_data
-        interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(net(v))
+        interp[sig.get_predicate("P")] = nn.Sequential(net, nn.Sigmoid())
         return interp
 
     phi = sig.parse("forall x: P(x)")

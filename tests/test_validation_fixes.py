@@ -157,13 +157,6 @@ def test_alias_lookup_returns_base_grounding(tsig):
         i["y1"] = torch.rand(4, 1)
 
 
-def test_structural_relation_follows_parent(tsig):
-    parent = Interpretation(tsig)
-    parent["next"] = torch.eye(5)
-    child = Interpretation(tsig, parent=parent)
-    assert child.get_structural_relation("next") is not None
-
-
 def test_logic_set_in_classical_mode_is_kept(tsig):
     i = _interp(tsig)
     i.classical = True

@@ -203,7 +203,6 @@ def _apply_batch_callable(
     output_axis_names,
     output_type,
     name: str,
-    no_grad_probe: bool = False,
 ) -> Tensor:
     """Shared implementation for plain callables and :class:`torch.nn.Module`.
 
@@ -243,10 +242,7 @@ def _apply_batch_callable(
 
     if batch_size == 0:
         probe_inputs = [r.new_zeros((1,) + r.shape[1:]) for r in reshaped]
-        if no_grad_probe:
-            with torch.no_grad():
-                probe_out = func(*probe_inputs)
-        else:
+        with torch.no_grad():   # only the output shape is needed
             probe_out = func(*probe_inputs)
         if not isinstance(probe_out, torch.Tensor):
             raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(probe_out)}.")
@@ -296,5 +292,5 @@ def _apply_callable(
         return _apply_expression_callable(func, inputs, name)
     return _apply_batch_callable(
         func, inputs, preserved_axis_names, output_axis_names, output_type,
-        name, no_grad_probe=isinstance(func, torch.nn.Module),
+        name,
     )

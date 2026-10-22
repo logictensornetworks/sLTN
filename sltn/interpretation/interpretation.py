@@ -3,8 +3,8 @@ sltn.interpretation — Interpretation context for evaluating formulas.
 
 An :class:`Interpretation` is the authoritative source of all symbol→value
 bindings for a :class:`~sltn.signature.Signature`.  It also bundles logic
-operators and provides :meth:`Interpretation.__call__` to numerically
-evaluate any formula or term.
+operators and provides ``interp(formula)`` (:meth:`Interpretation.forward`)
+to numerically evaluate any formula or term.
 """
 from __future__ import annotations
 
@@ -154,17 +154,46 @@ def _apply_axis_renames(axis_annotations: list[str], val: Tensor) -> Tensor:
     return val.rename_axes(renames) if renames else val
 
 
+# torch groundings live in the `_grounded` submodule under escaped keys:
+# symbol names like 'train' or 'keys' would clash with nn.Module attributes.
+_REG_PREFIX = "g_"
+_REG_PATH = "_grounded." + _REG_PREFIX
+
+
+def _reg_key(name: str) -> str:
+    return _REG_PREFIX + name.replace(".", "·")
+
+
+def _sym_name(reg: str) -> str:
+    return reg[len(_REG_PREFIX):].replace("·", ".")
+
+
+def _symbol_param_name(qualified: str) -> str:
+    """'_grounded.g_P.0.weight' -> 'P.0.weight'."""
+    if not qualified.startswith(_REG_PATH):
+        return qualified
+    reg, _, rest = qualified[len("_grounded."):].partition(".")
+    return f"{_sym_name(reg)}.{rest}" if rest else _sym_name(reg)
+
 
 # ---------------------------------------------------------------------------
 # Interpretation
 # ---------------------------------------------------------------------------
 
-class Interpretation:
+class Interpretation(torch.nn.Module):
     """
     A logical interpretation of a Signature.
 
     Binds concrete values to symbols (constants, variables, functions,
     predicates) and holds a fuzzy logic operator bundle.
+
+    An Interpretation is an ``nn.Module``: ``nn.Module`` / ``nn.Parameter``
+    groundings are registered as submodules / parameters and data tensors as
+    non-persistent buffers, so ``parameters()``, ``state_dict()`` (models only),
+    ``train()`` / ``eval()`` and ``.to()`` cover everything.
+
+    Networks used inside a plain callable (lambda, function) are not registered:
+    trainable groundings must be ``nn.Module`` or ``nn.Parameter``.
 
     Parameters
     ----------
@@ -184,14 +213,14 @@ class Interpretation:
         self,
         signature: Signature,
         overrides: Optional[Dict[str | Symbol, Any]] = None,
-        parent: Optional["Interpretation"] = None,
         logic: Optional["Logic"] = None,
         **kwargs: Any,
     ) -> None:
+        super().__init__()
         self.signature = signature
         self._device: Optional[torch.device] = None
-        self._parent: Optional["Interpretation"] = parent
-        self._overrides: Dict[str, Any] = {}
+        self._overrides: Dict[str, Any] = {}   # non-torch groundings
+        self._grounded = torch.nn.Module()     # modules, parameters, tensors (buffers)
 
         self._logic: Logic = (logic.with_defaults() if logic is not None else Logic().with_defaults())
         self._logic._signature = self.signature
@@ -226,12 +255,12 @@ class Interpretation:
         for k, v in sorted(items.items(), key=lambda kv: not is_sort(kv[0])):
             self.ground(k, v)
 
-    def _derive(self, overrides: Dict[str, Any], parent: Optional["Interpretation"],
-                source: Optional["Interpretation"] = None) -> "Interpretation":
-        """New interpretation grounded with *overrides*, with logic, classical mode and
-        device copied from *source* (default: self). The Logic is copied, not shared."""
-        source = source or self
-        new = Interpretation(self.signature, parent=parent)
+    def _derive(self, overrides: Dict[str, Any]) -> "Interpretation":
+        """New interpretation grounded with *overrides*, with logic, classical mode,
+        device and train/eval mode copied from self. The Logic is copied, not shared."""
+        source = self
+        new = Interpretation(self.signature)
+        new.training = source.training
         new._device = source._device
         new.logic = source._logic
         new._classical = source._classical
@@ -296,25 +325,29 @@ class Interpretation:
     # ------------------------------------------------------------------
 
     def _has_grounding(self, name: str) -> bool:
-        """Return True if *name* is bound in this Interpretation or any parent."""
-        if name in self._overrides:
+        """Return True if *name* (or the base of an alias) is bound."""
+        if self._get_grounding(name) is not None:
             return True
-        # Check alias: a variable/StructuralVariableSymbol alias is satisfied if its base is bound
         base = (self.signature._variables_aliases.get(name)
                 or self.signature._structural_variables_aliases.get(name))
-        if base is not None and base in self._overrides:
-            return True
-        if self._parent is not None:
-            return self._parent._has_grounding(name)
-        return False
+        return base is not None and self._get_grounding(base) is not None
 
     def _get_grounding(self, name: str) -> Any:
-        """Return the grounding for *name*, falling back to parent chain. Returns None if not found."""
-        if name in self._overrides:
-            return self._overrides[name]
-        if self._parent is not None:
-            return self._parent._get_grounding(name)
-        return None
+        """Return the grounding for *name*, or None if not bound."""
+        reg = _reg_key(name)
+        g = self._grounded
+        for store in (g._modules, g._parameters, g._buffers):
+            if reg in store:
+                return store[reg]
+        return self._overrides.get(name)
+
+    def _groundings(self) -> Dict[str, Any]:
+        """All groundings by symbol name."""
+        g = self._grounded
+        out = dict(self._overrides)
+        for store in (g._modules, g._parameters, g._buffers):
+            out.update((_sym_name(reg), v) for reg, v in store.items())
+        return out
 
     def ground(self, sym: str | Symbol, value: Any) -> Interpretation:
         """Bind *value* to *sym* in this Interpretation.
@@ -348,11 +381,25 @@ class Interpretation:
                 f"Cannot ground '{key}': it is an alias of '{base}' and shares its "
                 f"grounding. Ground '{base}' instead."
             )
-        if self._device is not None and isinstance(value, (torch.nn.Module, torch.Tensor)):
-            value = value.to(self._device)
+        if self._device is not None:
+            if isinstance(value, torch.nn.Parameter):
+                value.data = value.data.to(self._device)   # keep the Parameter object
+            elif isinstance(value, (torch.nn.Module, torch.Tensor)):
+                value = value.to(self._device)
         if isinstance(value, torch.Tensor):
             self._check_tensor_shape(key, value)
-        self._overrides[key] = value
+        reg = _reg_key(key)
+        if hasattr(self._grounded, reg):
+            delattr(self._grounded, reg)
+        self._overrides.pop(key, None)
+        if isinstance(value, torch.nn.Parameter):
+            self._grounded.register_parameter(reg, value)
+        elif isinstance(value, torch.nn.Module):
+            self._grounded.add_module(reg, value)
+        elif isinstance(value, torch.Tensor):
+            self._grounded.register_buffer(reg, value, persistent=False)
+        else:
+            self._overrides[key] = value
         return self
 
     def _check_tensor_shape(self, key: str, tensor: torch.Tensor) -> None:
@@ -559,13 +606,13 @@ class Interpretation:
             axes = _var_axis_names([assignment[v] for v in node.var_names if v in assignment])
         return apply_quantifier(agg_op, formula_result, axes, mask=guard_result, symbol=symbol)
 
-    def __call__(
+    def forward(
         self,
         target: Any,
         assignment: Optional[Assignment] = None,
         at: Optional[Dict[str, int]] = None,
     ) -> Tensor | Any:
-        """Evaluate *target* under this interpretation.
+        """Evaluate *target* under this interpretation (called as ``interp(target)``).
 
         *target* may be a string formula, a :class:`~sltn.fol.formula.Formula`,
         a :class:`~sltn.fol.term.Term`, a :class:`~sltn.signature.symbols.Symbol`,
@@ -637,17 +684,14 @@ class Interpretation:
     # Device placement
     # ------------------------------------------------------------------
 
-    def to(self, device: str | torch.device) -> Interpretation:
-        """Move all bound tensors and modules to *device* and remember it
-        for future :meth:`ground` / ``interp[sym] = value`` calls.
-
-        Returns *self* for chaining.
+    def to(self, *args: Any, **kwargs: Any) -> Interpretation:
+        """``nn.Module.to``; the device is also remembered for future
+        :meth:`ground` / ``interp[sym] = value`` calls. Returns *self*.
         """
-        device = torch.device(device)
-        self._device = device
-        for k, v in list(self._overrides.items()):
-            if isinstance(v, (torch.nn.Module, torch.Tensor)):
-                self._overrides[k] = v.to(device)
+        device = torch._C._nn._parse_to(*args, **kwargs)[0]
+        super().to(*args, **kwargs)
+        if device is not None:
+            self._device = device
         return self
 
     @property
@@ -813,24 +857,25 @@ class Interpretation:
     # ------------------------------------------------------------------
     def with_updates(self, **overrides) -> Interpretation:
         """Return a shallow copy with additional/overridden groundings."""
-        return self._derive({**self._overrides, **overrides}, self._parent)
+        return self._derive({**self._groundings(), **overrides})
 
     def copy(self) -> Interpretation:
         """Return a shallow copy sharing all tensor and module references."""
         return self.with_updates()
 
     def deepcopy(self) -> Interpretation:
-        """Return a deep copy where all tensors and modules are independently cloned."""
-
+        """Return a deep copy where all tensors and modules are independently cloned.
+        A module bound to several symbols stays shared in the copy."""
+        memo: dict = {}
         new_overrides: Dict[str, Any] = {}
-        for k, v in self._overrides.items():
-            if isinstance(v, torch.nn.Module):
-                new_overrides[k] = copy.deepcopy(v)
+        for k, v in self._groundings().items():
+            if isinstance(v, (torch.nn.Module, torch.nn.Parameter)):
+                new_overrides[k] = copy.deepcopy(v, memo)
             elif isinstance(v, torch.Tensor):
                 new_overrides[k] = v.clone()
             else:
                 new_overrides[k] = v
-        return self._derive(new_overrides, self._parent)
+        return self._derive(new_overrides)
 
     def __copy__(self) -> Interpretation:
         return self.copy()
@@ -844,31 +889,13 @@ class Interpretation:
     # Trainable parameters
     # ------------------------------------------------------------------
 
-    def parameters(self):
-        """Yield all trainable parameters from this Interpretation.
-
-        Covers:
-        - ``torch.nn.Module`` groundings (e.g. a neural predicate).
-        - ``torch.nn.Parameter`` groundings (e.g. a learnable embedding constant
-          or structural relation).
-        """
-        for val in self._overrides.values():
-            if isinstance(val, torch.nn.Module):
-                yield from val.parameters()
-            elif isinstance(val, torch.nn.Parameter):
-                yield val
-
-    def named_parameters(self):
-        """Yield ``(name, param)`` pairs from this Interpretation.
-
-        Covers the same sources as :meth:`parameters`, with qualified names.
-        """
-        for key, val in self._overrides.items():
-            if isinstance(val, torch.nn.Module):
-                for param_name, param in val.named_parameters():
-                    yield f"{key}.{param_name}", param
-            elif isinstance(val, torch.nn.Parameter):
-                yield key, val
+    def named_parameters(self, prefix: str = "", recurse: bool = True,
+                         remove_duplicate: bool = True):
+        """``nn.Module.named_parameters`` with symbol-based names (``"P.0.weight"``).
+        A module bound to several symbols is yielded once."""
+        for name, p in super().named_parameters(recurse=recurse,
+                                                remove_duplicate=remove_duplicate):
+            yield prefix + _symbol_param_name(name), p
 
     # ------------------------------------------------------------------
     # Merge
@@ -878,7 +905,7 @@ class Interpretation:
     def merge(cls, a: Interpretation, b: Interpretation) -> Interpretation:
         """Merge two interpretations; *b* overrides *a*. Logic, classical mode and
         device come from *b* (device falls back to *a*'s)."""
-        merged = b._derive({**a._overrides, **b._overrides}, b._parent or a._parent)
+        merged = b._derive({**a._groundings(), **b._groundings()})
         if merged._device is None and a._device is not None:
             merged.to(a._device)
         return merged
@@ -952,7 +979,7 @@ class Interpretation:
         if sig._sorts:
             lines.append("  Sorts:")
             for s_name in sig._sorts:
-                typ = self._overrides.get(s_name)
+                typ = self._get_grounding(s_name)
                 suffix = f" : {typ}" if typ is not None else ""
                 lines.append(f"    {s_name}{suffix}")
 
@@ -960,28 +987,28 @@ class Interpretation:
         if sig._constants:
             lines.append("  Constants:")
             for c_name in sig._constants:
-                val = self._overrides.get(c_name)
+                val = self._get_grounding(c_name)
                 lines.append(f"    {c_name}: {_val_label(val)}")
 
         # ── Variables ─────────────────────────────────────────────────
         if sig._variables:
             lines.append("  Variables:")
             for v_name in sig._variables:
-                val = self._overrides.get(v_name)
+                val = self._get_grounding(v_name)
                 lines.append(f"    {v_name}: {_val_label(val)}")
 
         # ── Predicates ────────────────────────────────────────────────
         if sig._predicates:
             lines.append("  Predicates:")
             for p_name in sig._predicates:
-                val = self._overrides.get(p_name)
+                val = self._get_grounding(p_name)
                 lines.append(f"    {p_name}: {_val_label(val)}")
 
         # ── Functions ─────────────────────────────────────────────────
         if sig._functions:
             lines.append("  Functions:")
             for f_name in sig._functions:
-                val = self._overrides.get(f_name)
+                val = self._get_grounding(f_name)
                 lines.append(f"    {f_name}: {_val_label(val)}")
 
         # ── Logic ─────────────────────────────────────────────────────
