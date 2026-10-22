@@ -4,9 +4,9 @@ Precedence (highest to lowest binding):
     ¬ / quantifier (non-greedy)  >  ∧  >  ∨  >  →  >  ↔
 
 Associativity:
-    ∧, ∨, ↔  — left-associative
-    →         — right-associative
-    ¬         — right-associative (prefix)
+    ∧, ∨, →  — right-associative
+    ↔         — non-associative (a chain is an error)
+    ¬         — prefix
     quantifiers — non-greedy (bind to immediate sub-expression only)
 
 OR uses keyword ``or`` or ``∨``; ``|`` is NOT a disjunction operator in sLTN.
@@ -120,23 +120,24 @@ def test_not_tilde(sig):
 # Associativity
 # ---------------------------------------------------------------------------
 
-def test_and_is_left_associative(sig):
+def test_and_is_right_associative(sig):
     phi = _parse(sig, "A(x) & B(x) & C(x)")
     assert isinstance(phi, And)
-    assert isinstance(phi.left, And), "Expected left-assoc: (A & B) & C"
-    assert isinstance(phi.right, AtomicFormula)
+    assert isinstance(phi.right, And), "Expected right-assoc: A & (B & C)"
+    assert isinstance(phi.left, AtomicFormula)
 
 
-def test_or_is_left_associative(sig):
+def test_or_is_right_associative(sig):
     phi = _parse(sig, "A(x) or B(x) or C(x)")
     assert isinstance(phi, Or)
-    assert isinstance(phi.left, Or), "Expected left-assoc: (A or B) or C"
+    assert isinstance(phi.right, Or), "Expected right-assoc: A or (B or C)"
 
 
-def test_iff_is_left_associative(sig):
-    phi = _parse(sig, "A(x) iff B(x) iff C(x)")
-    assert isinstance(phi, Equivalent)
-    assert isinstance(phi.left, Equivalent), "Expected left-assoc: (A iff B) iff C"
+def test_iff_chain_is_an_error(sig):
+    with pytest.raises(ValueError, match="can't be chained"):
+        _parse(sig, "A(x) iff B(x) iff C(x)")
+    phi = _parse(sig, "(A(x) iff B(x)) iff C(x)")
+    assert isinstance(phi.left, Equivalent)
 
 
 def test_implies_is_right_associative(sig):

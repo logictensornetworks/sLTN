@@ -13,7 +13,8 @@ after the grammar produces a raw AST.  The pipeline runs in this order:
 """
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+import warnings
+from typing import Any, Literal, TYPE_CHECKING
 
 from sltn.signature.symbols import (
     VariableSymbol, ConstantSymbol, StructuralVariableSymbol, FunctionSymbol, PredicateSymbol, Dimension
@@ -31,7 +32,7 @@ from sltn.fol.formula import (
     TermFormula, FormulaAxisSelect, Formula
 )
 
-from sltn.parse.parser import parse_term_string, parse_formula_string
+from sltn.parse.parser import parse_string, signature_tables
 
 from sltn.fol.definitions import _expand_definitions, _base_name_of, _child_nodes
 
@@ -213,6 +214,14 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                     f"functions: {list(sig._functions)}, "
                     f"structural_relations: {list(sig._structural_relations)}."
                 )
+
+        case TermFormula() if isinstance(node.term, _NameTerm) and node.term.symbol in sig._predicates:
+            # A nullary predicate written without parentheses: Rain.
+            pred = sig._predicates[node.term.symbol]
+            axes = node.term.axis_annotations or None
+            node.__class__ = AtomicFormula
+            node.__dict__ = {}
+            AtomicFormula.__init__(node, pred, structural_axes=axes)
 
         case TermFormula():
             _resolve_symbols(node.term, sig)
@@ -586,17 +595,27 @@ def _validate_kb_clauses(node: Any) -> None:
 # Top-level parse / pipeline entry points
 # ---------------------------------------------------------------------------
 
-def _build_infix_lists(sig: "Signature"):
-    """Return (infix_preds, infix_fns) sorted by descending length for a Signature."""
-    declared_preds = [n for n, s in sig._predicates.items() if s.infix]
-    declared_fns   = [n for n, s in sig._functions.items()  if s.infix]
-    defined_infix  = [n for n, d in sig._definitions.items() if d.infix]
-    infix_preds = sorted(declared_preds + defined_infix, key=lambda s: -len(s)) or None
-    infix_fns   = sorted(declared_fns,                   key=lambda s: -len(s)) or None
-    return infix_preds, infix_fns
+def _warn_on_escaped_variables(ast: Formula | Term) -> None:
+    """Warn when a quantified name also occurs free: usually a missing pair of parentheses."""
+    if not isinstance(ast, Formula):
+        return
+    bound: set[str] = set()
+    stack = [ast]
+    while stack:
+        n = stack.pop()
+        if isinstance(n, _BoundFormula):
+            bound.update(n.var_names)
+        stack.extend(_child_nodes(n))
+    escaped = (ast.free_variables | ast.free_structural_variables) & bound
+    if escaped:
+        warnings.warn(
+            f"{sorted(escaped)} occur both quantified and free in {ast}. Quantifiers bind only "
+            f"their immediate subformula; write e.g. 'forall x: (A(x) -> B(x))'.",
+            stacklevel=4,
+        )
 
 
-def _run_pipeline(ast, sig: "Signature", infix_preds, infix_fns):
+def _run_pipeline(ast, sig: "Signature"):
     """Expand definitions and run all annotation passes on *ast* in place.
 
     Symbols auto-registered while resolving names (aliases such as ``x1`` or
@@ -608,8 +627,7 @@ def _run_pipeline(ast, sig: "Signature", infix_preds, infix_fns):
     snapshot = [dict(r) for r in registries]
     try:
         if sig._definitions:
-            ast = _expand_definitions(ast, sig._definitions, sig,
-                                      infix_preds=infix_preds, infix_fns=infix_fns)
+            ast = _expand_definitions(ast, sig._definitions, sig)
         _resolve_symbols(ast, sig)
         _annotate_free_structural_variables(ast, sig)
         _annotate_free_variables(ast, sig)
@@ -623,37 +641,29 @@ def _run_pipeline(ast, sig: "Signature", infix_preds, infix_fns):
     return ast
 
 
-def parse(formula_string: str, sig: "Signature") -> "Formula | Term":
-    """Parse *formula_string* against *sig* and run the full pipeline.
+def parse_raw(source: str, sig: "Signature", expect: Literal["formula", "term", "any"]) -> "Formula | Term":
+    """Parse *source* with *sig*'s infix symbols, without resolving names.
 
-    Equivalent to ``sig.parse(formula_string)``.  Prefer calling this function
-    directly when *sig* is already available — it keeps parsing logic in the
-    parse package rather than on the signature object.
-
-    A string that is not a well-formed formula (e.g. a bare term such as
-    ``"digit(x1)"`` with no top-level infix predicate) is retried as a term.
-    That fallback only makes sense for errors raised because the string
-    never looked like a formula to begin with (its first token cannot start
-    a formula); if the string *does* start like a formula but has a genuine
-    syntax error further in, that original error is raised instead of the
-    (often confusing) term-parse error.
+    ``"any"`` parses a formula, but returns a bare term (``digit(x)``, ``y``) as a term.
     """
-    infix_preds, infix_fns = _build_infix_lists(sig)
-    try:
-        ast = parse_formula_string(formula_string, infix_preds=infix_preds, infix_fns=infix_fns)
-    except ValueError as formula_exc:
-        try:
-            return parse_term(formula_string, sig)
-        except ValueError:
-            raise formula_exc from None
-    return _run_pipeline(ast, sig, infix_preds, infix_fns)
+    infix, functions = signature_tables(sig)
+    ast = parse_string(source, infix, functions, "term" if expect == "term" else "formula")
+    if (expect == "any" and isinstance(ast, TermFormula)
+            and not (isinstance(ast.term, _NameTerm) and ast.term.symbol in sig._predicates)):
+        return ast.term
+    return ast
+
+
+def parse(formula_string: str, sig: "Signature") -> "Formula | Term":
+    """Parse *formula_string* against *sig* and run the full pipeline (``sig.parse``).
+
+    The result is a formula, or a term when the whole string is a term (``digit(x)``).
+    """
+    ast = _run_pipeline(parse_raw(formula_string, sig, "any"), sig)
+    _warn_on_escaped_variables(ast)
+    return ast
 
 
 def parse_term(term_string: str, sig: "Signature") -> "Term":
-    """Parse *term_string* against *sig* and run the resolution pipeline.
-
-    Equivalent to ``sig.parse_term(term_string)``.
-    """
-    infix_preds, infix_fns = _build_infix_lists(sig)
-    ast = parse_term_string(term_string, infix_fns=infix_fns, infix_preds=infix_preds)
-    return _run_pipeline(ast, sig, infix_preds, infix_fns)
+    """Parse *term_string* against *sig* and run the resolution pipeline (``sig.parse_term``)."""
+    return _run_pipeline(parse_raw(term_string, sig, "term"), sig)

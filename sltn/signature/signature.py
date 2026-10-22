@@ -20,28 +20,13 @@ from sltn.signature.symbols import (
     StructuralVariableSymbol, StructuralRelationSymbol,
 )
 
+from sltn.parse.tokenizer import RESERVED_NAMES as _RESERVED_NAMES, is_identifier
+
 if TYPE_CHECKING:
     from sltn.fol.formula import Formula
     from sltn.fol.term import Term
 
-# ---------------------------------------------------------------------------
-# Reserved names — cannot be used as symbol identifiers
-# ---------------------------------------------------------------------------
-
-#: Names that the parser tokenises as keywords or structural punctuation.
-#: Declaring a symbol with one of these names would silently break parsing.
-#: Note: infix operators that merely *start* with "=" (e.g. "=f", "==") are
-#: fine — the check uses exact equality.
-_RESERVED_NAMES: frozenset[str] = frozenset({
-    # ASCII keyword spellings
-    "forall", "exists",
-    "struct_forall", "struct_exists",
-    "not", "and", "or", "implies", "iff",
-    # Unicode single-char alternatives
-    "∀", "∃", "¬", "∧", "&", "∨", "→", "↔",
-    # axis-select operator
-    "=",
-})
+_GRAMMAR_CHARS = frozenset("()[]{},:|")
 
 # ---------------------------------------------------------------------------
 # Signature
@@ -109,12 +94,19 @@ class Signature:
     # Declarations
     # ------------------------------------------------------------------
 
-    def _check_name(self, name: str) -> None:
+    def _check_name(self, name: str, infix: bool = False) -> None:
         """Raise if *name* is a parser-reserved keyword or operator."""
         if name in _RESERVED_NAMES:
             raise ValueError(
                 f"'{name}' is a reserved name in the sLTN grammar and cannot "
                 f"be used as a symbol identifier. Reserved: {sorted(_RESERVED_NAMES)}"
+            )
+        if infix and not is_identifier(name) and (
+            not name or name[0].isalnum() or any(c.isspace() or c in _GRAMMAR_CHARS for c in name)
+        ):
+            raise ValueError(
+                f"Infix symbol {name!r} must be an identifier or a run of symbols that "
+                f"starts with a symbol and contains no spaces or {''.join(sorted(_GRAMMAR_CHARS))}."
             )
 
     def sort(self, name: str) -> Sort:
@@ -174,7 +166,7 @@ class Signature:
         output_dims: Optional[Sequence[str | Dimension]] = None,
         **kwargs,
     ) -> FunctionSymbol:
-        self._check_name(name)
+        self._check_name(name, infix=kwargs.get("infix", False))
         if name in self._functions:
             raise ValueError(f"FunctionSymbol '{name}' already declared.")
         f = FunctionSymbol(
@@ -196,7 +188,7 @@ class Signature:
         output_dims: Optional[Sequence[str | Dimension]] = None,
         **kwargs,
     ) -> PredicateSymbol:
-        self._check_name(name)
+        self._check_name(name, infix=kwargs.get("infix", False))
         if name in self._predicates:
             raise ValueError(f"PredicateSymbol '{name}' already declared.")
         p = PredicateSymbol(
@@ -267,7 +259,7 @@ class Signature:
         it replaces it with *formula_body* with *arg_names[i]* substituted by
         *ti* — at parse time, before symbol resolution or evaluation.
         """
-        
+        self._check_name(name, infix=infix)
         if input_sorts is not None and len(input_sorts) != len(arg_names):
             raise ValueError(
                 f"Definition '{name}' declares {len(input_sorts)} input_sorts "
@@ -356,7 +348,7 @@ class Signature:
     # ------------------------------------------------------------------
 
     def parse(self, formula_string: str) -> Formula | Term:
-        """Parse *formula_string* as a formula or term against this signature."""
+        """Parse *formula_string* as a formula (or as a term, if the whole string is one)."""
         from sltn.parse.pipeline import parse
         return parse(formula_string, self)
 

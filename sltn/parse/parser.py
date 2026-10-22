@@ -1,539 +1,351 @@
-"""Recursive-descent formula parser for sLTN.
+"""Parser for sLTN formula and term strings.
 
-Grammar semantics
------------------
-Operator precedence (highest first):
+Parsing has two steps:
 
-  not  (prefix, right-assoc)
-  &  / and / ∧   (left)
-  or  / ∨        (left)
-  ->  / →        (right)
-  <-> / ↔        (left)
+1. A precedence-climbing parser builds an untyped expression tree. It never asks
+   whether it is reading a term or a formula, and parentheses only group.
+2. A classifier turns the tree into the formula/term AST, knowing for every node
+   whether it sits in formula position or in term position.
 
+Binding, loosest first:
+
+  ==================  ======================  ===================================
+  quantifier prefix   ``∀ x | guard: body``   body parsed at the ``not`` level
+  ``<->`` iff ↔ ⇔     non-associative         ``a <-> b <-> c`` is an error
+  ``->`` implies → ⇒  right
+  ``or`` ∨            right
+  ``&`` and ∧         right
+  ``not`` ~ ¬         prefix
+  infix predicates    non-associative         declared with ``infix=True``
+  infix functions     left (one level)        declared with ``infix=True``
+  postfix             ``f(args)``, annotation ``[t, u]``, selection ``[t=k]``
+  ==================  ======================  ===================================
+
+Quantifiers bind only their immediate subformula: ``forall x: A(x) -> B(x)`` is
+``(forall x: A(x)) -> B(x)``.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any, Literal
+
 from sltn.fol.formula import (
-    And, Or, Not, Implies, Equivalent, # Connectives
-    Forall, Exists, StructuralForall, StructuralExists, # Quantifiers
-    AtomicFormula, Formula, KB, FormulaAxisSelect, TermFormula, # Formula
+    And, Or, Not, Implies, Equivalent, Forall, Exists,
+    AtomicFormula, Formula, KB, FormulaAxisSelect, TermFormula,
 )
-
 from sltn.fol.term import TermAxisSelect, _CallTerm, _NameTerm, Term
-from sltn.parse.tokenizer import TK, Token, tokenize
+from sltn.parse.tokenizer import Token, tokenize
+
+InfixTable = dict[str, Literal["pred", "fn"]]
 
 
 # ---------------------------------------------------------------------------
-# Parser class
+# Untyped expression tree
 # ---------------------------------------------------------------------------
+
+@dataclass
+class _Name:
+    name: str
+    axes: list[str] | None = None
+
+
+@dataclass
+class _Call:
+    name: str
+    args: list[Any]
+    axes: list[str] | None = None
+
+
+@dataclass
+class _Select:
+    base: Any
+    axis: str
+    index: int
+
+
+@dataclass
+class _Op:
+    op: str          # "not", "and", "or", "implies", "iff", or a user infix symbol
+    args: list[Any]
+
+
+@dataclass
+class _Quant:
+    kind: str        # "forall" or "exists"
+    groups: list[list[str]]
+    guard: Any
+    body: Any
+
+
+@dataclass
+class _KB:
+    items: list[Any]
+
+
+_IFF, _IMPLIES, _OR, _AND, _NOT, _PRED, _FN = 10, 20, 30, 40, 50, 60, 70
+_CONNECTIVE_BP = {"iff": _IFF, "implies": _IMPLIES, "or": _OR, "and": _AND}
+_RIGHT_ASSOC = {_IMPLIES, _OR, _AND}
+_NON_ASSOC = {_IFF: "'<->' can't be chained; add parentheses",
+              _PRED: "infix predicates can't be chained; add parentheses"}
 
 
 class _Parser:
-    """Stateful parser for one formula / term string.
+    def __init__(self, source: str, infix: InfixTable) -> None:
+        self._src = source
+        self._infix = infix
+        self._toks = tokenize(source, frozenset(infix))
+        self._i = 0
 
-    Both formula-level and term-level productions live here so they can share
-    the same token stream without re-tokenising sub-strings.
-    """
+    # ── token helpers ────────────────────────────────────────────────────────
 
-    def __init__(
-        self,
-        tokens: list[Token],
-        original: str,
-        infix_preds: list[str],
-        infix_fns: list[str],
-    ) -> None:
-        self._tokens = tokens
-        self._pos    = 0
-        self._original = original
-        self._infix_preds: frozenset[str] = frozenset(infix_preds)
-        self._infix_fns:   frozenset[str] = frozenset(infix_fns)
+    def _peek(self, k: int = 0) -> Token:
+        return self._toks[min(self._i + k, len(self._toks) - 1)]
 
-    # ── Token-stream helpers ─────────────────────────────────────────────────
+    def _at(self, kind: str, k: int = 0) -> bool:
+        return self._peek(k).kind == kind
 
-    def _peek(self, offset: int = 0) -> Token:
-        idx = self._pos + offset
-        if idx >= len(self._tokens):
-            return self._tokens[-1]  # EOF sentinel
-        return self._tokens[idx]
-
-    def _consume(self) -> Token:
-        tok = self._tokens[self._pos]
-        if tok.kind is not TK.EOF:
-            self._pos += 1
+    def _next(self) -> Token:
+        tok = self._peek()
+        self._i += tok.kind != "EOF"
         return tok
 
-    def _expect(self, kind: TK) -> Token:
-        tok = self._peek()
-        if tok.kind is not kind:
-            raise ValueError(
-                f"Expected {kind.name} but found {tok.text!r} at position {tok.pos}"
-                f" in: {self._original!r}"
-            )
-        return self._consume()
+    def _error(self, msg: str, tok: Token | None = None) -> ValueError:
+        tok = tok or self._peek()
+        return ValueError(f"{msg} at position {tok.pos} in: {self._src!r}")
 
-    # ── Formula entry points ─────────────────────────────────────────────────
-
-    def parse_formula(self) -> Formula:
-        """
-        Parse a complete formula from the current position.
-        """
-        return self._parse_iff()
-
-    def parse_formula_all(self) -> Formula:
-        """Parse a formula, then assert the entire string was consumed."""
-        f = self.parse_formula()
-        if self._peek().kind is not TK.EOF:
+    def _expect(self, kind: str) -> Token:
+        if not self._at(kind):
             tok = self._peek()
-            raise ValueError(
-                f"Unexpected token {tok.text!r} at position {tok.pos}"
-                f" in: {self._original!r}"
-            )
-        return f
+            found = repr(tok.text) if tok.kind != "EOF" else "end of input"
+            raise self._error(f"Expected {kind!r} but found {found}")
+        return self._next()
 
-    # ── Connective levels (iterative loops — no recursion per operator) ──────
+    # ── expressions ──────────────────────────────────────────────────────────
 
-    def _parse_iff(self) -> Formula:
-        left = self._parse_impl()
-        while self._peek().kind is TK.IFF:
-            self._consume()
-            left = Equivalent(left, self._parse_impl())
+    def parse_all(self) -> Any:
+        tree = self._expr(0)
+        if not self._at("EOF"):
+            raise self._error(f"Unexpected token {self._peek().text!r}")
+        return tree
+
+    def _bp(self, tok: Token) -> int:
+        if tok.kind == "OP":
+            return _PRED if self._infix[tok.text] == "pred" else _FN
+        return _CONNECTIVE_BP.get(tok.kind, 0)
+
+    def _expr(self, min_bp: int) -> Any:
+        left = self._prefix()
+        while (bp := self._bp(self._peek())) > min_bp:
+            tok = self._next()
+            right = self._expr(bp - 1 if bp in _RIGHT_ASSOC else bp)
+            left = _Op(tok.text if tok.kind == "OP" else tok.kind, [left, right])
+            if bp in _NON_ASSOC and self._bp(self._peek()) == bp:
+                raise self._error(_NON_ASSOC[bp])
         return left
 
-    def _parse_impl(self) -> Formula:
-        left = self._parse_or()
-        if self._peek().kind is TK.IMPLIES:
-            self._consume()
-            return Implies(left, self._parse_impl())   # right-assoc
-        return left
-
-    def _parse_or(self) -> Formula:
-        left = self._parse_and()
-        while self._peek().kind is TK.OR:
-            self._consume()
-            left = Or(left, self._parse_and())
-        return left
-
-    def _parse_and(self) -> Formula:
-        left = self._parse_not()
-        while self._peek().kind is TK.AND:
-            self._consume()
-            left = And(left, self._parse_not())
-        return left
-
-    def _parse_not(self) -> Formula:
-        if self._peek().kind in (TK.FORALL, TK.EXISTS):
-            return self._parse_quantifier()
-        if self._peek().kind is TK.NOT:
-            self._consume()
-            return Not(self._parse_not())
-        return self._parse_primary()
-
-    # ── Quantifiers ──────────────────────────────────────────────────────────
-
-    def _parse_quantifier(self) -> Formula:
-        kw_tok   = self._consume()           # FORALL or EXISTS
-        is_forall = kw_tok.kind is TK.FORALL
-
-        qvars = self._parse_qvars()
-
-        guard: Formula | None = None
-        if self._peek().kind is TK.PIPE:
-            self._consume()
-            guard = self.parse_formula()     # greedy; stops at COLON naturally
-
-        self._expect(TK.COLON)
-        body = self._parse_not()             # non-greedy: stops before connectives
-
-        cls = Forall if is_forall else Exists
-        return cls(qvars, body, guard=guard)
-
-    def _parse_qvars(self) -> list[list[str]]:
-        """Parse the variable list of a quantifier.
-
-        Handles both single variables (``x``) and diagonal groups
-        (``(x1, x2)``), separated by commas.  Stops when the next token
-        after a comma is not a name or ``(``, which means the comma belongs
-        to something else (e.g. the guard formula).
-        """
-        qvars: list[list[str]] = []
-        while True:
-            if self._peek().kind is TK.LPAR:
-                # Diagonal group: (x1, x2, ...)
-                self._consume()
-                names = [self._expect(TK.NAME).text]
-                while self._peek().kind is TK.COMMA:
-                    self._consume()
-                    names.append(self._expect(TK.NAME).text)
-                self._expect(TK.RPAR)
-                qvars.append(names)
-            else:
-                qvars.append([self._expect(TK.NAME).text])
-
-            if self._peek().kind is not TK.COMMA:
-                break
-            # A comma here could be: another qvar, or a separator inside the
-            # guard formula.  Look one step ahead: if the token after the
-            # comma is NAME or LPAR, it is another qvar; otherwise stop.
-            if self._peek(1).kind not in (TK.NAME, TK.LPAR):
-                break
-            self._consume()  # consume the comma
-        return qvars
-
-    # ── Primary formula ───────────────────────────────────────────────────────
-
-    def _parse_primary(self) -> Formula:
+    def _prefix(self) -> Any:
         tok = self._peek()
+        if tok.kind == "not":
+            self._next()
+            return _Op("not", [self._expr(_NOT)])
+        if tok.kind in ("forall", "exists"):
+            return self._quantifier()
+        if tok.kind == "(":
+            self._next()
+            inner = self._expr(0)
+            self._expect(")")
+            return self._selections(inner)
+        if tok.kind == "{":
+            self._next()
+            items = [self._expr(0)]
+            while self._at(","):
+                self._next()
+                items.append(self._expr(0))
+            self._expect("}")
+            return _KB(items)
+        if tok.kind == "NAME" or (tok.kind == "OP" and self._at("(", 1)):
+            return self._name()
+        found = repr(tok.text) if tok.kind != "EOF" else "end of input"
+        raise self._error(f"Expected a formula or term, found {found}")
 
-        # ── Parenthesised formula ─────────────────────────────────────────────
-        if tok.kind is TK.LPAR:
-            self._consume()
-            inner = self.parse_formula()
-            self._expect(TK.RPAR)
-            return self._apply_formula_selects(inner)
+    def _quantifier(self) -> _Quant:
+        kind = self._next().kind
+        groups = [self._var_group()]
+        while self._at(","):
+            self._next()
+            groups.append(self._var_group())
+        guard = None
+        if self._at("|"):
+            self._next()
+            guard = self._expr(0)
+        self._expect(":")
+        return _Quant(kind, groups, guard, self._expr(_NOT))
 
-        # ── KB  { clause, … } ────────────────────────────────────────────────
-        if tok.kind is TK.LBRACE:
-            return self._parse_kb()
+    def _var_group(self) -> list[str]:
+        if not self._at("("):
+            return [self._expect("NAME").text]
+        self._next()
+        names = self._names()
+        self._expect(")")
+        return names
 
-        # ── struct_forall / struct_exists ───────────────────────────────────────
-        if tok.kind is TK.STRUCT_FORALL:
-            self._consume()
-            self._expect(TK.LPAR)
-            axis = self._expect(TK.NAME).text
-            self._expect(TK.COMMA)
-            body = self.parse_formula()
-            self._expect(TK.RPAR)
-            return StructuralForall(body, structural_axis=axis)
+    def _names(self) -> list[str]:
+        names = [self._expect("NAME").text]
+        while self._at(","):
+            self._next()
+            names.append(self._expect("NAME").text)
+        return names
 
-        if tok.kind is TK.STRUCT_EXISTS:
-            self._consume()
-            self._expect(TK.LPAR)
-            axis = self._expect(TK.NAME).text
-            self._expect(TK.COMMA)
-            body = self.parse_formula()
-            self._expect(TK.RPAR)
-            return StructuralExists(body, structural_axis=axis)
+    def _name(self) -> Any:
+        """``name``, ``name(args)``, then an optional annotation ``[t, u]`` and selections."""
+        name = self._next().text
+        args = None
+        if self._at("("):
+            self._next()
+            args = []
+            if not self._at(")"):
+                args.append(self._expr(0))
+                while self._at(","):
+                    self._next()
+                    args.append(self._expr(0))
+            self._expect(")")
+        axes = None
+        if self._at("[") and not self._at("=", 2):
+            self._next()
+            axes = self._names()
+            self._expect("]")
+        node = _Name(name, axes) if args is None else _Call(name, args, axes)
+        return self._selections(node)
 
-        # ── NAME-headed formulas ──────────────────────────────────────────────
-        if tok.kind is TK.NAME:
-            return self._parse_name_primary()
-
-        raise ValueError(
-            f"Expected formula primary, found {tok.text!r} at position {tok.pos}"
-            f" in: {self._original!r}"
-        )
-
-    def _parse_name_primary(self) -> Formula:
-        name_tok = self._consume()
-        name     = name_tok.text
-
-        # name '(' … ')' ('[' axes ']')? ('[' axis '=' int ']')*
-        if self._peek().kind is TK.LPAR:
-            self._consume()
-            args     = self._parse_term_list()
-            self._expect(TK.RPAR)
-            out_axes = self._parse_optional_axes()
-            # Decide term-vs-formula by looking *past* any trailing `[axis=idx]`
-            # selects: an infix predicate/function may follow those selects too,
-            # e.g. ``digit(x1[p])[p=0] =d d0``. Without this lookahead the
-            # selects get greedily consumed as FormulaAxisSelect first and the
-            # infix operator is never recognised.
-            if self._is_infix_after_selects():
-                lhs: Term = _CallTerm(name, args, output_axes=out_axes)
-                lhs = self._parse_term_selects(lhs)
-                return self._maybe_infix_atomic(lhs)
-            # Otherwise it is a regular predicate call → AtomicFormula.
-            atom = AtomicFormula(name, *args, structural_axes=out_axes)
-            return self._apply_formula_selects(atom)
-
-        # name '[' … ']' → _NameTerm with annotations (TermFormula or infix LHS)
-        if self._peek().kind is TK.LBRACK:
-            lhs = self._parse_name_bracket_term(name)
-            return self._maybe_infix_atomic(lhs)
-
-        # Bare name → _NameTerm (possibly an alphanumeric infix predicate LHS)
-        return self._maybe_infix_atomic(_NameTerm(name))
-
-    def _is_token_in(self, names: frozenset[str]) -> bool:
-        """Return True if the current token is a NAME or INFIX_OP matching one of *names*."""
-        tok = self._peek()
-        return (
-            (tok.kind is TK.INFIX_OP and tok.text in names)
-            or (tok.kind is TK.NAME   and tok.text in names)
-        )
-
-    def _is_infix_pred_next(self) -> bool:
-        """Return True if the current token is a declared infix predicate."""
-        return self._is_token_in(self._infix_preds)
-
-    def _is_infix_fn_next(self) -> bool:
-        """Return True if the current token is a declared infix function."""
-        return self._is_token_in(self._infix_fns)
-
-    def _is_select_group_at(self, offset: int) -> bool:
-        """Return True if a ``[NAME=...]`` select group starts at token *offset*."""
-        return (
-            self._peek(offset).kind is TK.LBRACK
-            and self._peek(offset + 1).kind is TK.NAME
-            and self._peek(offset + 2).kind is TK.EQ
-        )
-
-    def _skip_select_group(self, offset: int) -> int | None:
-        """Return the offset just past one well-formed ``[NAME=int]`` group starting
-        at *offset*, or ``None`` if the group is malformed (let the real parser
-        raise the error in that case)."""
-        offset += 3  # '[' NAME '='
-        if self._peek(offset).kind is TK.NOT and self._peek(offset).text == "-":
-            offset += 1
-        if self._peek(offset).kind is not TK.INT:
-            return None
-        offset += 1
-        if self._peek(offset).kind is not TK.RBRACK:
-            return None
-        return offset + 1
-
-    def _is_infix_after_selects(self) -> bool:
-        """Look past zero or more ``[axis=idx]`` select groups (without consuming
-        them) and report whether an infix predicate/function token follows.
-
-        Used to decide whether ``name(args)[sel1][sel2]...`` should be parsed as
-        the LHS of an infix atomic formula (a *term*) rather than as a plain
-        predicate call (a *formula*).
-        """
-        offset = 0
-        while self._is_select_group_at(offset):
-            next_offset = self._skip_select_group(offset)
-            if next_offset is None:
-                break
-            offset = next_offset
-        tok = self._peek(offset)
-        return (
-            (tok.kind is TK.INFIX_OP and (tok.text in self._infix_preds or tok.text in self._infix_fns))
-            or (tok.kind is TK.NAME and (tok.text in self._infix_preds or tok.text in self._infix_fns))
-        )
-
-    def _parse_term_selects(self, atom: Term) -> Term:
-        """Consume zero or more ``[axis=idx]`` selects, wrapping *atom* in
-        :class:`TermAxisSelect` for each. Shared by :meth:`_parse_selectable_atom`
-        and the infix-LHS path of :meth:`_parse_name_primary`."""
-        while self._is_select_group_at(0):
-            self._consume()                              # [
-            axis = self._expect(TK.NAME).text
-            self._expect(TK.EQ)
-            idx  = self._parse_signed_int()
-            self._expect(TK.RBRACK)
-            atom = TermAxisSelect(atom, axis=axis, index=idx)
-        return atom
-
-    def _chain_infix_fns(self, lhs: Term) -> Term:
-        """Chain zero or more declared infix function operators onto *lhs*."""
-        while self._is_infix_fn_next():
-            op_tok = self._consume()
-            rhs    = self._parse_selectable_atom()
-            lhs    = _CallTerm(op_tok.text, [lhs, rhs])
-        return lhs
-
-    def _maybe_infix_atomic(self, lhs: Term) -> Formula:
-        """If the current token is a declared infix predicate, consume it and
-        parse the RHS term to build an AtomicFormula; otherwise wrap lhs in
-        a TermFormula.
-
-        Infix function operators (e.g. ``+``) are chained first so that
-        ``digit(x1) + digit(x2) = s`` is parsed as
-        ``=(+(digit(x1), digit(x2)), s)`` rather than failing with an
-        unexpected ``+``.
-        """
-        lhs = self._chain_infix_fns(lhs)
-        if self._is_infix_pred_next():
-            op_tok = self._consume()
-            rhs    = self._parse_term()
-            result = AtomicFormula(op_tok.text, lhs, rhs)
-            return self._apply_formula_selects(result)
-        return TermFormula(lhs)
-
-    def _apply_formula_selects(self, formula: Formula) -> Formula:
-        """Apply zero or more ``[axis=int]`` suffix selects."""
-        while (self._peek().kind is TK.LBRACK
-               and self._peek(1).kind is TK.NAME
-               and self._peek(2).kind is TK.EQ):
-            self._consume()                              # [
-            axis = self._expect(TK.NAME).text
-            self._expect(TK.EQ)
-            idx  = self._parse_signed_int()
-            self._expect(TK.RBRACK)
-            formula = FormulaAxisSelect(formula, axis=axis, index=idx)
-        return formula
-
-    def _parse_kb(self) -> KB:
-        self._expect(TK.LBRACE)
-        clauses: list[Formula] = []
-        while True:
-            clause = self.parse_formula()
-            clauses.append(clause)
-            if self._peek().kind is not TK.COMMA:
-                break
-            self._consume()
-        self._expect(TK.RBRACE)
-        return KB(clauses, validate=False)   # validated by the pipeline after resolution
-
-    # ── Term productions ──────────────────────────────────────────────────────
-
-    def _parse_term(self) -> Term:
-        """Parse a full term (including infix function operators)."""
-        atom = self._parse_selectable_atom()
-        return self._chain_infix_fns(atom)
-
-    def _parse_selectable_atom(self) -> Term:
-        """Parse a term atom then apply any ``[axis=int]`` postfix selects."""
-        atom = self._parse_term_atom()
-        return self._parse_term_selects(atom)
-
-    def _parse_term_atom(self) -> Term:
-        tok = self._peek()
-
-        # '(' formula ')' in term position → TermFormula
-        if tok.kind is TK.LPAR:
-            self._consume()
-            inner = self.parse_formula()
-            self._expect(TK.RPAR)
-            return TermFormula(inner)
-
-        if tok.kind is TK.NAME:
-            name_tok = self._consume()
-            name     = name_tok.text
-
-            # func_term:  name '(' args ')' ('[' axes ']')?
-            if self._peek().kind is TK.LPAR:
-                self._consume()
-                args     = self._parse_term_list()
-                self._expect(TK.RPAR)
-                out_axes = self._parse_optional_axes()
-                return _CallTerm(name, args, output_axes=out_axes)
-
-            # var_with_dim / axis_select:  name '[' … ']'
-            if self._peek().kind is TK.LBRACK:
-                return self._parse_name_bracket_term(name)
-
-            # leaf term
-            return _NameTerm(name)
-
-        raise ValueError(
-            f"Expected term, found {tok.text!r} at position {tok.pos}"
-            f" in: {self._original!r}"
-        )
-
-    def _parse_name_bracket_term(self, name: str) -> Term:
-        """Parse the ``[…]`` suffix that follows *name*, returning the appropriate term."""
-        self._consume()   # consume [
-        # [axis=int] → AxisSelect  vs  [axes] → _NameTerm with annotations
-        if self._peek().kind is TK.NAME and self._peek(1).kind is TK.EQ:
-            axis = self._expect(TK.NAME).text
-            self._expect(TK.EQ)
-            idx  = self._parse_signed_int()
-            self._expect(TK.RBRACK)
-            return TermAxisSelect(_NameTerm(name), axis=axis, index=idx)
-
-        # [axes] — one or more axis names separated by commas
-        axes = [self._expect(TK.NAME).text]
-        while self._peek().kind is TK.COMMA:
-            self._consume()
-            axes.append(self._expect(TK.NAME).text)
-        self._expect(TK.RBRACK)
-        return _NameTerm(name, axis_annotations=axes)
-
-    def _parse_term_list(self) -> list[Term]:
-        """Parse ``term (',' term)*`` or empty (when next token is RPAR)."""
-        if self._peek().kind is TK.RPAR:
-            return []
-        args = [self._parse_term()]
-        while self._peek().kind is TK.COMMA:
-            self._consume()
-            args.append(self._parse_term())
-        return args
-
-    def _parse_optional_axes(self) -> list[str] | None:
-        """Parse ``'[' name (',' name)* ']'`` for output-axis annotations.
-
-        Returns ``None`` if the next bracket starts a ``[axis=int]`` select
-        (which is handled separately by :meth:`_apply_formula_selects` or
-        :meth:`_parse_selectable_atom`).
-        """
-        if self._peek().kind is not TK.LBRACK:
-            return None
-        # Distinguish  [name, ...]  (axis list)  from  [name=int]  (select).
-        if self._peek(1).kind is TK.NAME and self._peek(2).kind is TK.EQ:
-            return None  # leave for the select handler
-        self._consume()   # consume [
-        axes = [self._expect(TK.NAME).text]
-        while self._peek().kind is TK.COMMA:
-            self._consume()
-            axes.append(self._expect(TK.NAME).text)
-        self._expect(TK.RBRACK)
-        return axes
-
-    def _parse_signed_int(self) -> int:
-        """Parse an optional ``-`` then digits."""
-        if self._peek().kind is TK.NOT and self._peek().text == "-":
-            self._consume()
-            return -int(self._expect(TK.INT).text)
-        return int(self._expect(TK.INT).text)
-
-    # ── Term-only entry point ─────────────────────────────────────────────────
-
-    def parse_term_all(self) -> Term:
-        """Parse a term, then assert the entire string was consumed."""
-        t = self._parse_term()
-        if self._peek().kind is not TK.EOF:
-            tok = self._peek()
-            raise ValueError(
-                f"Unexpected token {tok.text!r} at position {tok.pos}"
-                f" in: {self._original!r}"
-            )
-        return t
+    def _selections(self, node: Any) -> Any:
+        while self._at("[") and self._at("=", 2):
+            self._next()
+            axis = self._expect("NAME").text
+            self._next()
+            index = int(self._expect("INT").text)
+            self._expect("]")
+            node = _Select(node, axis, index)
+        return node
 
 
 # ---------------------------------------------------------------------------
-# Public APIs
+# Classification: untyped tree -> Formula / Term AST
 # ---------------------------------------------------------------------------
+
+_CONNECTIVES = {"and": And, "or": Or, "implies": Implies, "iff": Equivalent}
+
+
+class _Classifier:
+    """*functions* are the names whose application is a term (declared functions
+    and term-valued definitions); every other application is an atomic formula."""
+
+    def __init__(self, infix: InfixTable, functions: set[str]) -> None:
+        self._infix = infix
+        self._functions = functions
+
+    def formula(self, n: Any) -> Formula:
+        match n:
+            case _Name():
+                return TermFormula(_NameTerm(n.name, n.axes))
+            case _Call() if n.name in self._functions:
+                return TermFormula(self.term(n))
+            case _Call():
+                return AtomicFormula(n.name, *map(self.term, n.args), structural_axes=n.axes)
+            case _Select():
+                base = self.formula(n.base)
+                if isinstance(base, TermFormula):
+                    return TermFormula(TermAxisSelect(base.term, axis=n.axis, index=n.index))
+                return FormulaAxisSelect(base, axis=n.axis, index=n.index)
+            case _Op(op="not"):
+                return Not(self.formula(n.args[0]))
+            case _Op() if n.op in _CONNECTIVES:
+                return _CONNECTIVES[n.op](self.formula(n.args[0]), self.formula(n.args[1]))
+            case _Op() if self._infix[n.op] == "pred":
+                return AtomicFormula(n.op, *map(self.term, n.args))
+            case _Op():
+                return TermFormula(self.term(n))
+            case _Quant():
+                cls = Forall if n.kind == "forall" else Exists
+                guard = self.formula(n.guard) if n.guard is not None else None
+                return cls(n.groups, self.formula(n.body), guard=guard)
+            case _KB():
+                return KB([self.formula(i) for i in n.items], validate=False)
+        raise TypeError(f"Unexpected parse node {n!r}")
+
+    def term(self, n: Any) -> Term | Formula:
+        """A formula in term position is kept as a Bool-valued argument (``TermFormula``)."""
+        match n:
+            case _Name():
+                return _NameTerm(n.name, n.axes)
+            case _Call():
+                return _CallTerm(n.name, [self.term(a) for a in n.args], output_axes=n.axes)
+            case _Select():
+                return TermAxisSelect(self.term(n.base), axis=n.axis, index=n.index)
+            case _Op() if n.op in self._infix and self._infix[n.op] == "fn":
+                return _CallTerm(n.op, [self.term(a) for a in n.args])
+        return TermFormula(self.formula(n))
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def signature_tables(sig: Any) -> tuple[InfixTable, set[str]]:
+    """Return the infix table and the term-valued names of *sig*.
+
+    A definition is term-valued when its ``output_sort`` is set and is not Bool.
+    """
+    infix: InfixTable = {n: "pred" for n, s in sig._predicates.items() if s.infix}
+    infix |= {n: "fn" for n, s in sig._functions.items() if s.infix}
+    functions = set(sig._functions)
+    for name, d in sig._definitions.items():
+        is_fn = d.output_sort is not None and d.output_sort.name != "Bool"
+        if is_fn:
+            functions.add(name)
+        if d.infix:
+            infix[name] = "fn" if is_fn else "pred"
+    return infix, functions
+
+
+def parse_string(
+    source: str,
+    infix: InfixTable | None = None,
+    functions: set[str] | None = None,
+    expect: Literal["formula", "term"] = "formula",
+) -> Formula | Term:
+    """Parse *source* as a formula or a term (names are left unresolved)."""
+    infix = infix or {}
+    try:
+        tree = _Parser(source, infix).parse_all()
+        classifier = _Classifier(infix, functions or set())
+        if expect == "formula":
+            return classifier.formula(tree)
+        result = classifier.term(tree)
+        if isinstance(result, Formula):
+            what = f"'{tree.op}'" if isinstance(tree, _Op) else "this expression"
+            raise ValueError(f"Expected a term, but {what} builds a formula")
+        return result
+    except ValueError as exc:
+        raise ValueError(f"Failed to parse {expect}: {source!r}.\n{exc}") from exc
+
+
+def _infix_table(infix_preds: list[str] | None, infix_fns: list[str] | None) -> InfixTable:
+    return {**{op: "pred" for op in infix_preds or ()}, **{op: "fn" for op in infix_fns or ()}}
 
 
 def parse_formula_string(
     formula_string: str,
     infix_preds: list[str] | None = None,
-    infix_fns:   list[str] | None = None,
+    infix_fns: list[str] | None = None,
 ) -> Formula:
-    """Parse *formula_string* into a :class:`~sltn.fol.formula.Formula` AST.
+    """Parse *formula_string* into an unresolved Formula AST.
 
-    Grammar
-    -------
-    - All symbol names: any letter start, mixed case / primes allowed;
-      also non-ASCII mathematical symbols (e.g. ``⊩``, ``≤``).
-    - Variables/constants are string names until :meth:`~sltn.signature.Signature.parse`
-      resolves them.
-    - Quantifiers: ∀/forall, ∃/exists
-    - Connectives: not, &, or/∨, ->, <->
-    - Structural axes: ``P(args)[axes]``
-    - struct_forall / struct_exists: ``struct_forall(axis, formula)``
-    - KB: ``{ f1, f2, ... }``
-    - Infix predicates: when *infix_preds* is provided those names are also
-      accepted in infix position, e.g. ``x ⊩ U`` as well as ``⊩(x, U)``.
+    Without a Signature, only the declared infix symbols are known; use
+    :meth:`Signature.parse` to also resolve names.
     """
-    all_infix = frozenset(infix_preds or []) | frozenset(infix_fns or [])
-    tokens = tokenize(formula_string, infix_ops=all_infix)
-    parser = _Parser(
-        tokens,
-        original=formula_string,
-        infix_preds=infix_preds or [],
-        infix_fns=infix_fns or [],
-    )
-    try:
-        return parser.parse_formula_all()
-    except ValueError as exc:
-        raise ValueError(
-            f"Failed to parse formula: {formula_string!r}.\n{exc}"
-        ) from exc
-
+    return parse_string(formula_string, _infix_table(infix_preds, infix_fns),
+                        set(infix_fns or ()), "formula")
 
 
 def parse_term_string(
@@ -541,26 +353,6 @@ def parse_term_string(
     infix_fns: list[str] | None = None,
     infix_preds: list[str] | None = None,
 ) -> Term:
-    """Parse a term string into a :class:`~sltn.fol.term.Term` AST node.
-
-    *infix_preds* never contributes to the term grammar itself (a term cannot
-    contain a top-level Bool-valued infix predicate) but is still fed to the
-    tokenizer so that, e.g., a declared infix predicate like ``=d`` is
-    tokenised as one ``INFIX_OP`` rather than mis-split into ``=`` and ``d``.
-    This only affects error-message accuracy when this function is reached
-    as a fallback after formula-parsing failed.
-    """
-    all_infix = frozenset(infix_fns or []) | frozenset(infix_preds or [])
-    tokens = tokenize(term_string, infix_ops=all_infix)
-    parser = _Parser(
-        tokens,
-        original=term_string,
-        infix_preds=[],
-        infix_fns=infix_fns or [],
-    )
-    try:
-        return parser.parse_term_all()
-    except ValueError as exc:
-        raise ValueError(
-            f"Failed to parse term: {term_string!r}.\n{exc}"
-        ) from exc
+    """Parse *term_string* into an unresolved Term AST."""
+    return parse_string(term_string, _infix_table(infix_preds, infix_fns),
+                        set(infix_fns or ()), "term")

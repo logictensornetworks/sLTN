@@ -26,8 +26,6 @@ from sltn.fol.formula import (
     Formula
 )
 
-from sltn.parse.parser import parse_formula_string
-from sltn.parse.parser import parse_term_string
 
 
 def _base_name_of(name: str) -> str:
@@ -499,8 +497,6 @@ def _expand_definitions(
     node: Any,
     definitions: dict[str, Any],
     sig: Any,
-    infix_preds: list[str] | None = None,
-    infix_fns: list[str] | None = None,
 ) -> Any:
     """Recursively expand syntactic abbreviations in a formula/term AST.
 
@@ -699,63 +695,33 @@ def _expand_definitions(
                 f"expected '{defn.output_sort.name}'."
             )
 
-    def _parse_definition_body(body_str: str) -> Formula | Term:
+    def _parse_definition_body(defn: Any) -> Formula | Term:
+        from sltn.parse.pipeline import parse_raw
+        is_term = defn.output_sort is not None and defn.output_sort.name != "Bool"
+        return parse_raw(defn.body, sig, "term" if is_term else "any")
 
-        formula_ast: Formula | None = None
-        term_ast: Term | None = None
-
-        try:
-            formula_ast = parse_formula_string(body_str, infix_preds=infix_preds, infix_fns=infix_fns)
-        except ValueError:
-            formula_ast = None
-
-        try:
-            term_ast = parse_term_string(body_str, infix_fns=infix_fns)
-        except ValueError:
-            term_ast = None
-
-        if formula_ast is not None and term_ast is None:
-            return formula_ast
-        if term_ast is not None and formula_ast is None:
-            return term_ast
-        if formula_ast is None and term_ast is None:
-            raise ValueError(f"Failed to parse definition body: '{body_str}'.")
-
-        # Ambiguous shape (e.g. f(x) / f(x)[axis=0]): keep term semantics when
-        # the head symbol is a declared function and not a predicate.
-        head = formula_ast
-        if isinstance(head, FormulaAxisSelect):
-            head = head.base_formula
-        if isinstance(head, AtomicFormula):
-            sym_name = head.symbol if isinstance(head.symbol, str) else head.symbol.name
-            if sym_name in sig._functions and sym_name not in sig._predicates:
-                return term_ast  # type: ignore[return-value]
-
-        return formula_ast  # type: ignore[return-value]
+    def expand(n: Any) -> Any:
+        return _expand_definitions(n, definitions, sig)
 
     match node:
         case _NameTerm() | Variable() | Constant() | StructuralVariable():
             return node
 
         case TermAxisSelect():
-            node.base_term = _expand_definitions(node.base_term, definitions, sig, infix_preds, infix_fns)
+            node.base_term = expand(node.base_term)
             return node
 
         case _CallTerm():
-            node.args = [_expand_definitions(a, definitions, sig, infix_preds, infix_fns) for a in node.args]
+            node.args = [expand(a) for a in node.args]
             sym_name = node.symbol
             if sym_name in definitions:
                 defn = definitions[sym_name]
                 _validate_definition_call(sym_name, defn, node.args)
-                body_ast = _parse_definition_body(defn.body)
+                body_ast = _parse_definition_body(defn)
                 subst    = _definition_subst(defn, body_ast, node.args)
                 pac      = _param_axis_canonical_for_definition(defn, body_ast)
-                expanded = _substitute(body_ast, subst, param_axis_canonical=pac)
-                expanded = _expand_definitions(expanded, definitions, sig, infix_preds, infix_fns)
-                if isinstance(expanded, Formula):
-                    _validate_definition_output(sym_name, defn, expanded)
-                    return expanded
-                if not isinstance(expanded, Term):
+                expanded = expand(_substitute(body_ast, subst, param_axis_canonical=pac))
+                if not isinstance(expanded, (Formula, Term)):
                     raise TypeError(
                         f"Definition '{sym_name}' is used in term position, "
                         f"but its body expanded to {type(expanded).__name__}, "
@@ -766,52 +732,48 @@ def _expand_definitions(
             return node
 
         case AtomicFormula():
-            new_args = [_expand_definitions(a, definitions, sig, infix_preds, infix_fns) for a in node.args]
+            new_args = [expand(a) for a in node.args]
             sym_name = node.symbol if isinstance(node.symbol, str) else node.symbol.name
             if sym_name in definitions:
                 defn = definitions[sym_name]
                 _validate_definition_call(sym_name, defn, new_args)
-                body_ast = _parse_definition_body(defn.body)
+                body_ast = _parse_definition_body(defn)
                 subst    = _definition_subst(defn, body_ast, new_args)
                 pac      = _param_axis_canonical_for_definition(defn, body_ast)
                 expanded = _substitute(body_ast, subst, param_axis_canonical=pac)
                 if isinstance(expanded, Term):
                     expanded = TermFormula(expanded)
                 _validate_definition_output(sym_name, defn, expanded)
-                return _expand_definitions(expanded, definitions, sig, infix_preds, infix_fns)
+                return expand(expanded)
             if new_args != list(node.args):
                 node = AtomicFormula(node.symbol, *new_args, structural_axes=node.structural_axes)
             return node
 
         case TermFormula():
-            node.term = _expand_definitions(node.term, definitions, sig, infix_preds, infix_fns)
+            node.term = expand(node.term)
             return node
 
         case FormulaAxisSelect():
-            node.base_formula = _expand_definitions(node.base_formula, definitions, sig, infix_preds, infix_fns)
+            node.base_formula = expand(node.base_formula)
             return node
 
         case And() | Or() | Implies() | Equivalent():
-            node.left  = _expand_definitions(node.left,  definitions, sig, infix_preds, infix_fns)
-            node.right = _expand_definitions(node.right, definitions, sig, infix_preds, infix_fns)
+            node.left  = expand(node.left)
+            node.right = expand(node.right)
             return node
 
         case Not():
-            node.operand = _expand_definitions(node.operand, definitions, sig, infix_preds, infix_fns)
+            node.operand = expand(node.operand)
             return node
 
         case Forall() | Exists():
-            node.formula = _expand_definitions(node.formula, definitions, sig, infix_preds, infix_fns)
+            node.formula = expand(node.formula)
             if node.guard is not None:
-                node.guard = _expand_definitions(node.guard, definitions, sig, infix_preds, infix_fns)
+                node.guard = expand(node.guard)
             return node
 
         case KB():
-            node.clauses = [_expand_definitions(c, definitions, sig, infix_preds, infix_fns) for c in node.clauses]
-            return node
-
-        case StructuralForall() | StructuralExists():
-            node.formula = _expand_definitions(node.formula, definitions, sig, infix_preds, infix_fns)
+            node.clauses = [expand(c) for c in node.clauses]
             return node
 
         case _:
