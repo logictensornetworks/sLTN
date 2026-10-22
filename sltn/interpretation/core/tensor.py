@@ -78,9 +78,6 @@ class Tensor:
         else:
             self.domain_type = Type(shape=self._domain_shape, axis_names=self._domain_names)
 
-        # Set by diag(); None means this expression is not diagonalised.
-        self._original_variable_axis: Optional[Axis] = None
-
     # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
@@ -132,10 +129,6 @@ class Tensor:
     @property
     def domain_names(self) -> list[str]:
         return self._domain_names
-
-    @property
-    def is_diag(self) -> bool:
-        return self._original_variable_axis is not None
 
     # ------------------------------------------------------------------
     # Repr
@@ -356,7 +349,7 @@ class Tensor:
         return aligned
 
     # ------------------------------------------------------------------
-    # Diagonal / undiagonal
+    # Diagonal
     # ------------------------------------------------------------------
 
     @classmethod
@@ -371,8 +364,6 @@ class Tensor:
                 )
         if len(expressions) < 2:
             raise ValueError("diag requires at least two expressions.")
-        if any(e.is_diag for e in expressions):
-            raise ValueError("One or more expressions are already diagonalised.")
 
         var_axes  = [e.variable_axes[0] for e in expressions]
         var_sizes = [e.shape[e.axis_map[d.name]] for e, d in zip(expressions, var_axes)]
@@ -388,29 +379,8 @@ class Tensor:
         diag_exprs = []
         for expr, old_var_axis in zip(expressions, var_axes):
             new_axes = [new_var_axis if d == old_var_axis else d for d in expr.axes]
-            new_expr = cls(
-                value=expr.value, axes=new_axes, domain_type=expr.domain_type
-            )
-            new_expr._original_variable_axis = old_var_axis
-            diag_exprs.append(new_expr)
+            diag_exprs.append(cls(value=expr.value, axes=new_axes, domain_type=expr.domain_type))
         return diag_exprs
-
-    @classmethod
-    def undiag(cls, *expressions: Tensor) -> list[Tensor]:
-        """Restore original variable axes after diagonalisation."""
-        restored = []
-        for expr in expressions:
-            if not expr.is_diag:
-                restored.append(expr)
-                continue
-            original_axis = expr._original_variable_axis
-            current_var   = expr.variable_axes[0]
-            new_axes      = [original_axis if d == current_var else d for d in expr.axes]
-            new_expr      = cls(
-                value=expr.value, axes=new_axes, domain_type=expr.domain_type
-            )
-            restored.append(new_expr)
-        return restored
 
     # ------------------------------------------------------------------
     # Factory: variable-shaped sltn.Tensor

@@ -317,7 +317,7 @@ def test_formula_axis_select_matches_interpretation_at_projection():
     interp["x"] = torch.rand(5, 3, 1)
     interp["P"] = lambda v: v
 
-    selected_inline = interp("(P(x) & P(x))[t=0]")
+    selected_inline = interp("(P(x)[t] & P(x)[t])[t=0]")
     selected_at = interp("P(x) & P(x)", at={"t": 0})
 
     assert torch.allclose(selected_inline.value, selected_at.value)

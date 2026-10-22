@@ -44,6 +44,7 @@ def _base_name_of(name: str) -> str:
 def _build_numbered_alias_subst(
     param_names: list[str],
     args: list[Any],
+    declared: set[str] = frozenset(),
 ) -> dict[str, Any]:
     """Build a substitution dict that also maps numbered aliases.
 
@@ -52,6 +53,8 @@ def _build_numbered_alias_subst(
     * If ``a`` is a ``_NameTerm("X")``, then ``"P1"`` → ``_NameTerm("X1")``,
       ``"P2"`` → ``_NameTerm("X2")``, etc.
     * Otherwise (constant, complex term), ``"P1"`` … ``"P9"`` → ``a``.
+
+    Names in *declared* are never treated as aliases.
 
     The numbered aliases produce *different* variable names so that
     ``U * U1`` in a definition body creates a cross-product rather than
@@ -62,7 +65,7 @@ def _build_numbered_alias_subst(
     for param, arg in subst.items():
         for n in range(1, 10):
             alias = f"{param}{n}"
-            if alias not in subst:
+            if alias not in subst and alias not in declared:
                 if isinstance(arg, _NameTerm):
                     arg_name = arg.symbol if isinstance(arg.symbol, str) else arg.symbol.name
                     aliases[alias] = _NameTerm(arg_name + str(n))
@@ -118,26 +121,6 @@ def _term_axis_annotations_for_subst(arg: Any) -> list[str] | None:
             return list(arg.axis_annotations)
         case _:
             return None
-
-
-def _collect_formal_param_axis_annotations(node: Any, pname: str) -> list[str] | None:
-    """Return the axis-annotation list for ``_NameTerm(pname)[…]`` in a definition body (must be unique)."""
-    found: list[str] | None = None
-
-    def on_node(n: Any) -> None:
-        nonlocal found
-        if isinstance(n, _NameTerm) and n.symbol == pname and n.axis_annotations:
-            ann = list(n.axis_annotations)
-            if found is None:
-                found = ann
-            elif found != ann:
-                raise ValueError(
-                    f"Definition body uses {pname!r} with inconsistent axis templates "
-                    f"{found!r} vs {ann!r}."
-                )
-
-    _walk_ast(node, on_node)
-    return found
 
 
 def _collect_param_axis_annotation_variants(node: Any, pname: str) -> list[tuple[str, ...]]:
@@ -303,21 +286,29 @@ def _rename_structural_axes_inplace(node: Any, mapping: dict[str, str]) -> None:
             _rename_structural_axes_inplace(node.formula, mapping)
 
 
-def _definition_subst(defn: Any, body_ast: Any, args: list[Any]) -> dict[str, Any]:
+def _declared_names(sig: Any) -> set[str]:
+    """Names declared explicitly in *sig* (auto-registered aliases excluded)."""
+    aliases = set(sig._variables_aliases) | set(sig._structural_variables_aliases)
+    names = (set(sig._variables) | set(sig._structural_variables)) - aliases
+    return names | set(sig._constants) | set(sig._functions) | set(sig._predicates) \
+        | set(sig._dimensions) | set(sig._structural_relations)
+
+
+def _definition_subst(
+    defn: Any, args: list[Any], canonical: dict[str, tuple[str, ...]], sig: Any,
+) -> dict[str, Any]:
     """Build substitution for a definition call, including structural-axis renames.
 
     When the template body uses ``X[s, …]`` but the call site supplies ``x[s1, …]``,
-    output-axis strings in the template (``…[s, v]``) must be rewritten to ``s1`` so
-    tensor axis bookkeeping stays consistent after substitution.
+    the axis names of the canonical template (``s``) are mapped to the call-site ones
+    (``s1``), so annotations and selections in the body follow the call.
     """
-    subst = _build_numbered_alias_subst(defn.params, args)
+    subst = _build_numbered_alias_subst(defn.params, args, _declared_names(sig))
 
     for pname, arg in zip(defn.params, args):
         actual_axes = _term_axis_annotations_for_subst(arg)
-        if not actual_axes:
-            continue
-        formal_axes = _collect_formal_param_axis_annotations(body_ast, pname)
-        if formal_axes is None or len(formal_axes) != len(actual_axes):
+        formal_axes = canonical.get(pname)
+        if not actual_axes or formal_axes is None or len(formal_axes) != len(actual_axes):
             continue
         for fa, aa in zip(formal_axes, actual_axes):
             if fa != aa:
@@ -339,158 +330,161 @@ def _substitute_axis_name(name: str, subst: dict[str, Any]) -> str:
     return name
 
 
+def _names_in(node: Any) -> set[str]:
+    """Every symbol name and bound name occurring in *node*."""
+    found: set[str] = set()
+
+    def on_node(n: Any) -> None:
+        match n:
+            case _NameTerm() | Variable() | Constant() | StructuralVariable():
+                found.add(n.name)
+            case Forall() | Exists():
+                found.update(n.var_names)
+
+    _walk_ast(node, on_node)
+    return found
+
+
+def _fresh_name(base: str, used: set[str]) -> str:
+    cand = base + "'"
+    while cand in used:
+        cand += "'"
+    return cand
+
+
 def _substitute(
     node: Any,
     subst: dict[str, Any],
     *,
     param_axis_canonical: dict[str, tuple[str, ...]] | None = None,
+    avoid: frozenset[str] = frozenset(),
 ) -> Any:
     """Syntactically substitute symbol names from *subst* in a formula/term AST.
 
     Replaces every symbol reference whose logical name is a key in *subst* with
-    ``subst[name]``.  Structural axis name strings in annotations are also
-    substituted via :func:`_substitute_axis_name`.  Used to instantiate a
+    ``subst[name]``.  Structural axis name strings in annotations and selections are
+    also substituted via :func:`_substitute_axis_name`.  Used to instantiate a
     definition body with actual call-site arguments.
 
-    *param_axis_canonical* maps definition parameter names to a canonical axis
-    tuple (lexicographic minimum of all occurrences in the template body).  When
-    a reference carries ``axis_annotations`` that differ from that canonical
-    template, the replacement term is deep-copied and structural axis names are
-    renamed so e.g. ``X[s1, d]`` does not incorrectly reuse the ``s`` slots from
-    ``X[s, d]`` after substitution.
+    A leaf replacement (``x`` or ``x[t]``) takes the body's annotations, substituted,
+    so ``X[s1]`` with ``s → t`` gives ``x[s1]`` and ``X[s]`` gives ``x[t]``.
+    *param_axis_canonical* maps parameter names to their canonical axis tuple; it is
+    used to rename the axes of compound replacements (e.g. ``g(x)[s]``).
+
+    *avoid* holds individual variable names free in the arguments: a quantifier in the
+    body binding one of them is renamed (``y`` → ``y'``) so the argument isn't captured.
     """
+    def sub(n: Any, s: dict[str, Any] = subst) -> Any:
+        return _substitute(n, s, param_axis_canonical=param_axis_canonical, avoid=avoid)
+
     match node:
         case _NameTerm() | Variable() | Constant() | StructuralVariable():
             name = node.name
-            if name in subst:
-                repl = subst[name]
-                if (
-                    param_axis_canonical is not None
-                    and isinstance(node, (_NameTerm, Variable, Constant))
-                    and node.axis_annotations
-                ):
-                    canon = param_axis_canonical.get(name)
-                    ann = tuple(node.axis_annotations)
-                    if canon is not None and len(canon) == len(ann):
-                        mapping = {c: a for c, a in zip(canon, ann) if c != a}
-                        is_leaf_like = isinstance(
-                            repl, (_NameTerm, Variable, Constant, StructuralVariable)
-                        )
-                        if is_leaf_like and not getattr(repl, "axis_annotations", None):
-                            # A bare leaf replacement carries no axis annotation of its
-                            # own, so re-apply the body's axis tag (renamed via `mapping`)
-                            # onto it directly. Compound replacements (e.g. a `CallTerm`)
-                            # are handled below via structural in-place renaming instead.
-                            repl = copy.deepcopy(repl)
-                            repl.axis_annotations = [mapping.get(a, a) for a in ann]
-                        elif mapping:
-                            repl = copy.deepcopy(repl)
-                            for dst in set(mapping.values()):
-                                _resolve_dst_clash_with_struct_quantifiers(repl, dst)
-                            _rename_structural_axes_inplace(repl, mapping)
+            if name not in subst:
+                return node
+            repl = subst[name]
+            if not (isinstance(node, (_NameTerm, Variable, Constant)) and node.axis_annotations):
                 return repl
-            return node
+            ann = tuple(node.axis_annotations)
+            if isinstance(repl, (_NameTerm, Variable, Constant, StructuralVariable)):
+                own = getattr(repl, "axis_annotations", None)
+                if not own or len(own) == len(ann):
+                    repl = copy.deepcopy(repl)
+                    repl.axis_annotations = [_substitute_axis_name(a, subst) for a in ann]
+                return repl
+            canon = (param_axis_canonical or {}).get(name)
+            if canon is not None and len(canon) == len(ann):
+                mapping = {c: a for c, a in zip(canon, ann) if c != a}
+                if mapping:
+                    repl = copy.deepcopy(repl)
+                    for dst in set(mapping.values()):
+                        _resolve_dst_clash_with_struct_quantifiers(repl, dst)
+                    _rename_structural_axes_inplace(repl, mapping)
+            return repl
 
         case _CallTerm():
             new_output_axes = (
                 [_substitute_axis_name(ax, subst) for ax in node.output_axes]
                 if node.output_axes is not None else None
             )
-            return _CallTerm(
-                node.symbol,
-                [_substitute(a, subst, param_axis_canonical=param_axis_canonical) for a in node.args],
-                output_axes=new_output_axes,
-            )
+            return _CallTerm(node.symbol, [sub(a) for a in node.args], output_axes=new_output_axes)
 
         case TermAxisSelect():
-            return TermAxisSelect(
-                _substitute(node.base_term, subst, param_axis_canonical=param_axis_canonical),
-                node.index,
-                node.axis,
-            )
+            return TermAxisSelect(sub(node.base_term), node.index, _substitute_axis_name(node.axis, subst))
 
         case AtomicFormula():
             new_structural_axes = (
                 [_substitute_axis_name(ax, subst) for ax in node.structural_axes]
                 if node.structural_axes is not None else None
             )
-            return AtomicFormula(
-                node.symbol,
-                *[_substitute(a, subst, param_axis_canonical=param_axis_canonical) for a in node.args],
-                structural_axes=new_structural_axes,
-            )
+            return AtomicFormula(node.symbol, *[sub(a) for a in node.args],
+                                 structural_axes=new_structural_axes)
 
         case TermFormula():
-            return TermFormula(_substitute(node.term, subst, param_axis_canonical=param_axis_canonical))
+            return TermFormula(sub(node.term))
 
         case FormulaAxisSelect():
-            return FormulaAxisSelect(
-                _substitute(node.base_formula, subst, param_axis_canonical=param_axis_canonical),
-                axis=node.axis,
-                index=node.index,
-            )
+            return FormulaAxisSelect(sub(node.base_formula),
+                                     axis=_substitute_axis_name(node.axis, subst), index=node.index)
 
-        case And() | Or():
-            return type(node)(
-                _substitute(node.left, subst, param_axis_canonical=param_axis_canonical),
-                _substitute(node.right, subst, param_axis_canonical=param_axis_canonical),
-            )
-
-        case Implies():
-            return Implies(
-                _substitute(node.left, subst, param_axis_canonical=param_axis_canonical),
-                _substitute(node.right, subst, param_axis_canonical=param_axis_canonical),
-            )
-
-        case Equivalent():
-            return Equivalent(
-                _substitute(node.left, subst, param_axis_canonical=param_axis_canonical),
-                _substitute(node.right, subst, param_axis_canonical=param_axis_canonical),
-            )
+        case And() | Or() | Implies() | Equivalent():
+            return type(node)(sub(node.left), sub(node.right))
 
         case Not():
-            return Not(_substitute(node.operand, subst, param_axis_canonical=param_axis_canonical))
+            return Not(sub(node.operand))
 
         case Forall() | Exists():
             rename: dict[str, str] = {}
             for v in node.var_names:
                 if v in subst and isinstance(subst[v], (_NameTerm, Variable, Constant, StructuralVariable)):
                     rename[v] = subst[v].name
-
-            new_var_groups = [
-                [rename.get(v, v) for v in group]
-                for group in node._var_groups
-            ]
             non_renamed_bound = {v for v in node.var_names if v not in rename}
             inner = {k: v for k, v in subst.items() if k not in non_renamed_bound}
-            new_formula = _substitute(node.formula, inner, param_axis_canonical=param_axis_canonical)
-            new_guard = (
-                _substitute(node.guard, inner, param_axis_canonical=param_axis_canonical)
-                if node.guard is not None
-                else None
-            )
-            return type(node)(new_var_groups, new_formula, guard=new_guard)
+            captured = non_renamed_bound & avoid
+            if captured:
+                used = _names_in(node) | set(avoid)
+                for v in sorted(captured):
+                    fresh = _fresh_name(v, used)
+                    used.add(fresh)
+                    rename[v] = fresh
+                    inner[v] = _NameTerm(fresh)
+
+            new_var_groups = [[rename.get(v, v) for v in group] for group in node._var_groups]
+            new_guard = sub(node.guard, inner) if node.guard is not None else None
+            return type(node)(new_var_groups, sub(node.formula, inner), guard=new_guard)
 
         case KB():
-            return KB(
-                [_substitute(c, subst, param_axis_canonical=param_axis_canonical) for c in node.clauses],
-                validate=False,   # names are not resolved yet; the pipeline validates the KB
-            )
+            return KB([sub(c) for c in node.clauses],
+                      validate=False)   # names are not resolved yet; the pipeline validates the KB
 
-        case StructuralForall():
-            return StructuralForall(
-                _substitute(node.formula, subst, param_axis_canonical=param_axis_canonical),
-                structural_axis=_substitute_axis_name(node.structural_axis, subst),
-            )
-
-        case StructuralExists():
-            return StructuralExists(
-                _substitute(node.formula, subst, param_axis_canonical=param_axis_canonical),
-                structural_axis=_substitute_axis_name(node.structural_axis, subst),
-            )
+        case StructuralForall() | StructuralExists():
+            return type(node)(sub(node.formula),
+                              structural_axis=_substitute_axis_name(node.structural_axis, subst))
 
         case _:
             return node
+
+
+def _apply_call_axes(root: Any, axes: list[str], sym_name: str) -> None:
+    """Put the call-site output annotation ``D(…)[axes]`` on the expanded body's root."""
+    match root:
+        case TermFormula():
+            return _apply_call_axes(root.term, axes, sym_name)
+        case AtomicFormula():
+            current, attr = root.structural_axes, "structural_axes"
+        case _CallTerm():
+            current, attr = root.output_axes, "output_axes"
+        case _:
+            raise ValueError(
+                f"Definition '{sym_name}' is called with output axes {axes}, but its body "
+                f"is a {type(root).__name__}, not a single predicate/function application."
+            )
+    if current is not None and len(current) != len(axes):
+        raise ValueError(
+            f"Definition '{sym_name}' is called with output axes {axes}, but its body "
+            f"already names {len(current)} output axis/axes {list(current)}."
+        )
+    setattr(root, attr, axes)
 
 
 def _expand_definitions(
@@ -700,6 +694,23 @@ def _expand_definitions(
         is_term = defn.output_sort is not None and defn.output_sort.name != "Bool"
         return parse_raw(defn.body, sig, "term" if is_term else "any")
 
+    def _is_individual(name: str) -> bool:
+        if name in sig._structural_variables or name in sig._dimensions:
+            return False
+        base = _base_name_of(name)
+        return name in sig._variables or base in sig._variables or base in sig._variables_aliases
+
+    def _instantiate(sym_name: str, defn: Any, args: list[Any], axes: list[str] | None) -> Any:
+        _validate_definition_call(sym_name, defn, args)
+        body_ast = _parse_definition_body(defn)
+        pac = _param_axis_canonical_for_definition(defn, body_ast)
+        subst = _definition_subst(defn, args, pac, sig)
+        avoid = frozenset(n for a in args for n in _names_in(a) if _is_individual(n))
+        expanded = _substitute(body_ast, subst, param_axis_canonical=pac, avoid=avoid)
+        if axes is not None:
+            _apply_call_axes(expanded, list(axes), sym_name)
+        return expanded
+
     def expand(n: Any) -> Any:
         return _expand_definitions(n, definitions, sig)
 
@@ -716,11 +727,7 @@ def _expand_definitions(
             sym_name = node.symbol
             if sym_name in definitions:
                 defn = definitions[sym_name]
-                _validate_definition_call(sym_name, defn, node.args)
-                body_ast = _parse_definition_body(defn)
-                subst    = _definition_subst(defn, body_ast, node.args)
-                pac      = _param_axis_canonical_for_definition(defn, body_ast)
-                expanded = expand(_substitute(body_ast, subst, param_axis_canonical=pac))
+                expanded = expand(_instantiate(sym_name, defn, node.args, node.output_axes))
                 if not isinstance(expanded, (Formula, Term)):
                     raise TypeError(
                         f"Definition '{sym_name}' is used in term position, "
@@ -736,11 +743,7 @@ def _expand_definitions(
             sym_name = node.symbol if isinstance(node.symbol, str) else node.symbol.name
             if sym_name in definitions:
                 defn = definitions[sym_name]
-                _validate_definition_call(sym_name, defn, new_args)
-                body_ast = _parse_definition_body(defn)
-                subst    = _definition_subst(defn, body_ast, new_args)
-                pac      = _param_axis_canonical_for_definition(defn, body_ast)
-                expanded = _substitute(body_ast, subst, param_axis_canonical=pac)
+                expanded = _instantiate(sym_name, defn, new_args, node.structural_axes)
                 if isinstance(expanded, Term):
                     expanded = TermFormula(expanded)
                 _validate_definition_output(sym_name, defn, expanded)

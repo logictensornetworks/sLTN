@@ -19,11 +19,12 @@ def test_sort_declaration():
     assert A.name == "Animal"
 
 
-def test_duplicate_sort_raises():
+def test_duplicate_sort_warns_and_replaces():
     sig = Signature("test")
-    sig.sort("A")
-    with pytest.raises(ValueError, match="already declared"):
-        sig.sort("A")
+    old = sig.sort("A")
+    with pytest.warns(UserWarning, match="redeclared"):
+        new = sig.sort("A")
+    assert new is not old and sig.get_sort("A") is new
 
 
 def test_dimension_declaration():
@@ -172,7 +173,7 @@ def test_parse_formula_level_axis_select_on_compound_formula():
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("(A(x) & A(x))[t=0]")
+    phi = sig.parse("(A(x)[t] & A(x)[t])[t=0]")
     assert isinstance(phi, FormulaAxisSelect)
     assert phi.axis == "t"
     assert phi.index == 0
@@ -185,7 +186,7 @@ def test_parse_formula_level_axis_select_on_atomic_formula():
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("A(x)[t=0]")
+    phi = sig.parse("A(x)[t][t=0]")
     assert isinstance(phi, FormulaAxisSelect)
     assert phi.axis == "t"
     assert phi.index == 0
@@ -198,7 +199,7 @@ def test_formula_level_axis_select_updates_free_structural_variables():
     sig.predicate("A", ["S"], input_dims=[T], output_dims=[T])
     sig.variable("x", S, dims=[T])
 
-    phi = sig.parse("(A(x) & A(x))[t=0]")
+    phi = sig.parse("(A(x)[t] & A(x)[t])[t=0]")
     assert phi.free_structural_variables == set()
 
 
@@ -237,7 +238,7 @@ def test_define_with_metadata_prints_arity_and_dims():
     sig.define(
         "is_zero",
         ["x"],
-        "mnist(x)[digit=0]",
+        "mnist(x)[digit][digit=0]",
         input_sorts=["Image"],
         output_sort="Image",
         input_dims=["t"],
@@ -482,9 +483,9 @@ def test_define_formula_body_quantifier_or_struct_symref_parses():
     sig = Signature("s")
     Tok = sig.sort("Tok")
     s = sig.dimension("s")
-    s1 = sig.dimension("s1")
+    sig.structural_variable("s1", s)
     d = sig.dimension("d")
-    sig.predicate("Head_L2", [Tok, Tok], output_dims=[s, s1])
+    sig.predicate("Head_L2", [Tok, Tok], output_dims=[s, s])
     sig.predicate("Value_L2", [Tok])
     sig.variable("X", Tok, dims=[s, d])
     body = "(forall s1 | Head_L2(X[s], X[s1])[s,s1] : Value_L2(X[s])) ∨ X[s,d]"
@@ -536,7 +537,7 @@ def test_define_term_body_in_formula_position_parses():
     sig.variable("x", S)
 
     # A derived predicate body may be provided as a bool-valued term.
-    sig.define("is_zero", ["a"], "mnist(a)[digit=0]")
+    sig.define("is_zero", ["a"], "mnist(a)[digit][digit=0]")
     phi = sig.parse("is_zero(x)")
 
     assert isinstance(phi, TermFormula)
@@ -638,14 +639,14 @@ def test_axis_annotation_must_match_the_dimension_it_renames():
     for ok in ("forall x: forall t: C(x[t])[t]",
                "forall x: forall t1: C(x[t1])[t1]",
                "forall x: forall T: C(x[T])[T]",
-               "forall z: forall t, u: C(z[t, u])[t, u]",
+               "forall z: forall t: forall u: C(z[t, u])[t, u]",
                "forall t: C(c[t])[t]"):
         sig.parse(ok)
 
     for bad in ("forall x: forall u: C(x[u])[u]",
                 "forall x: forall u1: C(x[u1])[u1]",
                 "forall x: forall U: C(x[U])[U]",
-                "forall z: forall t, u: C(z[u, t])[u, t]",
+                "forall z: forall u: forall t: C(z[u, t])[u, t]",
                 "forall u: C(c[u])[u]"):
         before = set(sig._structural_variables)
         with pytest.raises(ValueError, match="ranges over dimension"):
@@ -659,10 +660,13 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
     sig = Signature("bound_vars")
     I = sig.sort("Img")
     T = sig.dimension("T")
+    U = sig.dimension("U")
     sig.variable("x", I, dims=[T])
     sig.variable("y", I)
     sig.variable("z", I)
+    sig.variable("w", I, dims=[T, U])
     sig.structural_variable("t", T)
+    sig.structural_variable("u", U)
     sig.predicate("C", ["Img"])
     sig.predicate("R", ["Img", "Img"])
 
@@ -670,7 +674,9 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
                      ("forall t, t: C(x[t])[t]", "more than once"),
                      ("forall y: C(x)", "never used"),
                      ("exists y, z: C(y)", "never used"),
-                     ("forall y: forall y: C(y)", "never used")):
+                     ("forall y: forall y: C(y)", "never used"),
+                     ("forall x, t: C(x[t])[t]", "mixes individual"),
+                     ("forall w: forall t, u: C(w[t, u])[t, u]", "different")):
         with pytest.raises(ValueError, match=msg):
             sig.parse(bad)
 
@@ -678,7 +684,7 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
                "forall y1: C(y1)",
                "forall y | C(y): C(z)",
                "forall y: (C(y) & forall y: C(y))",
-               "forall x, t: C(x[t])[t]",
+               "forall x: forall t, t1: (C(x[t])[t] & C(x[t1])[t1])",
                "{ forall y: C(y), forall z: C(z) }"):
         sig.parse(ok)
 

@@ -116,6 +116,9 @@ def apply_quantifier(
 
     if explicit_mask is not None:
         effective = explicit_mask.float() if explicit_mask.dtype == torch.bool else explicit_mask
+        # Broadcast both to the full shape, so weighted aggregators count every
+        # element along axes the guard doesn't span.
+        value, effective = torch.broadcast_tensors(value, effective)
     else:
         effective = None
 

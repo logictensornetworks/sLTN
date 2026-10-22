@@ -26,7 +26,7 @@ def sig():
 
 
 def test_negative_selection_index(sig):
-    assert sig.parse("A(y[t=-1])") is not None
+    assert sig.parse("A(y[t][t=-1])") is not None
 
 
 def test_non_ascii_digit_is_not_an_index():

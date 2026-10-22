@@ -85,7 +85,7 @@ def test_infix_pred_after_two_selects():
     s.constant("c0", T)
     s.function("f", [I], T, output_dims=[p, q])
     s.predicate("=t", [T, T], infix=True)
-    phi = s.parse("f(x)[p=0][q=1] =t c0")
+    phi = s.parse("f(x)[p, q][p=0][q=1] =t c0")
     assert isinstance(phi, AtomicFormula)
     assert phi.pred_name == "=t"
     lhs = phi.args[0]

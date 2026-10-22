@@ -25,6 +25,18 @@ def _lookup_kind(entry: Dict[str, AggregationOperator], kind: str):
             return entry[alt]
     return None
 
+
+def _parse_kind(q_sym: str, key: str) -> str:
+    """Map the quantifier part of a ``"∀,t"`` key to ``"forall"``/``"exists"``."""
+    q_sym = q_sym.strip()
+    for kind, spellings in _KIND_ALIASES.items():
+        if q_sym in spellings:
+            return kind
+    raise KeyError(
+        f"Unknown quantifier {q_sym!r} in logic key {key!r}. "
+        f"Use one of 'forall', '∀', 'exists', '∃'."
+    )
+
 # ---------------------------------------------------------------------------
 # Symbol → Logic field mapping
 # ---------------------------------------------------------------------------
@@ -236,7 +248,7 @@ class Logic:
         """
         if "," in key:
             q_sym, axis = key.split(",", 1)
-            q = "forall" if q_sym.strip() in ("∀", "forall") else "exists"
+            q = _parse_kind(q_sym, key)
             if self.StructAgg is None:
                 raise KeyError(f"No structural aggregation operators registered (key={key!r}).")
             canonical = self._canonical_axis(axis)
@@ -269,7 +281,7 @@ class Logic:
         """
         if "," in key:
             q_sym, axis = key.split(",", 1)
-            q = "forall" if q_sym.strip() in ("∀", "forall") else "exists"
+            q = _parse_kind(q_sym, key)
             if self.StructAgg is None:
                 self.StructAgg = {}
             canonical = self._canonical_axis(axis)

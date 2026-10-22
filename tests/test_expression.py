@@ -1,4 +1,4 @@
-"""Tests for sltn.Tensor: construction, alignment, diag/undiag, select, flatten."""
+"""Tests for sltn.Tensor: construction, alignment, diag, select, flatten."""
 import pytest
 import torch
 from sltn import Axis, Tensor, Type, Real, Bool, product_type
@@ -236,7 +236,7 @@ def test_align_complex_variable_structural_domain():
 
 
 # ---------------------------------------------------------------------------
-# diag / undiag
+# diag
 # ---------------------------------------------------------------------------
 
 def test_diag_basic():
@@ -245,7 +245,6 @@ def test_diag_basic():
     d1, d2 = Tensor.diag(e1, e2)
     # Both should share the same combined variable axis name
     assert d1.free_variables == d2.free_variables
-    assert d1.is_diag and d2.is_diag
 
 
 def test_diag_requires_same_size():
@@ -261,15 +260,6 @@ def test_diag_requires_exactly_one_variable_axis():
     e2 = Tensor.as_variable("z", torch.rand(2, 1))
     with pytest.raises(TypeError, match="exactly one variable"):
         Tensor.diag(e, e2)
-
-
-def test_undiag_restores_original():
-    e1 = Tensor.as_variable("x", torch.rand(4, 1))
-    e2 = Tensor.as_variable("y", torch.rand(4, 1))
-    d1, d2 = Tensor.diag(e1, e2)
-    r1, r2 = Tensor.undiag(d1, d2)
-    assert r1.free_variables == ["x"]
-    assert r2.free_variables == ["y"]
 
 
 # ---------------------------------------------------------------------------

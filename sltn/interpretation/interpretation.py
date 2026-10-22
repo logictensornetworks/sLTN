@@ -191,14 +191,7 @@ class Interpretation:
         self.signature = signature
         self._device: Optional[torch.device] = None
         self._parent: Optional["Interpretation"] = parent
-
-        # Normalise overrides: string/Symbol keys → string keys
         self._overrides: Dict[str, Any] = {}
-        for k, v in (overrides or {}).items():
-            key = k.name if isinstance(k, Symbol) else k
-            self._overrides[key] = v
-        for k, v in kwargs.items():
-            self._overrides[k] = v
 
         self._logic: Logic = (logic.with_defaults() if logic is not None else Logic().with_defaults())
         self._logic._signature = self.signature
@@ -224,6 +217,31 @@ class Interpretation:
         self.classical_threshold: float = 0.5
         self._pre_classical_logic: Optional[Logic] = None
 
+        self._ground_all({**(overrides or {}), **kwargs})
+
+    def _ground_all(self, items: Dict[str | Symbol, Any]) -> None:
+        """Ground every entry of *items*, sorts first (tensor shape checks need their Type)."""
+        def is_sort(k: str | Symbol) -> bool:
+            return (k.name if isinstance(k, Symbol) else k) in self.signature._sorts
+        for k, v in sorted(items.items(), key=lambda kv: not is_sort(kv[0])):
+            self.ground(k, v)
+
+    def _derive(self, overrides: Dict[str, Any], parent: Optional["Interpretation"],
+                source: Optional["Interpretation"] = None) -> "Interpretation":
+        """New interpretation grounded with *overrides*, with logic, classical mode and
+        device copied from *source* (default: self). The Logic is copied, not shared."""
+        source = source or self
+        new = Interpretation(self.signature, parent=parent)
+        new._device = source._device
+        new.logic = source._logic
+        new._classical = source._classical
+        new.classical_threshold = source.classical_threshold
+        if source._pre_classical_logic is not None:
+            new._pre_classical_logic = source._pre_classical_logic.with_defaults()
+            new._pre_classical_logic._signature = self.signature
+        new._ground_all(overrides)
+        return new
+
     # ------------------------------------------------------------------
     # Logic property
     # ------------------------------------------------------------------
@@ -239,7 +257,14 @@ class Interpretation:
 
     @logic.setter
     def logic(self, value: Logic) -> None:
-        self._logic = value.with_defaults()
+        if self._classical:
+            # Keep classical semantics active; *value* is used once classical mode is off.
+            self._pre_classical_logic = value.with_defaults()
+            self._pre_classical_logic._signature = self.signature
+            struct_axes = list(value.StructAgg) if value.StructAgg else None
+            self._logic = Logic.classical(struct_agg_axes=struct_axes)
+        else:
+            self._logic = value.with_defaults()
         self._logic._signature = self.signature
 
 
@@ -309,6 +334,20 @@ class Interpretation:
             Fluent: allows chaining, e.g. ``interp.ground(P, m).ground(x, t)``.
         """
         key = sym.name if isinstance(sym, Symbol) else sym
+        try:
+            self.signature.get(key)
+        except KeyError:
+            raise KeyError(
+                f"Cannot ground '{key}': no symbol with this name is declared in "
+                f"signature '{self.signature.name}'."
+            ) from None
+        base = (self.signature._variables_aliases.get(key)
+                or self.signature._structural_variables_aliases.get(key))
+        if base is not None:
+            raise KeyError(
+                f"Cannot ground '{key}': it is an alias of '{base}' and shares its "
+                f"grounding. Ground '{base}' instead."
+            )
         if self._device is not None and isinstance(value, (torch.nn.Module, torch.Tensor)):
             value = value.to(self._device)
         if isinstance(value, torch.Tensor):
@@ -368,12 +407,16 @@ class Interpretation:
         Raises :class:`KeyError` if the symbol has no grounding yet.
         """
         key = sym.name if isinstance(sym, Symbol) else sym
-        val = self._get_grounding(key)
-        if val is None and not self._has_grounding(key):
+        if not self._has_grounding(key):
             raise KeyError(
                 f"Symbol '{key}' has no grounding in this Interpretation. "
                 f"Use 'interp[{key}] = value' to ground it."
             )
+        val = self._get_grounding(key)
+        if val is None:   # an alias: return its base grounding
+            base = (self.signature._variables_aliases.get(key)
+                    or self.signature._structural_variables_aliases.get(key))
+            val = self._get_grounding(base)
         return val
 
     def _normalize_assignment(self, raw: dict) -> Assignment:
@@ -492,47 +535,29 @@ class Interpretation:
                     for v_name, var in zip(present, diag_vars):
                         assignment[v_name] = var
 
-        # Split var_names into individual-variable and struct-variable buckets.
-        struct_var_names: list[str] = []
-        individual_vars: list[Tensor] = []
-        for vname in node.var_names:
-            sv = sig._structural_variables.get(vname) if hasattr(sig, '_structural_variables') else None
-            if sv is not None:
-                struct_var_names.append(sv.name)
-            elif vname in assignment:
-                individual_vars.append(assignment[vname])
-
+        # Individual and structural variables are never mixed in one quantifier
+        # (rejected at parse time), and structural ones share one dimension.
+        struct_var_names = [v for v in node.var_names if v in sig._structural_variables]
         quantifier = node.quantifier  # "forall" or "exists"
         symbol     = node.symbol      # "∀" or "∃"
-
-        agg_op = (self.logic.Forall if quantifier == "forall" else self.logic.Exists)
 
         formula_result = self._eval(node.formula, assignment)
         guard_result   = self._eval(node.guard, assignment) if node.guard else None
 
-        # 1. Aggregate individual variables.
-        var_axes = _var_axis_names(individual_vars)
-        result   = apply_quantifier(agg_op, formula_result, var_axes,
-                                     mask=guard_result, symbol=symbol)
-        if individual_vars:
-            Tensor.undiag(*individual_vars)
-
-        # 2. Aggregate all structural variables jointly in one call.
         if struct_var_names:
-            sv_agg_op = (self.get_struct_agg_op(struct_var_names[0], "forall")
-                         if quantifier == "forall"
-                         else self.get_struct_agg_op(struct_var_names[0], "exists"))
-            actual_axes: list[str] = []
+            agg_op = self.get_struct_agg_op(struct_var_names[0], quantifier)
+            axes: list[str] = []
             for sv_axis in struct_var_names:
                 actual = sv_axis
-                if sv_axis not in result.axis_map:
-                    sv = sig._structural_variables.get(sv_axis)
-                    if sv is not None and sv.dimension.name in result.axis_map:
-                        actual = sv.dimension.name
-                actual_axes.append(actual)
-            result = apply_quantifier(sv_agg_op, result, actual_axes,
-                                      mask=guard_result, symbol=symbol)
-        return result
+                if sv_axis not in formula_result.axis_map:
+                    dim_name = sig._structural_variables[sv_axis].dimension.name
+                    if dim_name in formula_result.axis_map:
+                        actual = dim_name
+                axes.append(actual)
+        else:
+            agg_op = self.logic.Forall if quantifier == "forall" else self.logic.Exists
+            axes = _var_axis_names([assignment[v] for v in node.var_names if v in assignment])
+        return apply_quantifier(agg_op, formula_result, axes, mask=guard_result, symbol=symbol)
 
     def __call__(
         self,
@@ -685,12 +710,12 @@ class Interpretation:
         :class:`~sltn.signature.StructuralRelationSymbol` symbols, bound the
         same way as any other symbol via ``interp[sp] = tensor``.
         """
-        if name not in self._overrides:
+        val = self._get_grounding(name)
+        if val is None:
             raise KeyError(
                 f"Structural relation '{name}' not found. "
                 f"Bind via 'interp[{name}] = tensor'."
             )
-        val = self._overrides[name]
         if isinstance(val, torch.Tensor):
             sp = self.signature._structural_relations.get(name)
             result = _ground_structural_relation(sp, val) if sp is not None else val
@@ -788,9 +813,7 @@ class Interpretation:
     # ------------------------------------------------------------------
     def with_updates(self, **overrides) -> Interpretation:
         """Return a shallow copy with additional/overridden groundings."""
-        new = Interpretation(self.signature, {**self._overrides, **overrides}, parent=self._parent)
-        new._logic = self._logic
-        return new
+        return self._derive({**self._overrides, **overrides}, self._parent)
 
     def copy(self) -> Interpretation:
         """Return a shallow copy sharing all tensor and module references."""
@@ -807,11 +830,7 @@ class Interpretation:
                 new_overrides[k] = v.clone()
             else:
                 new_overrides[k] = v
-        new = Interpretation(self.signature, new_overrides)
-        new._logic = self._logic
-        if self._device is not None:
-            new._device = self._device
-        return new
+        return self._derive(new_overrides, self._parent)
 
     def __copy__(self) -> Interpretation:
         return self.copy()
@@ -857,12 +876,11 @@ class Interpretation:
 
     @classmethod
     def merge(cls, a: Interpretation, b: Interpretation) -> Interpretation:
-        """Merge two interpretations; *b* overrides *a*."""
-        merged = cls(
-            signature=a.signature,
-            overrides={**a._overrides, **b._overrides},
-        )
-        merged._logic = b._logic
+        """Merge two interpretations; *b* overrides *a*. Logic, classical mode and
+        device come from *b* (device falls back to *a*'s)."""
+        merged = b._derive({**a._overrides, **b._overrides}, b._parent or a._parent)
+        if merged._device is None and a._device is not None:
+            merged.to(a._device)
         return merged
 
     # ------------------------------------------------------------------

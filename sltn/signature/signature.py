@@ -12,6 +12,7 @@ __all__ = [
     "Signature",
 ]
 
+import warnings
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from sltn.signature.symbols import (
@@ -72,6 +73,8 @@ class Signature:
 
     def _resolve_sort(self, sort: str | Sort) -> Sort:
         if isinstance(sort, Sort):
+            if self._sorts.get(sort.name) is not sort:
+                raise KeyError(f"Sort object '{sort.name}' is not registered in '{self.name}'.")
             return sort
         if sort not in self._sorts:
             raise KeyError(f"Sort '{sort}' not declared in '{self.name}'.")
@@ -82,6 +85,8 @@ class Signature:
 
     def _resolve_dim(self, dim: str | Dimension) -> Dimension:
         if isinstance(dim, Dimension):
+            if self._dimensions.get(dim.name) is not dim:
+                raise KeyError(f"Dimension object '{dim.name}' is not registered in '{self.name}'.")
             return dim
         if dim not in self._dimensions:
             raise KeyError(f"Dimension '{dim}' not declared in '{self.name}'.")
@@ -95,11 +100,16 @@ class Signature:
     # ------------------------------------------------------------------
 
     def _check_name(self, name: str, infix: bool = False) -> None:
-        """Raise if *name* is a parser-reserved keyword or operator."""
+        """Raise if *name* is reserved or can't be written in a formula."""
         if name in _RESERVED_NAMES:
             raise ValueError(
                 f"'{name}' is a reserved name in the sLTN grammar and cannot "
                 f"be used as a symbol identifier. Reserved: {sorted(_RESERVED_NAMES)}"
+            )
+        if not infix and not is_identifier(name):
+            raise ValueError(
+                f"Symbol name {name!r} is not an identifier (a letter or '_' "
+                f"followed by letters, digits, '_' or \"'\")."
             )
         if infix and not is_identifier(name) and (
             not name or name[0].isalnum() or any(c.isspace() or c in _GRAMMAR_CHARS for c in name)
@@ -109,10 +119,18 @@ class Signature:
                 f"starts with a symbol and contains no spaces or {''.join(sorted(_GRAMMAR_CHARS))}."
             )
 
+    @staticmethod
+    def _warn_if_redeclared(store: dict, name: str, kind: str) -> None:
+        if name in store:
+            warnings.warn(
+                f"{kind} '{name}' is redeclared: the new declaration replaces the old one. "
+                f"Formulas parsed before keep the old symbol.",
+                UserWarning, stacklevel=3,
+            )
+
     def sort(self, name: str) -> Sort:
         self._check_name(name)
-        if name in self._sorts:
-            raise ValueError(f"Sort '{name}' already declared.")
+        self._warn_if_redeclared(self._sorts, name, "Sort")
         s = Sort(name=name)
         self._sorts[name] = s
         return s
@@ -124,8 +142,7 @@ class Signature:
         labels: Optional[list] = None,
     ) -> Dimension:
         self._check_name(name)
-        if name in self._dimensions:
-            raise ValueError(f"Dimension '{name}' already declared.")
+        self._warn_if_redeclared(self._dimensions, name, "Dimension")
         resolved_sort = self._resolve_sort(sort) if sort is not None else None
         d = Dimension(name=name, sort=resolved_sort, labels=labels)
         self._dimensions[name] = d
@@ -138,8 +155,7 @@ class Signature:
         dims: Optional[Sequence[str | Dimension]] = None,
     ) -> ConstantSymbol:
         self._check_name(name)
-        if name in self._constants:
-            raise ValueError(f"ConstantSymbol '{name}' already declared.")
+        self._warn_if_redeclared(self._constants, name, "ConstantSymbol")
         c = ConstantSymbol(name=name, sort=self._resolve_sort(sort), dims=self._resolve_dims(dims))
         self._constants[name] = c
         return c
@@ -151,8 +167,7 @@ class Signature:
         dims: Optional[Sequence[str | Dimension]] = None,
     ) -> VariableSymbol:
         self._check_name(name)
-        if name in self._variables:
-            raise ValueError(f"VariableSymbol '{name}' already declared.")
+        self._warn_if_redeclared(self._variables, name, "VariableSymbol")
         v = VariableSymbol(name=name, sort=self._resolve_sort(sort), dims=self._resolve_dims(dims))
         self._variables[name] = v
         return v
@@ -167,8 +182,7 @@ class Signature:
         **kwargs,
     ) -> FunctionSymbol:
         self._check_name(name, infix=kwargs.get("infix", False))
-        if name in self._functions:
-            raise ValueError(f"FunctionSymbol '{name}' already declared.")
+        self._warn_if_redeclared(self._functions, name, "FunctionSymbol")
         f = FunctionSymbol(
             name=name,
             input_sorts=self._resolve_sorts(input_sorts),
@@ -189,8 +203,7 @@ class Signature:
         **kwargs,
     ) -> PredicateSymbol:
         self._check_name(name, infix=kwargs.get("infix", False))
-        if name in self._predicates:
-            raise ValueError(f"PredicateSymbol '{name}' already declared.")
+        self._warn_if_redeclared(self._predicates, name, "PredicateSymbol")
         p = PredicateSymbol(
             name=name,
             input_sorts=self._resolve_sorts(input_sorts),
@@ -203,29 +216,17 @@ class Signature:
 
     def structural_variable(
         self,
-        name_or_dim: str | Dimension,
-        dimension: Optional[str | Dimension] = None,
+        name: str,
+        dimension: str | Dimension,
     ) -> StructuralVariableSymbol:
-        """Declare a structural variable ranging over *dimension*.
-
-        *name_or_dim* can be a plain string (name), a :class:`Dimension` object,
-        or a dimension name string used as both name-source and dimension lookup
-        when *dimension* is also supplied.
-        """
-        if isinstance(name_or_dim, Dimension):
-            dim = name_or_dim
-            n   = sum(1 for sv in self._structural_variables.values() if sv.dimension is dim)
-            name = f"{dim.name}_{n}"
-        else:
-            name = name_or_dim
-            self._check_name(name)
-            if dimension is None:
-                raise ValueError(
-                    "dimension must be provided when name_or_dim is a string."
-                )
-            dim = self._resolve_dim(dimension)
-        if name in self._structural_variables:
-            raise ValueError(f"StructuralVariableSymbol '{name}' already declared.")
+        """Declare a structural variable *name* ranging over *dimension*."""
+        if not isinstance(name, str):
+            raise TypeError(
+                f"structural_variable(name, dimension) expects a name string, got {type(name).__name__}."
+            )
+        self._check_name(name)
+        dim = self._resolve_dim(dimension)
+        self._warn_if_redeclared(self._structural_variables, name, "StructuralVariableSymbol")
         sv = StructuralVariableSymbol(name=name, dimension=dim)
         self._structural_variables[name] = sv
         return sv
@@ -236,8 +237,7 @@ class Signature:
         dimensions: Sequence[str | Dimension],
     ) -> StructuralRelationSymbol:
         self._check_name(name)
-        if name in self._structural_relations:
-            raise ValueError(f"StructuralRelationSymbol '{name}' already declared.")
+        self._warn_if_redeclared(self._structural_relations, name, "StructuralRelationSymbol")
         sp = StructuralRelationSymbol(name=name, dimensions=[self._resolve_dim(d) for d in dimensions])
         self._structural_relations[name] = sp
         return sp
@@ -260,6 +260,11 @@ class Signature:
         *ti* — at parse time, before symbol resolution or evaluation.
         """
         self._check_name(name, infix=infix)
+        for p in arg_names:
+            self._check_name(p)
+        if len(set(arg_names)) != len(arg_names):
+            raise ValueError(f"Definition '{name}' has duplicate parameter names: {list(arg_names)}.")
+        self._warn_if_redeclared(self._definitions, name, "Definition")
         if input_sorts is not None and len(input_sorts) != len(arg_names):
             raise ValueError(
                 f"Definition '{name}' declares {len(input_sorts)} input_sorts "

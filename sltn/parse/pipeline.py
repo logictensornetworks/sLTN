@@ -65,18 +65,77 @@ def _annotation_dimension(name: str, sig: Signature) -> str | None:
 
 
 def _check_annotation_dimensions(name: str, dims: list, annotations: list, sig: Signature) -> None:
-    """Raise if an annotation in ``name[...]`` names a structural variable of another dimension.
+    """Raise if the annotations in ``name[...]`` don't match the symbol's dims.
 
-    Annotations rename the symbol's structural axes position by position, so the i-th
-    annotation must range over the i-th declared dimension. Unknown names are not checked.
+    Annotations rename the symbol's structural axes position by position, so there can't be
+    more annotations than dims, and the i-th one must range over the i-th declared dimension.
     """
+    written = f"{name}[{', '.join(annotations)}]"
+    if len(annotations) > len(dims):
+        raise ValueError(
+            f"'{written}' has {len(annotations)} axis annotation(s), but '{name}' has "
+            f"{len(dims)} dimension(s): {[d.name for d in dims]}."
+        )
     for dim, ann in zip(dims, annotations):
         ann_dim = _annotation_dimension(ann, sig)
-        if ann_dim is not None and ann_dim != dim.name:
+        if ann_dim is None:
+            raise NameError(
+                f"Axis annotation '{ann}' in '{written}' is not a structural variable, "
+                f"an alias of one, or a dimension."
+            )
+        if ann_dim != dim.name:
             raise ValueError(
-                f"Axis annotation '{ann}' in '{name}[{', '.join(annotations)}]' ranges over "
+                f"Axis annotation '{ann}' in '{written}' ranges over "
                 f"dimension '{ann_dim}', but the axis it renames has dimension '{dim.name}'."
             )
+
+
+def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]:
+    """Return the axis names passed to the structural relation *sym*, checking each one."""
+    dims = sym.structural_variables
+    if len(args) != len(dims):
+        raise ValueError(
+            f"Structural relation '{sym.name}' takes {len(dims)} argument(s) "
+            f"({[d.name for d in dims]}), got {len(args)}."
+        )
+    names = []
+    for arg, dim in zip(args, dims):
+        if not isinstance(arg, _NameTerm) or arg.axis_annotations:
+            raise ValueError(
+                f"Arguments of structural relation '{sym.name}' must be structural variable "
+                f"names, got '{arg}'."
+            )
+        arg_dim = _annotation_dimension(arg.symbol, sig)
+        if arg_dim is None:
+            raise NameError(
+                f"Argument '{arg.symbol}' of structural relation '{sym.name}' is not a structural "
+                f"variable, an alias of one, or a dimension."
+            )
+        if arg_dim != dim.name:
+            raise ValueError(
+                f"Argument '{arg.symbol}' of structural relation '{sym.name}' ranges over "
+                f"dimension '{arg_dim}', but the relation expects '{dim.name}' there."
+            )
+        names.append(arg.symbol)
+    return tuple(names)
+
+
+def _check_selection(axis: str, base: Any, sig: Signature) -> None:
+    """Raise unless ``base[axis=k]`` selects a structural axis that is named explicitly in *base*.
+
+    ``x[t][t=0]`` is accepted; ``x[T=0]``, which relies on the default axis name, is not.
+    """
+    available = base._free_structural_variables or set()
+    if axis not in available:
+        raise ValueError(
+            f"Selection '[{axis}=...]' on '{base}': '{axis}' is not a structural axis of it. "
+            f"Its structural axes are {sorted(available) or '(none)'}."
+        )
+    if axis not in _collect_explicit_axis_names(base):
+        raise ValueError(
+            f"Selection '[{axis}=...]' on '{base}' relies on the default axis name '{axis}'. "
+            f"Name the axis first, e.g. 'x[t][t=0]' or 'P(x)[t][t=0]'."
+        )
 
 
 def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
@@ -200,9 +259,7 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
             elif sym_name in sig._structural_relations:
                 # Promote to StructuralRelation — pure structural node with no Term args.
                 sym_obj = sig._structural_relations[sym_name]
-                var_names = tuple(
-                    arg.name if hasattr(arg, "name") else str(arg) for arg in node.args
-                )
+                var_names = _relation_argument_names(sym_obj, list(node.args), sig)
                 node.__class__ = StructuralRelation
                 node.__dict__ = {}
                 StructuralRelation.__init__(node, sym_obj, *var_names)
@@ -373,6 +430,21 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
                     f"Quantifier binds {', '.join(map(repr, duplicates))} more than once: "
                     f"{list(node.var_names)}."
                 )
+            structural = [v for v in node.var_names if v in sig._structural_variables]
+            individual = [v for v in node.var_names if v not in sig._structural_variables]
+            if structural and individual:
+                q = "forall" if node.quantifier == "forall" else "exists"
+                raise ValueError(
+                    f"Quantifier mixes individual variable(s) {individual} and structural "
+                    f"variable(s) {structural}. Nest them instead, e.g. "
+                    f"'{q} {', '.join(individual)}: {q} {', '.join(structural)}: ...'."
+                )
+            dims = {sig._structural_variables[v].dimension.name for v in structural}
+            if len(dims) > 1:
+                raise ValueError(
+                    f"Quantifier binds structural variables {structural} over different "
+                    f"dimensions {sorted(dims)}. Use one quantifier per dimension."
+                )
             free = set(node.formula.free_variables)
             if node.guard is not None:
                 free |= node.guard.free_variables
@@ -472,6 +544,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
 
         case TermAxisSelect():
             _annotate_free_structural_variables(node.base_term, sig)
+            _check_selection(node.axis, node.base_term, sig)
             base_dims: set[str] = node.base_term._free_structural_variables or set()
             dims = base_dims - {node.axis}
 
@@ -517,6 +590,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
 
         case FormulaAxisSelect():
             inner_dims = _annotate_free_structural_variables(node.base_formula, sig)
+            _check_selection(node.axis, node.base_formula, sig)
             dims = inner_dims - {node.axis}
 
         case And() | Or() | Implies() | Equivalent():
