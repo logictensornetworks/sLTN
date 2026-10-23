@@ -35,6 +35,16 @@ def is_identifier(name: str) -> bool:
     return _IDENT.fullmatch(name) is not None
 
 
+def _base_name_of(name: str) -> str:
+    """Strip trailing primes and/or digits from *name* to get the alias base.
+
+    Examples: ``'x\\''`` → ``'x'``, ``'x1'`` → ``'x'``, ``'t1'`` → ``'t'``.
+    Returns *name* unchanged when no suffix is found.
+    """
+    m = re.match(r"^(.+?)([0-9']+)$", name)
+    return m.group(1) if m else name
+
+
 @dataclass(frozen=True)
 class Token:
     kind: str   # a BUILTIN_TOKENS value, or NAME / INT / OP (user infix) / EOF

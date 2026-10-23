@@ -4,8 +4,12 @@ already exercised indirectly via test_signature.py's `sig.define(...)` calls.
 import pytest
 
 from sltn import Signature
-from sltn.fol.definitions import _base_name_of
+from sltn.fol.definitions import (
+    _collect_all_structural_axis_strings, _resolve_dst_clash_with_struct_quantifiers,
+)
 from sltn.fol.formula import And, Or, KB, AtomicFormula
+from sltn.parse.pipeline import parse_raw
+from sltn.parse.tokenizer import _base_name_of
 
 
 # ---------------------------------------------------------------------------
@@ -150,3 +154,20 @@ def test_define_call_site_axis_alias_does_not_corrupt_definition_body():
     assert isinstance(phi, AtomicFormula)
     assert phi.structural_axes == ["d"]
     assert phi.free_structural_variables == {"s1", "d"}
+
+
+def test_struct_binder_clash_renames_nested_binders_apart():
+    """Renaming binders of ``s1`` must keep the inner and outer scopes apart."""
+    sig = Signature("s")
+    S = sig.dimension("S")
+    sig.structural_variable("s", S)
+    sig.predicate("A", [], output_dims=[S])
+    raw = parse_raw("forall s1: (A()[s1] & forall s1: A()[s1])", sig, "formula")
+
+    _resolve_dst_clash_with_struct_quantifiers(raw, "s1")
+
+    inner = raw.formula.right
+    outer_name, inner_name = raw.var_names[0], inner.var_names[0]
+    assert "s1" not in {outer_name, inner_name} and outer_name != inner_name
+    assert _collect_all_structural_axis_strings(raw.formula.left) == {outer_name}
+    assert _collect_all_structural_axis_strings(inner) == {inner_name}

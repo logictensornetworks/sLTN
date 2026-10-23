@@ -13,7 +13,9 @@ __all__ = [
 ]
 
 import warnings
-from typing import Optional, Sequence, TYPE_CHECKING
+from contextlib import contextmanager
+from types import MappingProxyType
+from typing import Iterator, Optional, Sequence, TYPE_CHECKING
 
 from sltn.signature.symbols import (
     Symbol, Definition, Sort, Dimension, ConstantSymbol, VariableSymbol,
@@ -21,7 +23,7 @@ from sltn.signature.symbols import (
     StructuralVariableSymbol, StructuralRelationSymbol,
 )
 
-from sltn.parse.tokenizer import RESERVED_NAMES as _RESERVED_NAMES, is_identifier
+from sltn.parse.tokenizer import RESERVED_NAMES as _RESERVED_NAMES, is_identifier, _base_name_of
 
 if TYPE_CHECKING:
     from sltn.fol.formula import Formula
@@ -326,9 +328,8 @@ class Signature:
         """Return the canonical ``Dimension`` name for a structural axis identifier.
 
         *name* can be a dimension name (returned as-is), the name of a
-        :class:`StructuralVariableSymbol` (declared explicitly or auto-created
-        by the parser, base or alias — e.g. ``t``, ``t1``, ``t'``), which is
-        resolved to the name of the ``Dimension`` it ranges over.
+        :class:`StructuralVariableSymbol` or of an alias of one (``t``, ``t1``,
+        ``t'``), which is resolved to the name of the ``Dimension`` it ranges over.
 
         This lets structural-aggregator groundings be declared once per
         dimension and inherited by every variable that ranges over it,
@@ -337,12 +338,67 @@ class Signature:
         """
         if name in self._dimensions:
             return name
-        sv = self._structural_variables.get(name)   # aliases are registered here too
-        return sv.dimension.name if sv is not None else name
+        dim = self.dimension_of(name)
+        return dim.name if dim is not None else name
 
-    def _alias_base(self, name: str) -> Optional[str]:
-        """The base variable of the alias *name* (``x1`` → ``x``), or ``None``."""
+    def dimension_of(self, name: str) -> Optional[Dimension]:
+        """The dimension of the structural variable *name*, or of the one it's an alias of."""
+        sv = self._structural_variables.get(name) or self._structural_variables.get(_base_name_of(name))
+        return sv.dimension if sv is not None else None
+
+    def is_dimension_name(self, name: str) -> bool:
+        """Whether *name* is a dimension or looks like an alias of one (``T1``)."""
+        return name in self._dimensions or _base_name_of(name) in self._dimensions
+
+    def alias_base(self, name: str) -> Optional[str]:
+        """The base variable of the registered alias *name* (``x1`` → ``x``), or ``None``."""
         return self._variables_aliases.get(name) or self._structural_variables_aliases.get(name)
+
+    def alias(self, name: str) -> VariableSymbol | StructuralVariableSymbol | None:
+        """Return the alias *name* (``t1``, ``x'``) of a declared variable, registering it if new.
+
+        Returns ``None`` if *name* is not an alias of a (structural) variable.
+        """
+        base = _base_name_of(name)
+        if base == name:
+            return None
+        if base in self._structural_variables:
+            alias = StructuralVariableSymbol(name=name, dimension=self._structural_variables[base].dimension)
+            self._structural_variables[name] = alias
+            self._structural_variables_aliases[name] = self._structural_variables_aliases.get(base, base)
+            return alias
+        if base in self._variables:
+            base_var = self._variables[base]
+            alias = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.structural_variables or None)
+            self._variables[name] = alias
+            self._variables_aliases[name] = self._variables_aliases.get(base, base)
+            return alias
+        return None
+
+    @contextmanager
+    def rollback_aliases_on_error(self) -> Iterator[None]:
+        """Undo the aliases registered inside the block if it raises."""
+        registries = (self._variables, self._variables_aliases,
+                      self._structural_variables, self._structural_variables_aliases)
+        snapshot = [dict(r) for r in registries]
+        try:
+            yield
+        except BaseException:
+            for registry, saved in zip(registries, snapshot):
+                registry.clear()
+                registry.update(saved)
+            raise
+
+    # Read-only views of the declared symbols, by name; declare through the methods above.
+    sorts                = property(lambda self: MappingProxyType(self._sorts))
+    dimensions           = property(lambda self: MappingProxyType(self._dimensions))
+    constants            = property(lambda self: MappingProxyType(self._constants))
+    variables            = property(lambda self: MappingProxyType(self._variables))
+    functions            = property(lambda self: MappingProxyType(self._functions))
+    predicates           = property(lambda self: MappingProxyType(self._predicates))
+    structural_variables = property(lambda self: MappingProxyType(self._structural_variables))
+    structural_relations = property(lambda self: MappingProxyType(self._structural_relations))
+    definitions          = property(lambda self: MappingProxyType(self._definitions))
 
     def get(self, name: str) -> Symbol:
         """Look up a symbol by name across all namespaces (first match wins)."""

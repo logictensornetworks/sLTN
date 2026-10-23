@@ -10,7 +10,6 @@ renaming of structural-axis aliases as needed.
 from __future__ import annotations
 
 import copy
-import re
 from typing import Any, Callable
 
 from sltn.fol.term import (
@@ -18,24 +17,15 @@ from sltn.fol.term import (
     _CallTerm, FunctionApplication, TermAxisSelect, Term
 )
 from sltn.fol.formula import (
-    AtomicFormula, StructuralRelation,
+    AtomicFormula,
     And, Or, Not, Implies, Equivalent,
     Forall, Exists,
     KB,
     TermFormula, FormulaAxisSelect,
     Formula
 )
+from sltn.parse.tokenizer import _base_name_of
 
-
-
-def _base_name_of(name: str) -> str:
-    """Strip trailing primes and/or digits from *name* to get the alias base.
-
-    Examples: ``'x\\''`` → ``'x'``, ``'x1'`` → ``'x'``, ``'t1'`` → ``'t'``.
-    Returns *name* unchanged when no suffix is found.
-    """
-    m = re.match(r"^(.+?)([0-9']+)$", name)
-    return m.group(1) if m else name
 
 # ---------------------------------------------------------------------------
 # Definition expansion
@@ -231,10 +221,9 @@ def _rename_structural_axes_inplace(node: Any, mapping: dict[str, str]) -> None:
 
 def _declared_names(sig: Any) -> set[str]:
     """Names declared explicitly in *sig* (auto-registered aliases excluded)."""
-    aliases = set(sig._variables_aliases) | set(sig._structural_variables_aliases)
-    names = (set(sig._variables) | set(sig._structural_variables)) - aliases
-    return names | set(sig._constants) | set(sig._functions) | set(sig._predicates) \
-        | set(sig._dimensions) | set(sig._structural_relations)
+    names = {n for n in (*sig.variables, *sig.structural_variables) if sig.alias_base(n) is None}
+    return names | set(sig.constants) | set(sig.functions) | set(sig.predicates) \
+        | set(sig.dimensions) | set(sig.structural_relations)
 
 
 def _definition_subst(
@@ -426,232 +415,161 @@ def _apply_call_axes(root: Any, axes: list[str], sym_name: str) -> None:
     setattr(root, attr, axes)
 
 
-def _expand_definitions(
-    node: Any,
-    definitions: dict[str, Any],
-    sig: Any,
-) -> Any:
-    """Recursively expand syntactic abbreviations in a formula/term AST.
+# ---------------------------------------------------------------------------
+# Sort and axis inference on the unresolved AST (to validate definition calls)
+# ---------------------------------------------------------------------------
+
+def _call_target(name: str, sig: Any) -> Any:
+    """The function, predicate or definition called *name*, or ``None``."""
+    return sig.functions.get(name) or sig.predicates.get(name) or sig.definitions.get(name)
+
+
+def _sort_name(term: Any, sig: Any) -> str | None:
+    """The sort of *term*, or ``None`` if it can't be inferred."""
+    match term:
+        case TermFormula():
+            return _sort_name(term.term, sig)
+        case TermAxisSelect():
+            return _sort_name(term.base_term, sig)
+        case AtomicFormula() | _CallTerm():
+            name = term.pred_name if isinstance(term, AtomicFormula) else term.symbol
+            if name in sig.predicates:
+                return "Bool"
+            target = _call_target(name, sig)
+            out = target.output_sort if target is not None else None
+            return out.name if out is not None else None
+        case Constant() | Variable():
+            return term.symbol.sort.name
+        case StructuralVariable():
+            sort = term.symbol.dimension.sort
+            return sort.name if sort is not None else None
+        case _NameTerm():
+            sym = sig.constants.get(term.name) or sig.variables.get(term.name)
+            return sym.sort.name if sym is not None else None
+    return None
+
+
+def _axis_names(term: Any, sig: Any) -> set[str]:
+    """The structural axis names of *term*."""
+    match term:
+        case TermAxisSelect():
+            return _axis_names(term.base_term, sig) - {term.axis}
+        case AtomicFormula() | _CallTerm():
+            if isinstance(term, AtomicFormula):
+                name, axes = term.pred_name, term.structural_axes
+            else:
+                name, axes = term.symbol, term.output_axes
+            arg_axes = set().union(*(_axis_names(a, sig) for a in term.args))
+            target = _call_target(name, sig)
+            if target is None:
+                return arg_axes | set(axes or ())
+            consumed = {d.name for d in target.input_dims}
+            kept = {a for a in arg_axes if _axis_dimension_name(a, sig) not in consumed}
+            return kept | (set(axes) if axes else {d.name for d in target.output_dims})
+        case StructuralVariable():
+            return {term.name}
+        case Variable() | Constant() | _NameTerm():
+            if term.axis_annotations:
+                return set(term.axis_annotations)
+            sym = term.symbol if isinstance(term, (Variable, Constant)) else (
+                sig.variables.get(term.name) or sig.constants.get(term.name))
+            return {d.name for d in sym.structural_variables} if sym is not None else set()
+    return set().union(*(_axis_names(c, sig) for c in _child_nodes(term)))
+
+
+def _axis_dimension_name(axis: str, sig: Any) -> str:
+    """The dimension of *axis* (a structural variable or alias); *axis* itself if unknown."""
+    dim = sig.dimension_of(axis)
+    return dim.name if dim is not None else axis
+
+
+# ---------------------------------------------------------------------------
+# Definition instantiation
+# ---------------------------------------------------------------------------
+
+def _validate_definition_call(sym_name: str, defn: Any, args: list[Any], sig: Any) -> None:
+    if len(args) != len(defn.params):
+        raise TypeError(
+            f"Definition '{sym_name}' expects {len(defn.params)} argument(s), got {len(args)}."
+        )
+
+    for i, (arg, expected_sort) in enumerate(zip(args, defn.input_sorts)):
+        actual_sort = _sort_name(arg, sig)
+        if actual_sort is None:
+            raise TypeError(
+                f"Definition '{sym_name}': cannot infer sort of argument {i} "
+                f"to validate expected sort '{expected_sort.name}'."
+            )
+        if actual_sort != expected_sort.name:
+            raise TypeError(
+                f"Definition '{sym_name}': argument {i} has sort '{actual_sort}', "
+                f"expected '{expected_sort.name}'."
+            )
+
+    if defn.input_dims:
+        present_axis_names = set().union(*(_axis_names(a, sig) for a in args))
+        present_dim_names = {_axis_dimension_name(ax, sig) for ax in present_axis_names}
+        missing = [d.name for d in defn.input_dims if d.name not in present_dim_names]
+        if missing:
+            raise ValueError(
+                f"Definition '{sym_name}': missing required input structural dim(s) {missing}. "
+                f"Present axis names: {sorted(present_axis_names)} "
+                f"(resolved to dimensions: {sorted(present_dim_names)})."
+            )
+
+
+def _validate_definition_output(sym_name: str, defn: Any, expanded: Any, sig: Any) -> None:
+    if defn.output_sort is None:
+        return
+    is_formula = isinstance(expanded, Formula) and not isinstance(expanded, TermFormula)
+    actual_sort = "Bool" if is_formula else _sort_name(expanded, sig)
+    if actual_sort is None:
+        raise TypeError(
+            f"Definition '{sym_name}': cannot infer output sort to validate expected "
+            f"'{defn.output_sort.name}'."
+        )
+    if actual_sort != defn.output_sort.name:
+        raise TypeError(
+            f"Definition '{sym_name}': output sort is '{actual_sort}', "
+            f"expected '{defn.output_sort.name}'."
+        )
+
+
+def _is_individual(name: str, sig: Any) -> bool:
+    if name in sig.structural_variables or name in sig.dimensions:
+        return False
+    return name in sig.variables or _base_name_of(name) in sig.variables
+
+
+def _instantiate(sym_name: str, defn: Any, args: list[Any], axes: list[str] | None, sig: Any) -> Any:
+    """The body of *defn* with *args* substituted for its parameters."""
+    from sltn.parse.pipeline import parse_raw
+    _validate_definition_call(sym_name, defn, args, sig)
+    is_term = defn.output_sort is not None and defn.output_sort.name != "Bool"
+    body_ast = parse_raw(defn.body, sig, "term" if is_term else "any")
+    pac = _param_axis_canonical_for_definition(defn, body_ast)
+    subst = _definition_subst(defn, args, pac, sig)
+    avoid = frozenset(n for a in args for n in _names_in(a) if _is_individual(n, sig))
+    expanded = _substitute(body_ast, subst, param_axis_canonical=pac, avoid=avoid)
+    if axes is not None:
+        _apply_call_axes(expanded, list(axes), sym_name)
+    return expanded
+
+
+def _expand_definitions(node: Any, sig: Any) -> Any:
+    """Recursively expand the definitions of *sig* (syntactic abbreviations) in a formula/term AST.
 
     - **Formula level**: an :class:`~sltn.fol.formula.AtomicFormula` whose predicate
-      name is in *definitions* is replaced by the instantiated body.
-    - **Term level**: a :class:`~sltn.fol.term._CallTerm` whose function name is in
-      *definitions* is replaced by the instantiated body (parsed as a formula).
+      name is a definition is replaced by the instantiated body.
+    - **Term level**: a :class:`~sltn.fol.term._CallTerm` whose function name is a
+      definition is replaced by the instantiated body.
 
     Expansion is recursive so definitions may reference other definitions.
     """
-    def _term_sort_name_for_definition(term: Any) -> str | None:
-        match term:
-            case TermFormula():
-                return _term_sort_name_for_definition(term.term)
-            case AtomicFormula():
-                sname = term.pred_name
-                if sname in sig._predicates:
-                    return "Bool"
-                if sname in definitions:
-                    out = definitions[sname].output_sort
-                    return out.name if out is not None else None
-                return None
-            case Constant():
-                return term.symbol.sort.name
-            case Variable():
-                return term.symbol.sort.name
-            case StructuralVariable():
-                if term.symbol.dimension.sort is not None:
-                    return term.symbol.dimension.sort.name
-                return None
-            case _NameTerm():
-                name = term.name
-                if name in sig._constants:
-                    return sig._constants[name].sort.name
-                if name in sig._variables:
-                    return sig._variables[name].sort.name
-                return None
-            case TermAxisSelect():
-                return _term_sort_name_for_definition(term.base_term)
-            case _CallTerm():
-                sname = term.symbol
-                if sname in sig._functions:
-                    out = sig._functions[sname].output_sort
-                    return out.name if out is not None else None
-                if sname in sig._predicates:
-                    return "Bool"
-                if sname in definitions:
-                    out = definitions[sname].output_sort
-                    return out.name if out is not None else None
-                return None
-            case _:
-                return None
-
-    def _axis_dim(ax: str) -> str:
-        """The dimension of axis *ax* (a structural variable or alias); *ax* if unknown."""
-        sv = sig._structural_variables.get(ax)
-        if sv is None:
-            base = _base_name_of(ax)
-            sv = sig._structural_variables.get(sig._structural_variables_aliases.get(base, base))
-        return sv.dimension.name if sv is not None else ax
-
-    def _drop(axes: set[str], consumed: set[str]) -> set[str]:
-        return {a for a in axes if _axis_dim(a) not in consumed}
-
-    def _term_dim_names_for_definition(term: Any) -> set[str]:
-        match term:
-            case TermFormula():
-                return _term_dim_names_for_definition(term.term)
-            case And() | Or() | Implies() | Equivalent():
-                return _term_dim_names_for_definition(term.left) | _term_dim_names_for_definition(term.right)
-            case Not():
-                return _term_dim_names_for_definition(term.operand)
-            case Forall() | Exists():
-                d = _term_dim_names_for_definition(term.formula)
-                if term.guard is not None:
-                    d |= _term_dim_names_for_definition(term.guard)
-                return d
-            case FormulaAxisSelect():
-                return _term_dim_names_for_definition(term.base_formula)
-            case StructuralVariable():
-                return {term.name}
-            case Variable():
-                if term.axis_annotations:
-                    return set(term.axis_annotations)
-                return {d.name for d in term.symbol.structural_variables}
-            case Constant():
-                if term.axis_annotations:
-                    return set(term.axis_annotations)
-                return {d.name for d in term.symbol.structural_variables}
-            case _NameTerm():
-                if term.axis_annotations:
-                    return set(term.axis_annotations)
-                name = term.name
-                if name in sig._variables:
-                    return {d.name for d in sig._variables[name].structural_variables}
-                if name in sig._constants:
-                    return {d.name for d in sig._constants[name].structural_variables}
-                return set()
-            case TermAxisSelect():
-                return _term_dim_names_for_definition(term.base_term) - {term.axis}
-            case AtomicFormula():
-                arg_dims: set[str] = set()
-                for a in term.args:
-                    arg_dims |= _term_dim_names_for_definition(a)
-                sname = term.pred_name
-                axes = set(term.structural_axes) if term.structural_axes else None
-                if sname in sig._predicates:
-                    pr = sig._predicates[sname]
-                    consumed = {d.name for d in pr.input_dims}
-                    out_names = axes if axes is not None else {d.name for d in pr.output_dims}
-                    return _drop(arg_dims, consumed) | out_names
-                if sname in definitions:
-                    defn = definitions[sname]
-                    consumed = {d.name for d in defn.input_dims}
-                    out_names = axes if axes is not None else {d.name for d in defn.output_dims}
-                    return _drop(arg_dims, consumed) | out_names
-                return arg_dims if axes is None else arg_dims | axes
-            case _CallTerm():
-                arg_dims: set[str] = set()
-                for a in term.args:
-                    arg_dims |= _term_dim_names_for_definition(a)
-                sname = term.symbol
-                if sname in sig._functions:
-                    fn = sig._functions[sname]
-                    consumed = {d.name for d in fn.input_dims}
-                    out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in fn.output_dims}
-                    return _drop(arg_dims, consumed) | out_names
-                if sname in sig._predicates:
-                    pr = sig._predicates[sname]
-                    consumed = {d.name for d in pr.input_dims}
-                    out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in pr.output_dims}
-                    return _drop(arg_dims, consumed) | out_names
-                if sname in definitions:
-                    defn = definitions[sname]
-                    consumed = {d.name for d in defn.input_dims}
-                    out_names = set(term.output_axes) if term.output_axes is not None else {d.name for d in defn.output_dims}
-                    return _drop(arg_dims, consumed) | out_names
-                return arg_dims
-            case _:
-                return set()
-
-    def _validate_definition_call(sym_name: str, defn: Any, args: list[Any]) -> None:
-        if len(args) != len(defn.params):
-            raise TypeError(
-                f"Definition '{sym_name}' expects {len(defn.params)} argument(s), got {len(args)}."
-            )
-
-        if defn.input_sorts:
-            for i, (arg, expected_sort) in enumerate(zip(args, defn.input_sorts)):
-                actual_sort = _term_sort_name_for_definition(arg)
-                if actual_sort is None:
-                    raise TypeError(
-                        f"Definition '{sym_name}': cannot infer sort of argument {i} "
-                        f"to validate expected sort '{expected_sort.name}'."
-                    )
-                if actual_sort != expected_sort.name:
-                    raise TypeError(
-                        f"Definition '{sym_name}': argument {i} has sort '{actual_sort}', "
-                        f"expected '{expected_sort.name}'."
-                    )
-
-        if defn.input_dims:
-            present_axis_names: set[str] = set()
-            for arg in args:
-                present_axis_names |= _term_dim_names_for_definition(arg)
-            present_dim_names = {_axis_dim(ax) for ax in present_axis_names}
-            missing = [d.name for d in defn.input_dims if d.name not in present_dim_names]
-            if missing:
-                raise ValueError(
-                    f"Definition '{sym_name}': missing required input structural dim(s) {missing}. "
-                    f"Present axis names: {sorted(present_axis_names)} "
-                    f"(resolved to dimensions: {sorted(present_dim_names)})."
-                )
-
-    def _validate_definition_output(sym_name: str, defn: Any, expanded: Any) -> None:
-        if defn.output_sort is None:
-            return
-        match expanded:
-            case TermFormula():
-                actual_sort = _term_sort_name_for_definition(expanded.term)
-            case Formula():
-                actual_sort = "Bool"
-            case Term():
-                actual_sort = _term_sort_name_for_definition(expanded)
-            case _:
-                actual_sort = None
-
-        if actual_sort is None:
-            raise TypeError(
-                f"Definition '{sym_name}': cannot infer output sort to validate expected "
-                f"'{defn.output_sort.name}'."
-            )
-        if actual_sort != defn.output_sort.name:
-            raise TypeError(
-                f"Definition '{sym_name}': output sort is '{actual_sort}', "
-                f"expected '{defn.output_sort.name}'."
-            )
-
-    def _parse_definition_body(defn: Any) -> Formula | Term:
-        from sltn.parse.pipeline import parse_raw
-        is_term = defn.output_sort is not None and defn.output_sort.name != "Bool"
-        return parse_raw(defn.body, sig, "term" if is_term else "any")
-
-    def _is_individual(name: str) -> bool:
-        if name in sig._structural_variables or name in sig._dimensions:
-            return False
-        base = _base_name_of(name)
-        return name in sig._variables or base in sig._variables or base in sig._variables_aliases
-
-    def _instantiate(sym_name: str, defn: Any, args: list[Any], axes: list[str] | None) -> Any:
-        _validate_definition_call(sym_name, defn, args)
-        body_ast = _parse_definition_body(defn)
-        pac = _param_axis_canonical_for_definition(defn, body_ast)
-        subst = _definition_subst(defn, args, pac, sig)
-        avoid = frozenset(n for a in args for n in _names_in(a) if _is_individual(n))
-        expanded = _substitute(body_ast, subst, param_axis_canonical=pac, avoid=avoid)
-        if axes is not None:
-            _apply_call_axes(expanded, list(axes), sym_name)
-        return expanded
+    definitions = sig.definitions
 
     def expand(n: Any) -> Any:
-        return _expand_definitions(n, definitions, sig)
+        return _expand_definitions(n, sig)
 
     match node:
         case _NameTerm() | Variable() | Constant() | StructuralVariable():
@@ -666,14 +584,8 @@ def _expand_definitions(
             sym_name = node.symbol
             if sym_name in definitions:
                 defn = definitions[sym_name]
-                expanded = expand(_instantiate(sym_name, defn, node.args, node.output_axes))
-                if not isinstance(expanded, (Formula, Term)):
-                    raise TypeError(
-                        f"Definition '{sym_name}' is used in term position, "
-                        f"but its body expanded to {type(expanded).__name__}, "
-                        f"which is neither a term nor a formula."
-                    )
-                _validate_definition_output(sym_name, defn, expanded)
+                expanded = expand(_instantiate(sym_name, defn, node.args, node.output_axes, sig))
+                _validate_definition_output(sym_name, defn, expanded, sig)
                 return expanded
             return node
 
@@ -682,10 +594,10 @@ def _expand_definitions(
             sym_name = node.symbol if isinstance(node.symbol, str) else node.symbol.name
             if sym_name in definitions:
                 defn = definitions[sym_name]
-                expanded = _instantiate(sym_name, defn, new_args, node.structural_axes)
+                expanded = _instantiate(sym_name, defn, new_args, node.structural_axes, sig)
                 if isinstance(expanded, Term):
                     expanded = TermFormula(expanded)
-                _validate_definition_output(sym_name, defn, expanded)
+                _validate_definition_output(sym_name, defn, expanded, sig)
                 return expand(expanded)
             if new_args != list(node.args):
                 node = AtomicFormula(node.symbol, *new_args, structural_axes=node.structural_axes)

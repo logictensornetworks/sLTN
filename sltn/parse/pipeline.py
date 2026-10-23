@@ -34,7 +34,7 @@ from sltn.fol.formula import (
 
 from sltn.parse.parser import parse_string, signature_tables
 
-from sltn.fol.definitions import _expand_definitions, _base_name_of, _child_nodes
+from sltn.fol.definitions import _expand_definitions, _child_nodes
 
 if TYPE_CHECKING:
     from sltn.signature.signature import Signature
@@ -43,39 +43,6 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Symbol resolution
 # ---------------------------------------------------------------------------
-
-def _annotation_dimension(name: str, sig: Signature) -> str | None:
-    """Return the dimension of the structural variable (or alias, ``t1``) *name*, or ``None``.
-
-    Nothing is registered in *sig*.
-    """
-    if name in sig._structural_variables:
-        return sig._structural_variables[name].dimension.name
-    base_sv = sig._structural_variables.get(_base_name_of(name))   # aliases are registered here too
-    return base_sv.dimension.name if base_sv is not None else None
-
-
-def _register_alias(name: str, sig: Signature) -> VariableSymbol | StructuralVariableSymbol | None:
-    """Register *name* as an alias (``t1``, ``x'``) of a declared variable and return it.
-
-    Returns ``None`` if *name* is not an alias of a (structural) variable.
-    """
-    base = _base_name_of(name)
-    if base == name:
-        return None
-    if base in sig._structural_variables:
-        alias = StructuralVariableSymbol(name=name, dimension=sig._structural_variables[base].dimension)
-        sig._structural_variables[name] = alias
-        sig._structural_variables_aliases[name] = sig._structural_variables_aliases.get(base, base)
-        return alias
-    if base in sig._variables:
-        base_var = sig._variables[base]
-        alias = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.structural_variables or None)
-        sig._variables[name] = alias
-        sig._variables_aliases[name] = sig._variables_aliases.get(base, base)
-        return alias
-    return None
-
 
 def _dimension_name_error(name: str, sig: Signature) -> NameError:
     return NameError(
@@ -103,18 +70,18 @@ def _check_annotation_dimensions(name: str, dims: list, annotations: list, sig: 
     if len(set(annotations)) != len(annotations):
         raise ValueError(f"'{written}' uses the same axis name more than once.")
     for dim, ann in zip(dims, annotations):
-        ann_dim = _annotation_dimension(ann, sig)
+        ann_dim = sig.dimension_of(ann)
         if ann_dim is None:
-            if ann in sig._dimensions or _base_name_of(ann) in sig._dimensions:
+            if sig.is_dimension_name(ann):
                 raise _dimension_name_error(ann, sig)
             raise NameError(
                 f"Axis annotation '{ann}' in '{written}' is not a structural variable "
                 f"or an alias of one."
             )
-        if ann_dim != dim.name:
+        if ann_dim.name != dim.name:
             raise ValueError(
                 f"Axis annotation '{ann}' in '{written}' ranges over "
-                f"dimension '{ann_dim}', but the axis it renames has dimension '{dim.name}'."
+                f"dimension '{ann_dim.name}', but the axis it renames has dimension '{dim.name}'."
             )
 
 
@@ -144,18 +111,18 @@ def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]
                 f"Arguments of structural relation '{sym.name}' must be structural variable "
                 f"names, got '{arg}'."
             )
-        arg_dim = _annotation_dimension(arg.symbol, sig)
+        arg_dim = sig.dimension_of(arg.symbol)
         if arg_dim is None:
-            if arg.symbol in sig._dimensions or _base_name_of(arg.symbol) in sig._dimensions:
+            if sig.is_dimension_name(arg.symbol):
                 raise _dimension_name_error(arg.symbol, sig)
             raise NameError(
                 f"Argument '{arg.symbol}' of structural relation '{sym.name}' is not a structural "
                 f"variable or an alias of one."
             )
-        if arg_dim != dim.name:
+        if arg_dim.name != dim.name:
             raise ValueError(
                 f"Argument '{arg.symbol}' of structural relation '{sym.name}' ranges over "
-                f"dimension '{arg_dim}', but the relation expects '{dim.name}' there."
+                f"dimension '{arg_dim.name}', but the relation expects '{dim.name}' there."
             )
         names.append(arg.symbol)
     return tuple(names)
@@ -181,22 +148,22 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
         case _NameTerm():
             name = node.symbol
             # Resolution order: StructuralVariableSymbol > VariableSymbol > ConstantSymbol > alias
-            if name in sig._structural_variables:
-                resolved = sig._structural_variables[name]
-            elif name in sig._variables:
-                resolved = sig._variables[name]
-            elif name in sig._constants:
-                resolved = sig._constants[name]
+            if name in sig.structural_variables:
+                resolved = sig.structural_variables[name]
+            elif name in sig.variables:
+                resolved = sig.variables[name]
+            elif name in sig.constants:
+                resolved = sig.constants[name]
             else:
-                resolved = _register_alias(name, sig)
+                resolved = sig.alias(name)
                 if resolved is None:
-                    if name in sig._dimensions or _base_name_of(name) in sig._dimensions:
+                    if sig.is_dimension_name(name):
                         raise _dimension_name_error(name, sig)
                     raise NameError(
                         f"Symbol '{name}' is not declared in signature '{sig.name}'. "
-                        f"Available variables: {list(sig._variables)}, "
-                        f"constants: {list(sig._constants)}, "
-                        f"structural_variables: {list(sig._structural_variables)}."
+                        f"Available variables: {list(sig.variables)}, "
+                        f"constants: {list(sig.constants)}, "
+                        f"structural_variables: {list(sig.structural_variables)}."
                     )
             # Promote _NameTerm in-place to typed term node.
             ann = list(node.axis_annotations)
@@ -217,16 +184,16 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
 
         case _CallTerm():
             sym_name = node.symbol
-            if sym_name in sig._functions:
+            if sym_name in sig.functions:
                 args = list(node.args)
                 out_axes = node.output_axes
-                _check_output_annotation(sig._functions[sym_name], out_axes, sig)
+                _check_output_annotation(sig.functions[sym_name], out_axes, sig)
                 node.__class__ = FunctionApplication
-                FunctionApplication.__init__(node, sig._functions[sym_name], args, output_axes=out_axes)
+                FunctionApplication.__init__(node, sig.functions[sym_name], args, output_axes=out_axes)
                 for arg in node.args:
                     _resolve_symbols(arg, sig)
-            elif sym_name in sig._predicates:
-                pred = sig._predicates[sym_name]
+            elif sym_name in sig.predicates:
+                pred = sig.predicates[sym_name]
                 args = list(node.args)
                 out_axes = node.output_axes
                 _check_output_annotation(pred, out_axes, sig)
@@ -237,8 +204,8 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
             else:
                 raise NameError(
                     f"FunctionSymbol/predicate '{sym_name}' is not declared in signature '{sig.name}'. "
-                    f"Available predicates: {list(sig._predicates)}, "
-                    f"functions: {list(sig._functions)}."
+                    f"Available predicates: {list(sig.predicates)}, "
+                    f"functions: {list(sig.functions)}."
                 )
 
         case TermAxisSelect():
@@ -246,19 +213,19 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
 
         case AtomicFormula():
             sym_name = node.symbol if isinstance(node.symbol, str) else node.symbol.name
-            if sym_name in sig._predicates:
-                node.symbol = sig._predicates[sym_name]
+            if sym_name in sig.predicates:
+                node.symbol = sig.predicates[sym_name]
                 _check_output_annotation(node.symbol, node.structural_axes, sig)
                 for arg in node.args:
                     _resolve_symbols(arg, sig)
-            elif sym_name in sig._functions:
-                node.symbol = sig._functions[sym_name]
+            elif sym_name in sig.functions:
+                node.symbol = sig.functions[sym_name]
                 _check_output_annotation(node.symbol, node.structural_axes, sig)
                 for arg in node.args:
                     _resolve_symbols(arg, sig)
-            elif sym_name in sig._structural_relations:
+            elif sym_name in sig.structural_relations:
                 # Promote to StructuralRelation — pure structural node with no Term args.
-                sym_obj = sig._structural_relations[sym_name]
+                sym_obj = sig.structural_relations[sym_name]
                 var_names = _relation_argument_names(sym_obj, list(node.args), sig)
                 node.__class__ = StructuralRelation
                 node.__dict__ = {}
@@ -267,14 +234,14 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                 raise NameError(
                     f"PredicateSymbol, function, or structural predicate '{sym_name}' is not declared "
                     f"in signature '{sig.name}'. "
-                    f"Available predicates: {list(sig._predicates)}, "
-                    f"functions: {list(sig._functions)}, "
-                    f"structural_relations: {list(sig._structural_relations)}."
+                    f"Available predicates: {list(sig.predicates)}, "
+                    f"functions: {list(sig.functions)}, "
+                    f"structural_relations: {list(sig.structural_relations)}."
                 )
 
-        case TermFormula() if isinstance(node.term, _NameTerm) and node.term.symbol in sig._predicates:
+        case TermFormula() if isinstance(node.term, _NameTerm) and node.term.symbol in sig.predicates:
             # A nullary predicate written without parentheses: Rain.
-            pred = sig._predicates[node.term.symbol]
+            pred = sig.predicates[node.term.symbol]
             axes = node.term.axis_annotations or None
             _check_output_annotation(pred, axes, sig)
             node.__class__ = AtomicFormula
@@ -297,12 +264,12 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
         case _BoundFormula():
             # var_groups hold raw strings (not _NameTerm nodes) so they bypass the _NameTerm branch.
             for vname in node.var_names:
-                if vname in sig._structural_variables or vname in sig._variables:
+                if vname in sig.structural_variables or vname in sig.variables:
                     continue
-                if vname in sig._dimensions:
+                if vname in sig.dimensions:
                     raise _dimension_name_error(vname, sig)
-                if _register_alias(vname, sig) is None:
-                    if _base_name_of(vname) in sig._dimensions:
+                if sig.alias(vname) is None:
+                    if sig.is_dimension_name(vname):
                         raise _dimension_name_error(vname, sig)
                     raise NameError(
                         f"Quantified name '{vname}' in signature '{sig.name}' is not declared "
@@ -345,8 +312,8 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
                     f"Quantifier binds {', '.join(map(repr, duplicates))} more than once: "
                     f"{list(node.var_names)}."
                 )
-            structural = [v for v in node.var_names if v in sig._structural_variables]
-            individual = [v for v in node.var_names if v not in sig._structural_variables]
+            structural = [v for v in node.var_names if v in sig.structural_variables]
+            individual = [v for v in node.var_names if v not in sig.structural_variables]
             if structural and individual:
                 q = "forall" if node.quantifier == "forall" else "exists"
                 raise ValueError(
@@ -354,7 +321,7 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
                     f"variable(s) {structural}. Nest them instead, e.g. "
                     f"'{q} {', '.join(individual)}: {q} {', '.join(structural)}: ...'."
                 )
-            dims = {sig._structural_variables[v].dimension.name for v in structural}
+            dims = {sig.structural_variables[v].dimension.name for v in structural}
             if len(dims) > 1:
                 raise ValueError(
                     f"Quantifier binds structural variables {structural} over different "
@@ -366,13 +333,13 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
                 free |= node.guard.free_variables
                 used_axes |= node.guard.free_structural_variables
             for vname in node.var_names:
-                if vname in sig._variables and vname not in free:
+                if vname in sig.variables and vname not in free:
                     raise ValueError(
                         f"Variable '{vname}' is declared in the quantifier but never used "
                         f"in the formula body or guard, so the quantifier has no effect. "
                         f"Remove '{vname}' from the quantifier or use it in the body."
                     )
-                if vname in sig._structural_variables and vname not in used_axes:
+                if vname in sig.structural_variables and vname not in used_axes:
                     raise ValueError(
                         f"Structural variable '{vname}' is declared in the quantifier but names no "
                         f"free axis of the formula body or guard, so the quantifier has no effect. "
@@ -477,7 +444,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
             inner_dims = _annotate_free_structural_variables(node.formula, sig)
             dims = inner_dims | guard_dims
             for vname in node.var_names:
-                if vname in sig._structural_variables:
+                if vname in sig.structural_variables:
                     dims -= {vname}
 
         case KB():
@@ -563,22 +530,14 @@ def _run_pipeline(ast, sig: "Signature"):
     ``t'``) are rolled back if any pass fails, so a failed parse leaves *sig*
     unchanged.
     """
-    registries = (sig._variables, sig._variables_aliases,
-                  sig._structural_variables, sig._structural_variables_aliases)
-    snapshot = [dict(r) for r in registries]
-    try:
-        if sig._definitions:
-            ast = _expand_definitions(ast, sig._definitions, sig)
+    with sig.rollback_aliases_on_error():
+        if sig.definitions:
+            ast = _expand_definitions(ast, sig)
         _resolve_symbols(ast, sig)
         _annotate_free_structural_variables(ast, sig)
         _annotate_free_variables(ast, sig)
         _validate_quantifiers(ast, sig)
         _validate_kb_clauses(ast)
-    except BaseException:
-        for registry, saved in zip(registries, snapshot):
-            registry.clear()
-            registry.update(saved)
-        raise
     return ast
 
 
@@ -590,7 +549,7 @@ def parse_raw(source: str, sig: "Signature", expect: Literal["formula", "term", 
     infix, functions = signature_tables(sig)
     ast = parse_string(source, infix, functions, "term" if expect == "term" else "formula")
     if (expect == "any" and isinstance(ast, TermFormula)
-            and not (isinstance(ast.term, _NameTerm) and ast.term.symbol in sig._predicates)):
+            and not (isinstance(ast.term, _NameTerm) and ast.term.symbol in sig.predicates)):
         return ast.term
     return ast
 

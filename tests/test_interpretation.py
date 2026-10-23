@@ -173,6 +173,45 @@ def test_logic_field_mutation(simple_interp):
     assert isinstance(simple_interp.logic.Forall, fuzzy_ops.AggregPMean)
 
 
+@pytest.mark.parametrize("key, field", [
+    ("∧", "And"), ("&", "And"), ("and", "And"), ("~", "Not"), ("=>", "Implies"),
+    ("<->", "Equiv"), ("∀", "Forall"), ("exists", "Exists"), ("SatAgg", "SatAgg"),
+])
+def test_logic_simple_keys(key, field):
+    logic = Logic().with_defaults()
+    assert logic[key] is getattr(logic, field)
+
+
+def test_logic_struct_keys_without_signature():
+    logic = Logic()
+    op = fuzzy_ops.AggregMin()
+    logic["∀, t"] = op
+    assert logic["forall,t"] is op
+    assert logic.StructAgg == {"t": {"forall": op}}
+    with pytest.raises(KeyError, match="exists"):
+        logic["∃,t"]
+    with pytest.raises(KeyError, match="Unknown quantifier"):
+        logic["some,t"]
+    with pytest.raises(KeyError, match="Unknown logic operator"):
+        logic["xor"]
+
+
+@pytest.mark.parametrize("args, kwargs", [
+    (("cpu",), {}), ((torch.device("cpu"),), {}), ((), {"device": "cpu"}),
+    ((torch.zeros(1),), {}), (("cpu", torch.float64), {}),
+])
+def test_to_remembers_device(simple_sig, args, kwargs):
+    interp = Interpretation(simple_sig)
+    assert interp.to(*args, **kwargs) is interp
+    assert interp.device == torch.device("cpu")
+
+
+def test_to_dtype_only_keeps_device(simple_sig):
+    interp = Interpretation(simple_sig)
+    interp.to(torch.float64)
+    assert interp.device is None
+
+
 # ---------------------------------------------------------------------------
 # Copy
 # ---------------------------------------------------------------------------

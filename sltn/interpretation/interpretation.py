@@ -36,9 +36,9 @@ from sltn.fol.formula import (
     And, Or, Implies, Equivalent, Not, _BoundFormula, KB,
 )
 
-from sltn.parse.pipeline import _base_name_of
+from sltn.parse.tokenizer import _base_name_of
 from sltn.signature import (
-    Signature, Symbol, FunctionSymbol, PredicateSymbol, StructuralRelationSymbol
+    Signature, Symbol, FunctionSymbol, PredicateSymbol
 )
 
 from sltn.interpretation.apply import (
@@ -120,15 +120,15 @@ def _value_to_expression(val: torch.Tensor | Tensor, name: str, interp: "Interpr
         sig = interp.signature
         if interp._device is not None:
             val = val.to(interp._device)
-        sv_obj = sig._structural_variables.get(name)
+        sv_obj = sig.structural_variables.get(name)
         if sv_obj is not None:
             sort = sv_obj.dimension.sort
             sort_type = _resolve_sort_type(sort, interp) if sort is not None else None
             return _ground_structural_variable(sv_obj, val, sort_type)
-        sym_obj = sig._variables.get(name)
+        sym_obj = sig.variables.get(name)
         if sym_obj is not None:
             return _ground_variable(sym_obj, val, _resolve_sort_type(sym_obj.sort, interp))
-        const_obj = sig._constants.get(name)
+        const_obj = sig.constants.get(name)
         if const_obj is not None:
             return _ground_constant(const_obj, val, _resolve_sort_type(const_obj.sort, interp))
         return Tensor.as_variable(name, val)
@@ -239,7 +239,7 @@ class Interpretation(torch.nn.Module):
     def _ground_all(self, items: Dict[str | Symbol, Any]) -> None:
         """Ground every entry of *items*, sorts first (tensor shape checks need their Type)."""
         def is_sort(k: str | Symbol) -> bool:
-            return (k.name if isinstance(k, Symbol) else k) in self.signature._sorts
+            return (k.name if isinstance(k, Symbol) else k) in self.signature.sorts
         for k, v in sorted(items.items(), key=lambda kv: not is_sort(kv[0])):
             self.ground(k, v)
 
@@ -316,7 +316,7 @@ class Interpretation(torch.nn.Module):
         """Return True if *name* (or the base of an alias) is bound."""
         if self._get_grounding(name) is not None:
             return True
-        base = self.signature._alias_base(name)
+        base = self.signature.alias_base(name)
         return base is not None and self._get_grounding(base) is not None
 
     def _get_grounding(self, name: str) -> Any:
@@ -361,7 +361,7 @@ class Interpretation(torch.nn.Module):
                 f"Cannot ground '{key}': no symbol with this name is declared in "
                 f"signature '{self.signature.name}'."
             ) from None
-        base = self.signature._alias_base(key)
+        base = self.signature.alias_base(key)
         if base is not None:
             raise KeyError(
                 f"Cannot ground '{key}': it is an alias of '{base}' and shares its "
@@ -398,11 +398,11 @@ class Interpretation(torch.nn.Module):
         trailing ``len(type.shape)`` dimensions are checked.
         """
         sig = self.signature
-        sym_obj = sig._constants.get(key) or sig._variables.get(key)
+        sym_obj = sig.constants.get(key) or sig.variables.get(key)
         if sym_obj is not None:
             sort = sym_obj.sort
-        elif key in sig._structural_variables:
-            sort = sig._structural_variables[key].dimension.sort
+        elif key in sig.structural_variables:
+            sort = sig.structural_variables[key].dimension.sort
         else:
             sort = None
         sort_type = self._get_grounding(sort.name) if sort is not None else None
@@ -441,7 +441,7 @@ class Interpretation(torch.nn.Module):
             )
         val = self._get_grounding(key)
         if val is None:   # an alias: return its base grounding
-            val = self._get_grounding(self.signature._alias_base(key))
+            val = self._get_grounding(self.signature.alias_base(key))
         return val
 
     def _normalize_assignment(self, raw: dict) -> Assignment:
@@ -530,14 +530,7 @@ class Interpretation(torch.nn.Module):
                 )
 
     def _eval_atomic(self, node: Any, asgn: Assignment) -> Tensor:
-        sym = node.symbol
-        if isinstance(sym, StructuralRelationSymbol):
-            relTensor = self.get_structural_relation(sym.name)
-            sv_names = [arg.name for arg in node.args]
-            current  = relTensor.axis_names
-            renames  = {old: new for old, new in zip(current, sv_names) if old != new}
-            return relTensor.rename_axes(renames) if renames else relTensor
-        fn = self.resolve(sym, structural_axes_override=node.structural_axes)
+        fn = self.resolve(node.symbol, structural_axes_override=node.structural_axes)
         evaluated = [self._eval(arg, asgn) for arg in node.args]
         return fn(*evaluated)
 
@@ -562,7 +555,7 @@ class Interpretation(torch.nn.Module):
 
         # Individual and structural variables are never mixed in one quantifier
         # (rejected at parse time), and structural ones share one dimension.
-        struct_var_names = [v for v in node.var_names if v in sig._structural_variables]
+        struct_var_names = [v for v in node.var_names if v in sig.structural_variables]
         quantifier = node.quantifier  # "forall" or "exists"
         symbol     = node.symbol      # "∀" or "∃"
 
@@ -648,10 +641,15 @@ class Interpretation(torch.nn.Module):
         """``nn.Module.to``; the device is also remembered for future
         :meth:`ground` / ``interp[sym] = value`` calls. Returns *self*.
         """
-        device = torch._C._nn._parse_to(*args, **kwargs)[0]
         super().to(*args, **kwargs)
+        device = kwargs.get("device")
+        for a in args:
+            if isinstance(a, torch.Tensor):
+                device = a.device
+            elif isinstance(a, (str, int, torch.device)):
+                device = a
         if device is not None:
-            self._device = device
+            self._device = torch.device(device)
         return self
 
     @property
@@ -701,7 +699,7 @@ class Interpretation(torch.nn.Module):
                 f"Bind via 'interp[{name}] = tensor'."
             )
         if isinstance(val, torch.Tensor):
-            sp = self.signature._structural_relations.get(name)
+            sp = self.signature.structural_relations.get(name)
             result = _ground_structural_relation(sp, val) if sp is not None else val
         else:
             result = val
@@ -774,7 +772,7 @@ class Interpretation(torch.nn.Module):
         val = self._get_grounding(name)
         if val is None:
             # An alias (x1) reads its base grounding, renamed to the alias.
-            base_name = self.signature._alias_base(name)
+            base_name = self.signature.alias_base(name)
             if base_name is not None:
                 val = self._get_grounding(base_name)
                 if val is None:
@@ -867,40 +865,18 @@ class Interpretation(torch.nn.Module):
             return repr(val)
 
         # ── Sorts ─────────────────────────────────────────────────────
-        if sig._sorts:
+        if sig.sorts:
             lines.append("  Sorts:")
-            for s_name in sig._sorts:
+            for s_name in sig.sorts:
                 typ = self._get_grounding(s_name)
                 suffix = f" : {typ}" if typ is not None else ""
                 lines.append(f"    {s_name}{suffix}")
 
-        # ── Constants ─────────────────────────────────────────────────
-        if sig._constants:
-            lines.append("  Constants:")
-            for c_name in sig._constants:
-                val = self._get_grounding(c_name)
-                lines.append(f"    {c_name}: {_val_label(val)}")
-
-        # ── Variables ─────────────────────────────────────────────────
-        if sig._variables:
-            lines.append("  Variables:")
-            for v_name in sig._variables:
-                val = self._get_grounding(v_name)
-                lines.append(f"    {v_name}: {_val_label(val)}")
-
-        # ── Predicates ────────────────────────────────────────────────
-        if sig._predicates:
-            lines.append("  Predicates:")
-            for p_name in sig._predicates:
-                val = self._get_grounding(p_name)
-                lines.append(f"    {p_name}: {_val_label(val)}")
-
-        # ── Functions ─────────────────────────────────────────────────
-        if sig._functions:
-            lines.append("  Functions:")
-            for f_name in sig._functions:
-                val = self._get_grounding(f_name)
-                lines.append(f"    {f_name}: {_val_label(val)}")
+        for title, names in (("Constants", sig.constants), ("Variables", sig.variables),
+                             ("Predicates", sig.predicates), ("Functions", sig.functions)):
+            if names:
+                lines.append(f"  {title}:")
+                lines.extend(f"    {n}: {_val_label(self._get_grounding(n))}" for n in names)
 
         # ── Logic ─────────────────────────────────────────────────────
         lines.append(f"  {self.logic}")
@@ -989,8 +965,8 @@ class _SymbolProxy:
         preserved: set = set()
         for inp in inputs:
             for axis in inp.structural_axes:
-                sv = sig._structural_variables.get(axis.name)
-                base = sv.dimension.name if sv else _base_name_of(axis.name)
+                dim = sig.dimension_of(axis.name)
+                base = dim.name if dim is not None else _base_name_of(axis.name)
                 if axis.name in decl_dims or base in decl_dims:
                     preserved.add(axis.name)
         return preserved

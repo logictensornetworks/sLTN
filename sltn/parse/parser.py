@@ -296,10 +296,10 @@ def signature_tables(sig: Any) -> tuple[InfixTable, set[str]]:
 
     A definition is term-valued when its ``output_sort`` is set and is not Bool.
     """
-    infix: InfixTable = {n: "pred" for n, s in sig._predicates.items() if s.infix}
-    infix |= {n: "fn" for n, s in sig._functions.items() if s.infix}
-    functions = set(sig._functions)
-    for name, d in sig._definitions.items():
+    infix: InfixTable = {n: "pred" for n, s in sig.predicates.items() if s.infix}
+    infix |= {n: "fn" for n, s in sig.functions.items() if s.infix}
+    functions = set(sig.functions)
+    for name, d in sig.definitions.items():
         is_fn = d.output_sort is not None and d.output_sort.name != "Bool"
         if is_fn:
             functions.add(name)
