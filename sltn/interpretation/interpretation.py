@@ -911,7 +911,7 @@ class _SymbolProxy:
                     f"got the output annotation {names}."
                 )
         input_axes = {ax for inp in inputs for ax in inp.free_structural_variables}
-        preserved |= (input_axes - preserved) & set(names)
+        preserved += [n for n in names if n in input_axes and n not in preserved]
         return self._call_symbol(inputs, preserved, names)
 
     def _call_symbol(self, inputs, preserved, ax_names) -> Tensor:
@@ -944,17 +944,20 @@ class _SymbolProxy:
             name=self._sym.name,
         )
 
-    def _preserved_axes(self, inputs) -> set:
-        """Structural axes from inputs that correspond to declared input_dims."""
+    def _preserved_axes(self, inputs) -> list[str]:
+        """Argument structural axes of the declared input_dims, in input_dims order (ties by name)."""
         sig = self._interp.signature
-        decl_dims = {d.name for d in self._sym.input_dims}
-        if not decl_dims:
-            return set()
-        preserved: set = set()
+        rank: dict[str, int] = {}
+        for i, d in enumerate(self._sym.input_dims):
+            rank.setdefault(d.name, i)
+        if not rank:
+            return []
+        found: dict[str, int] = {}
         for inp in inputs:
             for axis in inp.structural_axes:
                 dim = sig.dimension_of(axis.name)
                 base = dim.name if dim is not None else _base_name_of(axis.name)
-                if axis.name in decl_dims or base in decl_dims:
-                    preserved.add(axis.name)
-        return preserved
+                r = rank.get(axis.name, rank.get(base))
+                if r is not None:
+                    found[axis.name] = r
+        return sorted(found, key=lambda n: (found[n], n))

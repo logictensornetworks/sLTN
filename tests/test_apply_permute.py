@@ -79,3 +79,32 @@ def test_plain_callable_permutes_batched_before_preserved_structural(perm_interp
 
     # Flattened batch = batch_z = 1 * 2 = 2; preserved axis a has size 3; domain 1.
     assert last_shape["shape"] == (2, 3, 1), last_shape["shape"]
+
+
+def test_consumed_axes_follow_input_dims_order():
+    """Consumed axes reach the grounding in input_dims order, not alphabetical order."""
+    sig = Signature("order")
+    S = sig.sort("S")
+    Da = sig.dimension("A")
+    Dz = sig.dimension("Z")
+    sig.structural_variable("a", Da)
+    sig.structural_variable("z", Dz)
+    x = sig.variable("x", S, dims=[Dz, Da])
+    sig.predicate("P", ["S"], input_dims=[Dz, Da], output_dims=[Dz, Da])
+
+    interp = Interpretation(sig)
+    interp[S] = Type("R1", shape=(1,))
+    val = torch.rand(1, 2, 3, 1)
+    interp[x] = val
+
+    seen = {}
+
+    def recorder(t: torch.Tensor) -> torch.Tensor:
+        seen["shape"] = tuple(t.shape)
+        return t
+
+    interp[sig.get_predicate("P")] = recorder
+    out = interp(sig.parse("P(x[z, a])[z, a]"))
+
+    assert seen["shape"] == (1, 2, 3, 1)
+    assert torch.allclose(out.value[0, ..., 0], val[0, ..., 0])

@@ -198,8 +198,10 @@ def _apply_batch_callable(
 
     aligned = Tensor.align(*inputs)
 
+    # preserved_axis_names is ordered: it fixes the layout of the consumed axes.
+    struct_by_name = {d.name: d for d in aligned[0].structural_axes}
+    preserved_structural_axes = [struct_by_name[n] for n in preserved_axis_names if n in struct_by_name]
     batched_structural_axes   = [d for d in aligned[0].structural_axes if d.name not in preserved_axis_names]
-    preserved_structural_axes = [d for d in aligned[0].structural_axes if d.name in preserved_axis_names]
     batch_axes = aligned[0].variable_axes + batched_structural_axes
 
     def _canonical_layout(expr: Tensor) -> torch.Tensor:
