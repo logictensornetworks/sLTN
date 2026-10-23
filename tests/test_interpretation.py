@@ -359,6 +359,47 @@ def test_cache_skips_redundant_evaluations():
         f"Cache did not reduce evaluations: {calls_with_cache} vs {calls_without_cache}"
     )
 
+
+def _counting_interp():
+    sig = Signature("cache_kb")
+    S = sig.sort("S")
+    sig.predicate("P", ["S"])
+    sig.predicate("R", ["S", "S"])
+    sig.variable("x", S)
+    sig.variable("y", S)
+    calls = [0]
+    def counting_P(v):
+        calls[0] += 1
+        return torch.sigmoid(v)
+    interp = Interpretation(sig)
+    interp["S"] = Real
+    interp["x"] = torch.rand(4, 1)
+    interp["y"] = torch.rand(4, 1)
+    interp["P"] = counting_P
+    interp["R"] = lambda a, b: torch.sigmoid(a - 2 * b)
+    return sig, interp, calls
+
+
+def test_cache_shares_subformulas_across_quantifiers():
+    sig, interp, calls = _counting_interp()
+    kb = sig.parse("{forall x: P(x), exists x: P(x), forall x: (P(x) -> P(x))}")
+    interp.use_cache = False
+    expected = interp(kb).value
+    assert calls[0] == 4
+    calls[0] = 0
+    interp.use_cache = True
+    assert torch.allclose(interp(kb).value, expected)
+    assert calls[0] == 1
+
+
+def test_cache_distinguishes_diagonal_from_product():
+    sig, interp, _ = _counting_interp()
+    phi = sig.parse("(forall (x, y): R(x, y)) & (forall x, y: R(x, y)) & (forall (x, y): R(x, y))")
+    interp.use_cache = False
+    expected = interp(phi).value
+    interp.use_cache = True
+    assert torch.allclose(interp(phi).value, expected)
+
 def test_float64_data_through_a_real_sorted_function():
     # Bug #47: float64 data failed every Real-sorted term.
     sig = Signature("f64")

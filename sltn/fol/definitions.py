@@ -193,42 +193,15 @@ def _resolve_dst_clash_with_struct_quantifiers(repl: Any, dst: str) -> None:
     nested macro expansion: blind global renames would conflate the two roles.
     """
     def visit(n: Any) -> None:
-        match n:
-            case Forall() | Exists():
-                visit(n.formula)
-                if n.guard is not None:
-                    visit(n.guard)
-                bound = {v for group in n._var_groups for v in group}
-                if dst in bound:
-                    used = _collect_all_structural_axis_strings(repl)
-                    fresh = _fresh_structural_axis(used)
-                    for gi, group in enumerate(n._var_groups):
-                        n._var_groups[gi] = [fresh if v == dst else v for v in group]
-                    _rename_structural_axes_inplace(n.formula, {dst: fresh})
-                    if n.guard is not None:
-                        _rename_structural_axes_inplace(n.guard, {dst: fresh})
-            case _NameTerm() | Variable() | Constant() | StructuralVariable():
-                pass
-            case _CallTerm():
-                for a in n.args:
-                    visit(a)
-            case TermAxisSelect():
-                visit(n.base_term)
-            case AtomicFormula():
-                for a in n.args:
-                    visit(a)
-            case TermFormula():
-                visit(n.term)
-            case FormulaAxisSelect():
-                visit(n.base_formula)
-            case And() | Or() | Implies() | Equivalent():
-                visit(n.left)
-                visit(n.right)
-            case Not():
-                visit(n.operand)
-            case KB():
-                for c in n.clauses:
-                    visit(c)
+        # Children first: an inner binder of dst must be renamed before its outer one.
+        for child in _child_nodes(n):
+            visit(child)
+        if isinstance(n, (Forall, Exists)) and dst in n.var_names:
+            fresh = _fresh_structural_axis(_collect_all_structural_axis_strings(repl))
+            n._var_groups = [[fresh if v == dst else v for v in group] for group in n._var_groups]
+            _rename_structural_axes_inplace(n.formula, {dst: fresh})
+            if n.guard is not None:
+                _rename_structural_axes_inplace(n.guard, {dst: fresh})
 
     visit(repl)
 
@@ -241,40 +214,19 @@ def _rename_structural_axes_inplace(node: Any, mapping: dict[str, str]) -> None:
     def m(ax: str) -> str:
         return mapping.get(ax, ax)
 
-    match node:
-        case _NameTerm() | Variable() | Constant() | StructuralVariable():
-            if node.axis_annotations:
-                node.axis_annotations[:] = [m(a) for a in node.axis_annotations]
-        case _CallTerm():
-            if node.output_axes is not None:
-                node.output_axes = [m(a) for a in node.output_axes]
-            for a in node.args:
-                _rename_structural_axes_inplace(a, mapping)
-        case TermAxisSelect():
-            node.axis = m(node.axis)
-            _rename_structural_axes_inplace(node.base_term, mapping)
-        case AtomicFormula():
-            if node.structural_axes is not None:
-                node.structural_axes[:] = [m(a) for a in node.structural_axes]
-            for a in node.args:
-                _rename_structural_axes_inplace(a, mapping)
-        case TermFormula():
-            _rename_structural_axes_inplace(node.term, mapping)
-        case FormulaAxisSelect():
-            node.axis = m(node.axis)
-            _rename_structural_axes_inplace(node.base_formula, mapping)
-        case And() | Or() | Implies() | Equivalent():
-            _rename_structural_axes_inplace(node.left, mapping)
-            _rename_structural_axes_inplace(node.right, mapping)
-        case Not():
-            _rename_structural_axes_inplace(node.operand, mapping)
-        case Forall() | Exists():
-            _rename_structural_axes_inplace(node.formula, mapping)
-            if getattr(node, "guard", None) is not None:
-                _rename_structural_axes_inplace(node.guard, mapping)
-        case KB():
-            for c in node.clauses:
-                _rename_structural_axes_inplace(c, mapping)
+    def visit(n: Any) -> None:
+        match n:
+            case _NameTerm() | Variable() | Constant() | StructuralVariable():
+                if n.axis_annotations:
+                    n.axis_annotations[:] = [m(a) for a in n.axis_annotations]
+            case _CallTerm() if n.output_axes is not None:
+                n.output_axes = [m(a) for a in n.output_axes]
+            case AtomicFormula() if n.structural_axes is not None:
+                n.structural_axes[:] = [m(a) for a in n.structural_axes]
+            case TermAxisSelect() | FormulaAxisSelect():
+                n.axis = m(n.axis)
+
+    _walk_ast(node, visit)
 
 
 def _declared_names(sig: Any) -> set[str]:

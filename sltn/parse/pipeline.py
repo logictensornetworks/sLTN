@@ -51,11 +51,29 @@ def _annotation_dimension(name: str, sig: Signature) -> str | None:
     """
     if name in sig._structural_variables:
         return sig._structural_variables[name].dimension.name
+    base_sv = sig._structural_variables.get(_base_name_of(name))   # aliases are registered here too
+    return base_sv.dimension.name if base_sv is not None else None
+
+
+def _register_alias(name: str, sig: Signature) -> VariableSymbol | StructuralVariableSymbol | None:
+    """Register *name* as an alias (``t1``, ``x'``) of a declared variable and return it.
+
+    Returns ``None`` if *name* is not an alias of a (structural) variable.
+    """
     base = _base_name_of(name)
-    if base != name:
-        real_base = sig._structural_variables_aliases.get(base, base)
-        if real_base in sig._structural_variables:
-            return sig._structural_variables[real_base].dimension.name
+    if base == name:
+        return None
+    if base in sig._structural_variables:
+        alias = StructuralVariableSymbol(name=name, dimension=sig._structural_variables[base].dimension)
+        sig._structural_variables[name] = alias
+        sig._structural_variables_aliases[name] = sig._structural_variables_aliases.get(base, base)
+        return alias
+    if base in sig._variables:
+        base_var = sig._variables[base]
+        alias = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.structural_variables or None)
+        sig._variables[name] = alias
+        sig._variables_aliases[name] = sig._variables_aliases.get(base, base)
+        return alias
     return None
 
 
@@ -170,40 +188,10 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
             elif name in sig._constants:
                 resolved = sig._constants[name]
             else:
-                base = _base_name_of(name)
-                if base != name:
-                    if base in sig._structural_variables or base in sig._structural_variables_aliases:
-                        real_base = sig._structural_variables_aliases.get(base, base)
-                        base_sv = sig._structural_variables.get(real_base)
-                        if base_sv is None:
-                            raise NameError(
-                                f"Symbol '{name}' is not declared in signature '{sig.name}'."
-                            )
-                        resolved = StructuralVariableSymbol(name=name, dimension=base_sv.dimension)
-                        sig._structural_variables[name] = resolved
-                        sig._structural_variables_aliases[name] = real_base
-                    elif base in sig._variables or base in sig._variables_aliases:
-                        real_base = sig._variables_aliases.get(base, base)
-                        base_var = sig._variables.get(real_base)
-                        if base_var is None:
-                            raise NameError(
-                                f"Symbol '{name}' is not declared in signature '{sig.name}'."
-                            )
-                        resolved = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.structural_variables or None)
-                        sig._variables[name] = resolved
-                        sig._variables_aliases[name] = real_base
-                    elif base in sig._dimensions:
+                resolved = _register_alias(name, sig)
+                if resolved is None:
+                    if name in sig._dimensions or _base_name_of(name) in sig._dimensions:
                         raise _dimension_name_error(name, sig)
-                    else:
-                        raise NameError(
-                            f"Symbol '{name}' is not declared in signature '{sig.name}'. "
-                            f"Available variables: {list(sig._variables)}, "
-                            f"constants: {list(sig._constants)}, "
-                            f"structural_variables: {list(sig._structural_variables)}."
-                        )
-                elif name in sig._dimensions:
-                    raise _dimension_name_error(name, sig)
-                else:
                     raise NameError(
                         f"Symbol '{name}' is not declared in signature '{sig.name}'. "
                         f"Available variables: {list(sig._variables)}, "
@@ -313,27 +301,9 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                     continue
                 if vname in sig._dimensions:
                     raise _dimension_name_error(vname, sig)
-                base = _base_name_of(vname)
-                resolved = False
-                if base != vname:
-                    if base in sig._structural_variables or base in sig._structural_variables_aliases:
-                        real_base = sig._structural_variables_aliases.get(base, base)
-                        base_sv = sig._structural_variables.get(real_base)
-                        if base_sv is not None:
-                            alias_sv = StructuralVariableSymbol(name=vname, dimension=base_sv.dimension)
-                            sig._structural_variables[vname] = alias_sv
-                            sig._structural_variables_aliases[vname] = real_base
-                            resolved = True
-                    elif base in sig._variables or base in sig._variables_aliases:
-                        real_base = sig._variables_aliases.get(base, base)
-                        base_var = sig._variables.get(real_base)
-                        if base_var is not None:
-                            sig._variables[vname] = VariableSymbol(name=vname, sort=base_var.sort, dims=base_var.structural_variables or None)
-                            sig._variables_aliases[vname] = real_base
-                            resolved = True
-                    elif base in sig._dimensions:
+                if _register_alias(vname, sig) is None:
+                    if _base_name_of(vname) in sig._dimensions:
                         raise _dimension_name_error(vname, sig)
-                if not resolved:
                     raise NameError(
                         f"Quantified name '{vname}' in signature '{sig.name}' is not declared "
                         f"as a variable (sig.variable(...)) or a structural variable "

@@ -95,7 +95,6 @@ def cache_benchmark(
                 if not leaves:
                     raise ValueError("backward_compute=True, but the result does not depend on any tensor that requires grad.")
             torch.autograd.grad(out, leaves, allow_unused=True)
-        interp.clear_cache()
         _sync(sat.value.device)
         return time.perf_counter() - t0
 

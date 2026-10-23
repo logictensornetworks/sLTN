@@ -337,12 +337,12 @@ class Signature:
         """
         if name in self._dimensions:
             return name
-        sv = self._structural_variables.get(name)
-        if sv is None:
-            base = self._structural_variables_aliases.get(name)
-            if base is not None:
-                sv = self._structural_variables.get(base)
+        sv = self._structural_variables.get(name)   # aliases are registered here too
         return sv.dimension.name if sv is not None else name
+
+    def _alias_base(self, name: str) -> Optional[str]:
+        """The base variable of the alias *name* (``x1`` → ``x``), or ``None``."""
+        return self._variables_aliases.get(name) or self._structural_variables_aliases.get(name)
 
     def get(self, name: str) -> Symbol:
         """Look up a symbol by name across all namespaces (first match wins)."""
