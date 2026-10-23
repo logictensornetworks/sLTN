@@ -87,7 +87,7 @@ def test_cache_benchmark_with_backward_compute():
 
 
 def test_cache_benchmark_backward_leaves_parameter_grads_untouched():
-    # found-bugs.md #67: every run's gradients accumulated into the model.
+    # Bug #67: every run's gradients accumulated into the model.
     sig = Signature("diag_net")
     S = sig.sort("S")
     sig.predicate("P", ["S"])
@@ -107,7 +107,7 @@ def test_cache_benchmark_backward_leaves_parameter_grads_untouched():
 
 
 def test_cache_benchmark_warms_up_and_alternates_modes(kb_interp, monkeypatch):
-    # found-bugs.md #67: no warm-up, and the no-cache mode always ran first.
+    # Bug #67: no warm-up, and the no-cache mode always ran first.
     sig, interp = kb_interp
     modes = []
     original_call = type(interp).__call__

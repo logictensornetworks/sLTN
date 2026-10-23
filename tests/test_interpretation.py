@@ -360,7 +360,7 @@ def test_cache_skips_redundant_evaluations():
     )
 
 def test_float64_data_through_a_real_sorted_function():
-    # found-bugs.md #47: float64 data failed every Real-sorted term.
+    # Bug #47: float64 data failed every Real-sorted term.
     sig = Signature("f64")
     sig.sort("Img"); sig.sort("Scalar")
     sig.variable("x", "Img")
@@ -378,7 +378,7 @@ def test_float64_data_through_a_real_sorted_function():
 
 
 def test_logic_reused_across_interpretations_does_not_share_struct_agg():
-    # found-bugs.md #56: with_defaults passed the StructAgg dict through, so it was shared.
+    # Bug #56: with_defaults passed the StructAgg dict through, so it was shared.
     sig = Signature("shared_logic")
     sig.dimension("T")
     sig.structural_variable("t", "T")
@@ -396,7 +396,7 @@ def test_logic_reused_across_interpretations_does_not_share_struct_agg():
 
 
 def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
-    # found-bugs.md #57: every kind other than "forall" was printed as ∃.
+    # Bug #57: every kind other than "forall" was printed as ∃.
     L = Logic(StructAgg={"T": {"∀": fuzzy_ops.AggregMin(), "exists": fuzzy_ops.AggregMax()}})
     r = repr(L)
     assert "(∀, T) : AggregMin" in r
@@ -404,7 +404,7 @@ def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
 
 
 def test_equiv_default_uses_user_set_implies():
-    # found-bugs.md #23: Logic(Implies=...) left <-> on Goguen.
+    # Bug #23: Logic(Implies=...) left <-> on Goguen.
     L = Logic(Implies=fuzzy_ops.ImpliesReichenbach()).with_defaults()
     assert isinstance(L.Equiv.implies_op, fuzzy_ops.ImpliesReichenbach)
     a, b = torch.tensor([0.9, 0.2, 0.6]), torch.tensor([0.3, 0.8, 0.6])
