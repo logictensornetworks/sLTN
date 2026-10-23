@@ -21,7 +21,7 @@ from sltn.fol.formula import (
     AtomicFormula, StructuralRelation,
     And, Or, Not, Implies, Equivalent,
     Forall, Exists,
-    KB, StructuralForall, StructuralExists, 
+    KB,
     TermFormula, FormulaAxisSelect,
     Formula
 )
@@ -99,8 +99,6 @@ def _child_nodes(n: Any) -> list[Any]:
             return [n.base_formula]
         case KB():
             return list(n.clauses)
-        case StructuralForall() | StructuralExists():
-            return [n.formula]
         case _:
             return []
 
@@ -175,8 +173,6 @@ def _collect_all_structural_axis_strings(node: Any) -> set[str]:
             case Forall() | Exists():
                 for group in n._var_groups:
                     found.update(group)
-            case StructuralForall() | StructuralExists():
-                found.add(n.structural_axis)
 
     _walk_ast(node, on_node)
     return found
@@ -233,8 +229,6 @@ def _resolve_dst_clash_with_struct_quantifiers(repl: Any, dst: str) -> None:
             case KB():
                 for c in n.clauses:
                     visit(c)
-            case StructuralForall() | StructuralExists():
-                visit(n.formula)
 
     visit(repl)
 
@@ -281,9 +275,6 @@ def _rename_structural_axes_inplace(node: Any, mapping: dict[str, str]) -> None:
         case KB():
             for c in node.clauses:
                 _rename_structural_axes_inplace(c, mapping)
-        case StructuralForall() | StructuralExists():
-            node.structural_axis = m(node.structural_axis)
-            _rename_structural_axes_inplace(node.formula, mapping)
 
 
 def _declared_names(sig: Any) -> set[str]:
@@ -456,10 +447,6 @@ def _substitute(
         case KB():
             return KB([sub(c) for c in node.clauses],
                       validate=False)   # names are not resolved yet; the pipeline validates the KB
-
-        case StructuralForall() | StructuralExists():
-            return type(node)(sub(node.formula),
-                              structural_axis=_substitute_axis_name(node.structural_axis, subst))
 
         case _:
             return node

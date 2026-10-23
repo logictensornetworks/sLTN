@@ -9,7 +9,6 @@ Formulas are:
   - :class:`And`, :class:`Or`, :class:`Not`, :class:`Implies`, :class:`Equivalent`
   - :class:`Forall`, :class:`Exists`
   - :class:`KB`              — knowledge base (flat set of axioms aggregated via SatAgg)
-  - :class:`StructuralForall`, :class:`StructuralExists`    — structural aggregation over a named axis
 """
 
 from __future__ import annotations
@@ -27,8 +26,6 @@ __all__ = [
     "Forall",
     "Exists",
     "KB",
-    "StructuralForall",
-    "StructuralExists",
     "StructuralRelation",
 ]
 
@@ -332,26 +329,6 @@ class Exists(_BoundFormula):
     """∃ x1, …, (xi, xj), …, xn [axis, …] | guard: φ"""
     quantifier = "exists"
     symbol     = "∃"
-
-
-# ---------------------------------------------------------------------------
-# Structural quantifiers
-# ---------------------------------------------------------------------------
-
-class StructuralForall(Forall):
-    """∀ axis: φ — structural universal aggregation over a named axis."""
-
-    def __init__(self, formula: Formula, structural_axis: str) -> None:
-        super().__init__([[structural_axis]], formula)
-        self.structural_axis = structural_axis
-
-
-class StructuralExists(Exists):
-    """∃ axis: φ — structural existential aggregation over a named axis."""
-
-    def __init__(self, formula: Formula, structural_axis: str) -> None:
-        super().__init__([[structural_axis]], formula)
-        self.structural_axis = structural_axis
 
 
 # ---------------------------------------------------------------------------

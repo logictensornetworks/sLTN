@@ -25,8 +25,6 @@ from .formula import (
     Forall,
     Exists,
     KB,
-    StructuralForall,
-    StructuralExists,
     StructuralRelation,
 )
 from .term import Term, Variable, Constant, StructuralVariable, FunctionApplication, TermAxisSelect
@@ -54,8 +52,6 @@ __all__ = [
     "Forall",
     "Exists",
     "KB",
-    "StructuralForall",
-    "StructuralExists",
     "StructuralRelation",
     "Term",
     "Variable",

@@ -28,7 +28,7 @@ from sltn.fol.formula import (
     AtomicFormula, StructuralRelation, And, Or,
     Not, Implies, Equivalent,
     Forall, Exists, _BoundFormula,
-    KB, StructuralForall, StructuralExists,
+    KB,
     TermFormula, FormulaAxisSelect, Formula
 )
 
@@ -558,8 +558,6 @@ def _validate_kb_clauses(node: Any) -> None:
             _validate_kb_clauses(node.formula)
             if node.guard is not None:
                 _validate_kb_clauses(node.guard)
-        case StructuralForall() | StructuralExists():
-            _validate_kb_clauses(node.formula)
         case FormulaAxisSelect():
             _validate_kb_clauses(node.base_formula)
 

@@ -19,7 +19,7 @@ from sltn.signature import (
 from sltn.fol.formula import (
     Formula, TermFormula, FormulaAxisSelect, AtomicFormula,
     And, Or, Not, Implies, Equivalent,
-    Forall, Exists, KB, StructuralForall, StructuralExists, StructuralRelation,
+    Forall, Exists, KB, StructuralRelation,
 )
 from sltn.fol.term import Term, Variable, Constant, StructuralVariable, FunctionApplication, TermAxisSelect
 from sltn.interpretation import Interpretation, Logic, Assignment
@@ -68,8 +68,6 @@ __all__ = [
     "Forall",
     "Exists",
     "KB",
-    "StructuralForall",
-    "StructuralExists",
     "StructuralRelation",
     # Terms
     "Term",
