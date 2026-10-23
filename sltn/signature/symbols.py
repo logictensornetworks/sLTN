@@ -182,8 +182,7 @@ class VariableSymbol(Symbol):
 
     A ``VariableSymbol`` is a *declaration* — it describes what sort and structural
     dimensions a variable ranges over.  Actual tensor data is bound at
-    evaluation time via :meth:`ground` or by passing an
-    :class:`~sltn.interpretation.core.tensor.Tensor` directly in the assignment dict.
+    evaluation time via ``interp[name] = tensor``.
     """
 
     def __init__(

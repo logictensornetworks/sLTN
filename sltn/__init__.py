@@ -22,7 +22,7 @@ from sltn.fol.formula import (
     Forall, Exists, KB, StructuralRelation,
 )
 from sltn.fol.term import Term, Variable, Constant, StructuralVariable, FunctionApplication, TermAxisSelect
-from sltn.interpretation import Interpretation, Logic, Assignment
+from sltn.interpretation import Interpretation, Logic
 from sltn.interpretation.interpretation import TensorCallable
 from sltn.tools.optim import kb_backward, kb_describe, kb_eval
 from sltn.parse import parse_term_string, parse_formula_string
@@ -53,7 +53,6 @@ __all__ = [
     # Interpretation
     "Interpretation",
     "Logic",
-    "Assignment",
     "TensorCallable",
     # Formulas
     "Formula",

@@ -11,7 +11,6 @@ from __future__ import annotations
 __all__ = [
     "TensorCallable",
     "Interpretation",
-    "Assignment",
 ]
 
 import copy
@@ -50,9 +49,8 @@ from sltn.interpretation.apply import (
 from sltn.interpretation.operators.base import AggregationOperator
 from sltn.interpretation.logic import Logic, _lookup_kind
 
-# A mapping of free variable names → tensors or annotated sltn.Tensors.
-# Plain tensors are auto-wrapped into annotated sltn.Tensors inside _normalize_assignment.
-Assignment = Dict[str, torch.Tensor | Tensor]
+# Variable values fixed by enclosing quantifiers (e.g. diagonalised groups) during evaluation.
+Assignment = Dict[str, Tensor]
 
 # ---------------------------------------------------------------------------
 # Symbol → sltn.Tensor wrapping helpers (formerly ground() on each symbol class)
@@ -444,9 +442,6 @@ class Interpretation(torch.nn.Module):
             val = self._get_grounding(self.signature.alias_base(key))
         return val
 
-    def _normalize_assignment(self, raw: dict) -> Assignment:
-        return {name: _value_to_expression(val, name, self) for name, val in raw.items()}
-
     # ------------------------------------------------------------------
     # Central evaluator
     # ------------------------------------------------------------------
@@ -573,7 +568,7 @@ class Interpretation(torch.nn.Module):
     def forward(
         self,
         target: Any,
-        assignment: Optional[Assignment] = None,
+        *,
         at: Optional[Dict[str, int]] = None,
     ) -> Tensor | Any:
         """Evaluate *target* under this interpretation (called as ``interp(target)``).
@@ -589,7 +584,7 @@ class Interpretation(torch.nn.Module):
         # String: parse via the signature, then re-enter.
         if isinstance(target, str):
             target = self.signature.parse(target)
-            return self(target, assignment=assignment, at=at)
+            return self(target, at=at)
 
         # annotated sltn.Tensor: pass-through.
         if isinstance(target, Tensor):
@@ -605,26 +600,19 @@ class Interpretation(torch.nn.Module):
                 f"got {type(target).__name__}."
             )
 
-        asgn = self._normalize_assignment(assignment or {})
-
         # For Formulas, check for unbound free variables before evaluating.
         if isinstance(target, Formula):
-            missing = {
-                v for v in target.free_variables - set(asgn)
-                if not self._has_grounding(v)
-            }
+            missing = {v for v in target.free_variables if not self._has_grounding(v)}
             if missing:
                 raise ValueError(
                     f"Formula has free variables {sorted(missing)} not bound in this "
-                    f"Interpretation and not in the assignment dict. "
-                    f"Use 'interp[var] = tensor' to ground them. "
-                    f"Assignment keys: {sorted(asgn)}"
+                    f"Interpretation. Use 'interp[var] = tensor' to ground them."
                 )
 
         if self.use_cache:
             self._eval_cache, self._eval_vars = {}, {}
         try:
-            result = self._eval(target, asgn)
+            result = self._eval(target, {})
         finally:
             self._eval_cache = self._eval_vars = None
 
@@ -785,7 +773,7 @@ class Interpretation(torch.nn.Module):
                 return _value_to_expression(val, name, self)
             raise RuntimeError(
                 f"VariableSymbol '{name}' has no grounding in this Interpretation. "
-                f"Pass it in the assignment dict or use 'interp[{name}] = tensor'."
+                f"Use 'interp[{name}] = tensor' to ground it."
             )
         return _value_to_expression(val, name, self)
 
