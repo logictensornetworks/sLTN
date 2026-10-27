@@ -108,3 +108,52 @@ def test_consumed_axes_follow_input_dims_order():
 
     assert seen["shape"] == (1, 2, 3, 1)
     assert torch.allclose(out.value[0, ..., 0], val[0, ..., 0])
+
+
+def _alias_interp():
+    """`t` declared over T; `t1`, `t2` are undeclared aliases of it."""
+    sig = Signature("alias_consume")
+    S = sig.sort("S")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
+    x = sig.variable("x", S, dims=[T])
+    sig.predicate("Seq", ["S"], input_dims=[T])
+    sig.predicate("Step", ["S"], input_dims=[T], output_dims=[T])
+
+    interp = Interpretation(sig)
+    interp[S] = Type("R1", shape=(1,))
+    interp[x] = torch.rand(2, 3, 1)
+    seen = {}
+
+    def seq(v: torch.Tensor) -> torch.Tensor:
+        seen["Seq"] = tuple(v.shape)
+        return torch.sigmoid(v.mean(dim=1))
+
+    def step(v: torch.Tensor) -> torch.Tensor:
+        seen["Step"] = tuple(v.shape)
+        return torch.sigmoid(v.cumsum(dim=1))
+
+    interp[sig.get_predicate("Seq")] = seq
+    interp[sig.get_predicate("Step")] = step
+    return sig, interp, seen
+
+
+def test_alias_used_only_in_annotations_is_consumed():
+    # Bug #101: `t1` appears only inside an annotation, so it is never registered;
+    # Seq must still consume it as an axis over T.
+    sig, interp, seen = _alias_interp()
+    out = interp(sig.parse("Seq(x[t1])"))
+    assert seen["Seq"] == (2, 3, 1)
+    assert [a.name for a in out.axes] == ["x", "bool"]
+    assert torch.allclose(out.value, interp(sig.parse("Seq(x[t])")).value)
+
+
+def test_alias_used_only_in_annotations_is_renamed_by_output():
+    # Bug #101: Step consumes t1 and produces t2; t1 must not survive as an extra axis.
+    sig, interp, seen = _alias_interp()
+    out = interp(sig.parse("Step(x[t1])[t2]"))
+    assert seen["Step"] == (2, 3, 1)
+    assert [a.name for a in out.axes] == ["x", "t2", "bool"]
+    assert tuple(out.value.shape) == (2, 3, 1)
+    selected = interp(sig.parse("(Step(x[t1])[t2])[t2=1]"))
+    assert torch.allclose(selected.value, out.value[:, 1])
