@@ -389,7 +389,7 @@ def test_expression_domain_names_compatibility():
 
 
 def test_type_shape_given_as_list_is_normalized_to_tuple():
-    # Bug #46: a list shape made every tensor fail the shape check.
+    # A list shape made every tensor fail the shape check.
     t = Type(name="Img", shape=[2, 3])
     assert t.shape == (2, 3)
     assert t == Type(name="Img", shape=(2, 3))
@@ -402,7 +402,7 @@ def test_type_shape_given_as_list_is_normalized_to_tuple():
 
 
 def test_real_and_int_accept_any_float_or_integer_dtype():
-    # Bug #47: Real required float32 and Int required int64.
+    # Real required float32 and Int required int64.
     from sltn.interpretation.core.type import Int, PositiveReal
     for dtype in (torch.float16, torch.bfloat16, torch.float32, torch.float64):
         Real.validate(torch.zeros(3, 1, dtype=dtype))
@@ -417,7 +417,7 @@ def test_real_and_int_accept_any_float_or_integer_dtype():
 
 
 def test_type_is_hashable_and_equality_includes_the_name():
-    # Bug #47: Type was unhashable and __eq__ ignored the name.
+    # Type was unhashable and __eq__ ignored the name.
     assert Bool != Type("Prob", (1,), axis_names=["bool"])
     assert Bool == Type("Bool", (1,), axis_names=["bool"])
     assert hash(Bool) == hash(Type("Bool", (1,), axis_names=["bool"]))

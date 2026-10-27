@@ -108,7 +108,7 @@ def test_apply_quantifier_guard_via_interpretation():
 # ---------------------------------------------------------------------------
 
 def test_apply_quantifier_does_not_mask_nan():
-    # Bug #59: the "NaN = missing data" branch and the fallback that
+    # The "NaN = missing data" branch and the fallback that
     # replaced a non-finite result with the identity were removed. NaN now
     # propagates and fails the Bool check of the result instead of silently
     # becoming 1 (forall) or 0 (exists); missing data must be excluded with a guard.

@@ -139,7 +139,7 @@ def _alias_interp():
 
 
 def test_alias_used_only_in_annotations_is_consumed():
-    # Bug #101: `t1` appears only inside an annotation, so it is never registered;
+    # `t1` appears only inside an annotation, so it is never registered;
     # Seq must still consume it as an axis over T.
     sig, interp, seen = _alias_interp()
     out = interp(sig.parse("Seq(x[t1])"))
@@ -149,7 +149,7 @@ def test_alias_used_only_in_annotations_is_consumed():
 
 
 def test_alias_used_only_in_annotations_is_renamed_by_output():
-    # Bug #101: Step consumes t1 and produces t2; t1 must not survive as an extra axis.
+    # Step consumes t1 and produces t2; t1 must not survive as an extra axis.
     sig, interp, seen = _alias_interp()
     out = interp(sig.parse("Step(x[t1])[t2]"))
     assert seen["Step"] == (2, 3, 1)

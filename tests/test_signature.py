@@ -634,7 +634,7 @@ def test_typed_struct_var_validates_trailing_feature_shape():
 
 
 def test_axis_annotation_must_match_the_dimension_it_renames():
-    # Bug #43: x[u] with x over T and u over U was accepted, and the
+    # x[u] with x over T and u over U was accepted, and the
     # T axis was then aggregated with U's operator.
     sig = Signature("ann_dims")
     I = sig.sort("Img")
@@ -663,7 +663,7 @@ def test_axis_annotation_must_match_the_dimension_it_renames():
 
 
 def test_quantifier_rejects_duplicate_and_unused_variables():
-    # Bug #29: duplicate bound names and unused individual variables
+    # Duplicate bound names and unused individual variables
     # were accepted, while an unused structural variable raised.
     sig = Signature("bound_vars")
     I = sig.sort("Img")
@@ -698,7 +698,7 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
 
 
 def test_kb_built_in_python_is_validated():
-    # Bug #28: KB([...]) and `+` never checked their clauses.
+    # KB([...]) and `+` never checked their clauses.
     from sltn.fol.formula import KB
     sig = Signature("kb_python")
     I = sig.sort("Img")
@@ -737,7 +737,7 @@ def test_kb_built_in_python_is_validated():
     ("C(z[t1, u])", {"t1", "u"}),
 ])
 def test_fsv_of_annotated_variables_and_constants_matches_evaluation(text, expected):
-    # Bug #24: a constant's annotations were ignored, and a variable
+    # A constant's annotations were ignored, and a variable
     # with fewer annotations than dims dropped the unannotated axes.
     from sltn import Type
     from sltn.fol.definitions import _child_nodes

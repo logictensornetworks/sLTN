@@ -283,7 +283,7 @@ def test_implies_goguen_smooth_no_nan_inf():
 
 
 def test_smooth_clamp_with_nonzero_min():
-    """Bug #49: the two-sided branch shifted the output down by min."""
+    """The two-sided branch shifted the output down by min."""
     x = torch.tensor([-5.0, 0.5, 0.7, 5.0])
     y = smooth_clamp(x, min=0.2, max=1.0, beta=1000.0)
     assert torch.allclose(y, torch.tensor([0.2, 0.5, 0.7, 1.0]), atol=1e-3)
@@ -294,7 +294,7 @@ def test_smooth_clamp_with_nonzero_min():
 # ---------------------------------------------------------------------------
 
 def test_stable_lukasiewicz_operators_stay_in_unit_interval():
-    """Bug #50: AndLuk(stable=True)(1, 1) was 1.024, so OrLuk / ImpliesLuk went negative."""
+    """AndLuk(stable=True)(1, 1) was 1.024, so OrLuk / ImpliesLuk went negative."""
     from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk
     v = torch.tensor([0.0, 0.25, 0.5, 0.75, 1.0])
     x, y = torch.meshgrid(v, v, indexing="ij")
@@ -308,7 +308,7 @@ def test_stable_lukasiewicz_operators_stay_in_unit_interval():
 
 
 def test_stable_lukasiewicz_and_in_a_formula_with_crisp_values():
-    """Bug #50: a crisp A(x) & B(x) failed the Bool check."""
+    """A crisp A(x) & B(x) failed the Bool check."""
     from sltn import Signature, Interpretation, Type
     from sltn.interpretation import Logic
     from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk
@@ -326,7 +326,7 @@ def test_stable_lukasiewicz_and_in_a_formula_with_crisp_values():
 
 
 # ---------------------------------------------------------------------------
-# Small connective issues (bug #52)
+# Small connective issues
 # ---------------------------------------------------------------------------
 
 def test_implies_godel_smooth_default_beta_matches_goguen():

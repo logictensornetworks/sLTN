@@ -32,7 +32,7 @@ def test_implies_goguen_is_one_when_x_leq_y() -> None:
 
 
 @pytest.mark.parametrize("stable", [False, True])
-def test_implies_goguen_at_zero_antecedent(stable) -> None:  # Bug #10
+def test_implies_goguen_at_zero_antecedent(stable) -> None:
     op = fuzzy_ops.ImpliesGoguen(stable=stable)
     x = torch.tensor([0.0, 0.0, 0.5], requires_grad=True)
     y = torch.tensor([0.0, 0.3, 0.25], requires_grad=True)
@@ -288,7 +288,7 @@ def test_agreggeometricmean_masked_excludes_zero_weight_entries() -> None:
 
 
 def test_default_logic_uses_default_eps():
-    # Logic.with_defaults hardcoded eps=1e-12, a no-op in float32 (bug #12).
+    # Logic.with_defaults hardcoded eps=1e-12, a no-op in float32.
     from sltn.interpretation import Logic
     from sltn.interpretation.operators import DEFAULT_EPS
     L = Logic().with_defaults()
@@ -297,7 +297,7 @@ def test_default_logic_uses_default_eps():
 
 
 def test_and_cos_stable_gradient_is_finite_at_one():
-    # Bug #51: sqrt(1 - x^2) has an infinite derivative at 1.
+    # sqrt(1 - x^2) has an infinite derivative at 1.
     x = torch.tensor(1.0, requires_grad=True)
     fuzzy_ops.AndCos(stable=True)(x, torch.tensor(0.5)).backward()
     assert torch.isfinite(x.grad)
@@ -311,7 +311,7 @@ def test_masked_mean_is_exact_and_empty_guard_is_finite(op):
     assert torch.isfinite(op(xs, dim=0, mask=torch.zeros(5, dtype=torch.bool)))
 
 
-# Bug #53: AggregMin(bottom_k) / AggregMax(top_k) with k > 1
+# AggregMin(bottom_k) / AggregMax(top_k) with k > 1
 
 def test_extremum_k_larger_than_reduced_size_averages_everything():
     x = torch.tensor([0.9, 0.2, 0.6])
@@ -337,7 +337,7 @@ def test_extremum_over_several_dims_takes_k_extremes_jointly():
     assert fuzzy_ops.AggregMax()(X, dim=[1, 2], keepdim=True).shape == (4, 1, 1)
 
 
-# Bug #54: weighted p-means
+# Weighted p-means
 
 def test_weighted_pmean_is_exact_with_tiny_weights():
     x = torch.tensor([0.9, 0.2, 0.6])

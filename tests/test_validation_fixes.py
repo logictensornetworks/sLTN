@@ -8,7 +8,7 @@ from sltn.interpretation.operators import AggregMin, AggregPMeanError
 
 
 # ---------------------------------------------------------------------------
-# Signature (redeclaration, #17, #19, #21)
+# Signature (redeclaration, foreign sorts, names, structural variables, definitions)
 # ---------------------------------------------------------------------------
 
 def test_redeclaration_warns_and_replaces():
@@ -49,7 +49,7 @@ def test_define_rejects_duplicate_parameters():
 
 
 # ---------------------------------------------------------------------------
-# Axis names (#25, #41, #43, #62)
+# Axis names (annotations, structural-relation arguments, selections)
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def test_selection_on_dimension_name_rejected(tsig):
 
 
 # ---------------------------------------------------------------------------
-# Quantifiers (#1, #14, #58)
+# Quantifiers (mixed quantifiers, guards)
 # ---------------------------------------------------------------------------
 
 def _interp(sig):
@@ -121,7 +121,7 @@ def test_guard_not_spanning_quantified_axis(tsig):
 
 
 # ---------------------------------------------------------------------------
-# Logic keys (#55)
+# Logic keys
 # ---------------------------------------------------------------------------
 
 def test_logic_struct_key_typo_rejected():
@@ -133,7 +133,7 @@ def test_logic_struct_key_typo_rejected():
 
 
 # ---------------------------------------------------------------------------
-# Interpretation (#64)
+# Interpretation
 # ---------------------------------------------------------------------------
 
 def test_ground_unknown_name_rejected(tsig):

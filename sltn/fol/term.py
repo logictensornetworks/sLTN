@@ -56,7 +56,7 @@ def _deduplicate_axis_names(dims: list) -> list[str]:
 def _annotated_axis_dims(dims, annotations) -> dict:
     """Structural axes of ``x[a1, …]`` declared over *dims*, mapped to their Dimension.
 
-    Mirrors the evaluator: repeated dimensions are named ``T0, T1, …`` (#26), then
+    Mirrors the evaluator: repeated dimensions are named ``T0, T1, …``, then
     the first ``len(annotations)`` axes are renamed position by position.
     """
     names = _deduplicate_axis_names(dims)
@@ -68,7 +68,7 @@ def _call_axis_dims(symbol, args, output_axes) -> dict:
     """Structural axes of ``f(args)[a1, …]``, mapped to their Dimension.
 
     The dimension of every axis comes from the symbols in the tree, so no
-    signature is needed (#71). Argument axes over one of ``input_dims`` are
+    signature is needed. Argument axes over one of ``input_dims`` are
     consumed; ``a1, …`` name the ``output_dims`` in order (a name already on an
     argument passes that axis through).
     """

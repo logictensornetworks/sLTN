@@ -211,7 +211,7 @@ def test_crispness_scheduler_raises_not_implemented():
     lambda: Logic.classical(struct_agg_axes=["T"]),
 ], ids=["AggregMin", "AggregMax", "classical"])
 def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
-    # Bug #2: AggregMin/AggregMax reduced nothing with dim=None, so the
+    # AggregMin/AggregMax reduced nothing with dim=None, so the
     # SatAgg loss of a multi-clause KB was a vector and .backward() failed.
     sig = Signature("minmax_satagg")
     I = sig.sort("Img")

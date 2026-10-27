@@ -1,4 +1,4 @@
-"""Interpretation as an nn.Module (#13, #63, #65, #66)."""
+"""Interpretation as an nn.Module: parameters, state_dict, devices, copies and multi-objective learning."""
 import pytest
 import torch
 import torch.nn as nn
@@ -113,7 +113,7 @@ def test_deepcopy_keeps_sharing(sig):
 
 
 def test_multiobjective_shared_module_does_not_crash(sig):
-    # #66: a module bound to two symbols crashed jac_to_grad.
+    # A module bound to two symbols crashed jac_to_grad.
     pytest.importorskip("torchjd")
     i = _interp(sig)
     net = _net()
@@ -126,7 +126,7 @@ def test_multiobjective_shared_module_does_not_crash(sig):
 
 
 def test_multiobjective_uses_optimizer_parameters(sig):
-    # #65: parameters came from interp.parameters(), not from the optimizer.
+    # Parameters came from interp.parameters(), not from the optimizer.
     pytest.importorskip("torchjd")
     i = _interp(sig)
     i["A"] = _net()

@@ -1,4 +1,6 @@
-"""Regressions for #22, #26, #27, #44, #45, #60, #61, #70, #71 and the axis-naming rules."""
+"""Regressions for empty batches, negative p-means, axis roles and output axes,
+removed symbol options, alias-aware fsv, repeated dims, domain-axis names and
+the axis-naming rules."""
 import pytest
 import torch
 import torch.nn as nn
@@ -9,7 +11,7 @@ from sltn.interpretation.core.tensor import Tensor
 from sltn.interpretation.operators import AggregPMean
 
 
-def test_empty_batch_probe_keeps_batchnorm_state():  # #60
+def test_empty_batch_probe_keeps_batchnorm_state():
     sig = Signature("bn")
     sig.sort("S")
     sig.variable("x", "S")
@@ -29,7 +31,7 @@ def test_empty_batch_probe_keeps_batchnorm_state():  # #60
 
 
 @pytest.mark.parametrize("stable", [True, False])
-def test_pmean_negative_p_with_mask(stable):  # #70
+def test_pmean_negative_p_with_mask(stable):
     agg = AggregPMean(p=-2, stable=stable)
     xs = torch.tensor([[0.0, 0.5, 0.8], [0.3, 0.0, 0.9]])
     mask = torch.tensor([[False, True, True], [False, False, False]])
@@ -38,7 +40,7 @@ def test_pmean_negative_p_with_mask(stable):  # #70
     assert out[1].item() == 0.0
 
 
-def test_align_rejects_axis_with_two_roles():  # #44
+def test_align_rejects_axis_with_two_roles():
     a = Tensor(torch.rand(3, 1), [Axis("t", "variable"), Axis("d", "domain")])
     b = Tensor(torch.rand(3, 1), [Axis("t", "structural"), Axis("d", "domain")])
     with pytest.raises(ValueError, match="single role"):
@@ -59,20 +61,20 @@ def gen_sig():
     return sig, i
 
 
-def test_unnamed_output_axis_is_rejected(gen_sig):  # #61
+def test_unnamed_output_axis_is_rejected(gen_sig):
     sig, _ = gen_sig
     with pytest.raises(ValueError, match="Gen"):
         sig.parse("Gen(x[t])")
 
 
-def test_explicit_passthrough(gen_sig):  # #61
+def test_explicit_passthrough(gen_sig):
     sig, i = gen_sig
     i["Gen"] = lambda v: torch.sigmoid(v)
     out = i(sig.parse("Gen(x[t])[t]"))
     assert out.value.shape == (4, 5, 1)
 
 
-def test_new_output_axis(gen_sig):  # #61
+def test_new_output_axis(gen_sig):
     sig, i = gen_sig
     i["Gen"] = lambda v: torch.sigmoid(v).unsqueeze(1).expand(-1, 5, 1)
     out = i(sig.parse("Gen(x[t])[t1]"))
@@ -117,7 +119,7 @@ def test_vacuous_structural_quantifier_rejected(gen_sig):
         sig.parse("forall t1: Gen(x[t])[t]")
 
 
-def test_removed_symbol_options():  # #22
+def test_removed_symbol_options():
     sig = Signature("r")
     sig.sort("S")
     with pytest.raises(TypeError):
@@ -137,7 +139,7 @@ def seq_sig():
     return sig
 
 
-def test_uncached_fsv_is_alias_aware(seq_sig):  # #71
+def test_uncached_fsv_is_alias_aware(seq_sig):
     from sltn.fol.definitions import _child_nodes
     phi = seq_sig.parse("forall x: Seq(x[t1])")
     stack = [phi]
@@ -148,14 +150,14 @@ def test_uncached_fsv_is_alias_aware(seq_sig):  # #71
     assert phi.is_clause()
 
 
-def test_repeated_dims_need_distinct_names(seq_sig):  # #26
+def test_repeated_dims_need_distinct_names(seq_sig):
     for src in ("C(m)", "C(m[t])", "C(m[t, t])"):
         with pytest.raises(ValueError):
             seq_sig.parse(src)
     assert seq_sig.parse("C(m[t, t1])").free_structural_variables == {"t", "t1"}
 
 
-def test_pointwise_output_annotation_rejected(seq_sig):  # #27
+def test_pointwise_output_annotation_rejected(seq_sig):
     for src in ("C(x[t])[t1]", "C(x[t])[t]"):
         with pytest.raises(ValueError, match="annotate the argument"):
             seq_sig.parse(src)
@@ -163,7 +165,7 @@ def test_pointwise_output_annotation_rejected(seq_sig):  # #27
 
 
 @pytest.mark.parametrize("name", ["img", "bool"])
-def test_variable_named_like_domain_axis(name):  # #45
+def test_variable_named_like_domain_axis(name):
     sig = Signature("ax")
     sig.sort("Img")
     sig.variable(name, "Img")
