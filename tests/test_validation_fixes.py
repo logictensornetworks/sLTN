@@ -172,3 +172,93 @@ def test_copies_do_not_share_logic(tsig):
         assert other.logic is not i.logic
         other.logic["forall,T"] = AggregMin()
         assert isinstance(i.logic["forall,T"], AggregPMeanError)
+
+
+# ---------------------------------------------------------------------------
+# Arguments of predicates and functions: number and sorts
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def asig():
+    sig = Signature("args")
+    sig.sort("Animal")
+    sig.sort("Person")
+    sig.sort("Embedding")
+    sig.variable("x", "Animal")
+    sig.variable("z", "Animal")
+    sig.variable("p", "Person")
+    sig.constant("Fido", "Animal")
+    sig.constant("Bob", "Person")
+    sig.predicate("Near", ["Animal"])
+    sig.predicate("Owns", ["Person", "Animal"])
+    sig.predicate("Pb", ["Bool"])
+    sig.predicate("Rain", [])
+    sig.predicate("%%", ["Animal", "Animal"], infix=True)
+    sig.function("embed", ["Animal"], "Embedding")
+    sig.function("diff", ["Animal", "Animal"], "Animal")
+    return sig
+
+
+@pytest.mark.parametrize("formula, symbol, expected, got", [
+    ("Near(x, z)", "Near", 1, 2),
+    ("Owns(p)", "Owns", 2, 1),
+    ("Near()", "Near", 1, 0),
+    ("Rain(x)", "Rain", 0, 1),
+    ("Near(diff(x))", "diff", 2, 1),
+    ("diff(x, z, x) %% x", "diff", 2, 3),
+    ("forall x: Near(embed(x, x))", "embed", 1, 2),
+])
+def test_wrong_number_of_arguments_rejected(asig, formula, symbol, expected, got):
+    with pytest.raises(TypeError, match=rf"'{symbol}' expects {expected} argument\(s\), got {got}"):
+        asig.parse(formula)
+
+
+@pytest.mark.parametrize("formula, symbol, position, got, expected", [
+    ("Near(p)", "Near", 0, "Person", "Animal"),            # variable of the wrong sort
+    ("Near(Bob)", "Near", 0, "Person", "Animal"),          # constant of the wrong sort
+    ("Owns(x, p)", "Owns", 0, "Animal", "Person"),         # arguments swapped
+    ("Near(embed(x))", "Near", 0, "Embedding", "Animal"),  # function output of the wrong sort
+    ("embed(p)", "embed", 0, "Person", "Animal"),          # inside a term
+    ("forall x: (Near(x) -> Near(embed(x)))", "Near", 0, "Embedding", "Animal"),
+    ("forall p1: Near(p1)", "Near", 0, "Person", "Animal"),   # alias of p
+    ("Near(Near(x))", "Near", 0, "Bool", "Animal"),        # a formula is a Bool argument
+    ("Pb(x)", "Pb", 0, "Animal", "Bool"),
+    ("x %% p", "%%", 1, "Person", "Animal"),                 # infix predicate
+])
+def test_argument_of_wrong_sort_rejected(asig, formula, symbol, position, got, expected):
+    with pytest.raises(TypeError, match=rf"'{symbol}': argument {position} has sort '{got}', expected '{expected}'"):
+        asig.parse(formula)
+
+
+@pytest.mark.parametrize("formula", [
+    "Owns(p, x)", "Owns(Bob, Fido)", "forall x1: Near(x1)", "Pb(Near(x))", "Pb(forall x: Near(x))",
+    "Near(diff(x, Fido))", "x %% Fido", "Rain", "Rain()", "forall x: exists z: (x %% z)",
+])
+def test_arguments_of_the_right_sort_accepted(asig, formula):
+    asig.parse(formula)
+
+
+def test_macro_body_is_checked_after_expansion(asig):
+    # A macro without input_sorts doesn't check its arguments; its expanded body is checked.
+    asig.define("Both", ["a", "b"], "Near(a) & Near(b)")
+    asig.parse("Both(x, Fido)")
+    with pytest.raises(TypeError, match=r"'Near': argument 0 has sort 'Person'"):
+        asig.parse("Both(x, p)")
+
+
+def test_failed_argument_check_leaves_no_alias(asig):
+    with pytest.raises(TypeError):
+        asig.parse("forall p1: Near(p1)")
+    assert "p1" not in asig.variables
+
+
+@pytest.mark.parametrize("declare", [
+    lambda s: s.predicate("<<", ["Animal"], infix=True),
+    lambda s: s.predicate("<<", ["Animal", "Animal", "Animal"], infix=True),
+    lambda s: s.function("++", ["Animal"], "Animal", infix=True),
+    lambda s: s.define("+++", ["a", "b", "c"], "Near(a)", infix=True),
+])
+def test_infix_symbol_needs_two_arguments(asig, declare):
+    with pytest.raises(ValueError, match="must take exactly 2 arguments"):
+        declare(asig)
+    assert "<<" not in asig.predicates and "++" not in asig.functions and "+++" not in asig.definitions

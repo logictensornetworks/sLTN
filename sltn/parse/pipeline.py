@@ -6,10 +6,11 @@ after the grammar produces a raw AST.  The pipeline runs in this order:
 
 1. :func:`_expand_definitions`               — expand syntactic abbreviations
 2. :func:`_resolve_symbols`                  — replace string names with Symbol objects
-3. :func:`_annotate_free_structural_variables` — compute d(node) for each AST node
-4. :func:`_annotate_free_variables`          — compute free FOL variables per node
-5. :func:`_validate_quantifiers`            — check bound names are distinct and used
-6. :func:`_validate_kb_clauses`             — check every clause of a parsed KB is closed
+3. :func:`_check_arguments`                  — check the number and sorts of arguments
+4. :func:`_annotate_free_structural_variables` — compute d(node) for each AST node
+5. :func:`_annotate_free_variables`          — compute free FOL variables per node
+6. :func:`_validate_quantifiers`            — check bound names are distinct and used
+7. :func:`_validate_kb_clauses`             — check every clause of a parsed KB is closed
 """
 from __future__ import annotations
 
@@ -287,6 +288,54 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Argument validation
+# ---------------------------------------------------------------------------
+
+def _sort_name(arg: Formula | Term) -> str | None:
+    """Sort of a resolved argument; ``None`` when it has none (a structural variable
+    over a dimension without a sort)."""
+    match arg:
+        case Variable() | Constant():
+            return arg.symbol.sort.name
+        case FunctionApplication():
+            return arg.symbol.output_sort.name
+        case TermAxisSelect():
+            return _sort_name(arg.base_term)
+        case StructuralVariable():
+            sort = arg.symbol.dimension.sort
+            return sort.name if sort is not None else None
+        case Formula():
+            return "Bool"
+        case _:
+            return None
+
+
+def _check_arguments(node: Formula | Term) -> None:
+    """Check the number and the sorts of the arguments of every predicate and function.
+
+    Sorts are compared by name, so a sort redeclared after a symbol was declared
+    still matches. Arguments are checked before the call that uses them, so the
+    innermost mistake is reported: ``Near(embed(x, x))`` reports ``embed``'s arity.
+    """
+    for child in _child_nodes(node):
+        _check_arguments(child)
+    if isinstance(node, (AtomicFormula, FunctionApplication)):
+        sym = node.symbol
+        kind = "Predicate" if isinstance(sym, PredicateSymbol) else "Function"
+        expected = sym.input_sorts
+        if len(node.args) != len(expected):
+            raise TypeError(
+                f"{kind} '{sym.name}' expects {len(expected)} argument(s), got {len(node.args)}, in {node}."
+            )
+        for i, (arg, sort) in enumerate(zip(node.args, expected)):
+            got = _sort_name(arg)
+            if got is not None and got != sort.name:
+                raise TypeError(
+                    f"{kind} '{sym.name}': argument {i} has sort '{got}', expected '{sort.name}', in {node}."
+                )
+
+
+# ---------------------------------------------------------------------------
 # Quantifier validation
 # ---------------------------------------------------------------------------
 
@@ -534,6 +583,7 @@ def _run_pipeline(ast, sig: "Signature"):
         if sig.definitions:
             ast = _expand_definitions(ast, sig)
         _resolve_symbols(ast, sig)
+        _check_arguments(ast)
         _annotate_free_structural_variables(ast, sig)
         _annotate_free_variables(ast, sig)
         _validate_quantifiers(ast, sig)

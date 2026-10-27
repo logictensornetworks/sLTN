@@ -122,6 +122,12 @@ class Signature:
             )
 
     @staticmethod
+    def _check_infix_arity(name: str, n_args: int, infix: bool) -> None:
+        """Raise if an infix symbol doesn't take exactly two arguments (``a op b``)."""
+        if infix and n_args != 2:
+            raise ValueError(f"Infix symbol '{name}' must take exactly 2 arguments, got {n_args}.")
+
+    @staticmethod
     def _warn_if_redeclared(store: dict, name: str, kind: str) -> None:
         if name in store:
             warnings.warn(
@@ -186,6 +192,7 @@ class Signature:
         **kwargs,
     ) -> FunctionSymbol:
         self._check_name(name, infix=kwargs.get("infix", False))
+        self._check_infix_arity(name, len(input_sorts or ()), kwargs.get("infix", False))
         self._warn_if_redeclared(self._functions, name, "FunctionSymbol")
         f = FunctionSymbol(
             name=name,
@@ -207,6 +214,7 @@ class Signature:
         **kwargs,
     ) -> PredicateSymbol:
         self._check_name(name, infix=kwargs.get("infix", False))
+        self._check_infix_arity(name, len(input_sorts or ()), kwargs.get("infix", False))
         self._warn_if_redeclared(self._predicates, name, "PredicateSymbol")
         p = PredicateSymbol(
             name=name,
@@ -273,6 +281,7 @@ class Signature:
             self._check_name(p)
         if len(set(arg_names)) != len(arg_names):
             raise ValueError(f"Definition '{name}' has duplicate parameter names: {list(arg_names)}.")
+        self._check_infix_arity(name, len(arg_names), infix)
         self._warn_if_redeclared(self._definitions, name, "Definition")
         if input_sorts is not None and len(input_sorts) != len(arg_names):
             raise ValueError(
