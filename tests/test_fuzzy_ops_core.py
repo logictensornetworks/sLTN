@@ -349,3 +349,16 @@ def test_weighted_pmean_is_exact_with_tiny_weights():
 def test_pmean_with_p_zero_is_the_geometric_mean():
     x = torch.tensor([0.9, 0.2, 0.6])
     assert torch.isclose(fuzzy_ops.AggregPMean(p=0)(x, dim=0), fuzzy_ops.AggregGeometricMean()(x, dim=0))
+
+
+# An aggregator built by hand (logic["∀"] = AggregPMeanError()) must be as safe
+# as the default one: no NaN gradient when every value is at the boundary.
+@pytest.mark.parametrize("op, boundary", [
+    (fuzzy_ops.AggregPMeanError(), 1.0),     # every individual satisfies the clause
+    (fuzzy_ops.AggregPMean(), 0.0),
+    (fuzzy_ops.AggregPMean(p=0), 0.0),
+], ids=["pMeanError at 1", "pMean at 0", "geometric mean at 0"])
+def test_default_aggregator_gradient_is_finite_at_the_boundary(op, boundary):
+    xs = torch.full((4,), boundary, requires_grad=True)
+    op(xs, dim=[0]).backward()
+    assert torch.isfinite(xs.grad).all()

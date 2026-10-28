@@ -128,7 +128,7 @@ class AggregGeometricMean(AggregationOperator):
     ``exp(sum(w_i * log(x_i)) / sum(w_i))``.
     """
 
-    def __init__(self, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
         self.stable = stable
         self.eps = eps
 
@@ -163,7 +163,7 @@ class AggregPMean(AggregationOperator):
     """
     pMean fuzzy aggregation operator.
     """
-    def __init__(self, p=2, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, p=2, stable=True, eps=DEFAULT_EPS):
 
         self.p = p
         self.stable = stable
@@ -210,7 +210,7 @@ class AggregPMeanError(AggregationOperator):
 
     Defined as ``1 - pMean(1 - xs)``.
     """
-    def __init__(self, p=2, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, p=2, stable=True, eps=DEFAULT_EPS):
         self.p = p
         self.stable = stable
         self.eps = eps

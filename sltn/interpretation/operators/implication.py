@@ -36,7 +36,7 @@ class ImpliesReichenbach(ImpliesDual):
     """
     Reichenbach fuzzy implication operator: A -> B = 1 - A + A*B
     """
-    def __init__(self, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
         super().__init__(and_op=AndProd(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
@@ -49,7 +49,7 @@ class ImpliesLuk(ImpliesDual):
     """
     Lukasiewicz fuzzy implication operator.
     """
-    def __init__(self, stable=False, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
+    def __init__(self, stable=True, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
         super().__init__(and_op=AndLuk(stable=stable, eps=eps, beta=beta, smoothing_method=smoothing_method), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
@@ -96,7 +96,7 @@ class ImpliesGoguen(BinaryConnectiveOperator):
     """
     Goguen fuzzy implication operator.
     """
-    def __init__(self, stable=False, eps=DEFAULT_EPS, 
+    def __init__(self, stable=True, eps=DEFAULT_EPS, 
                  smooth=False, beta=10., smoothing_method="softplus"):
         """
         Args:
@@ -163,7 +163,7 @@ class EquivSimilarity(BinaryConnectiveOperator):
     This operator has the benefit of non-vanishing gradients, which can
     be helpful during training.
     """
-    def __init__(self, p=1, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, p=1, stable=True, eps=DEFAULT_EPS):
         self.p = p
         self.stable = stable
         self.eps = eps

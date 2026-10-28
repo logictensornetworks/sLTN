@@ -17,7 +17,7 @@ class AndProd(BinaryConnectiveOperator):
     """
     Goguen fuzzy conjunction operator (product operator).
     """
-    def __init__(self, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
         self.stable = stable
         self.eps = eps
 
@@ -38,7 +38,7 @@ class AndPMean(BinaryConnectiveOperator):
     """
     Power mean fuzzy conjunction operator.
     """
-    def __init__(self, stable=False, p=1., eps=DEFAULT_EPS):
+    def __init__(self, stable=True, p=1., eps=DEFAULT_EPS):
         """
         :param stable: if True, clamps inputs away from 0 for gradient stability.
         :param p: exponent for the power mean (p=1 gives arithmetic mean).
@@ -64,7 +64,7 @@ class AndCos(BinaryConnectiveOperator):
     """
     Tcos T-norm from B. Moser (https://doi.org/10.1016/j.fss.2006.01.007).
     """
-    def __init__(self, stable=False, eps=DEFAULT_EPS):
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
 
         self.stable = stable
         self.eps = eps
@@ -85,7 +85,7 @@ class AndLuk(BinaryConnectiveOperator):
     Lukasiewicz fuzzy conjunction operator.
     """
 
-    def __init__(self, stable=False, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
+    def __init__(self, stable=True, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
         
         self.stable = stable
         self.eps = eps
