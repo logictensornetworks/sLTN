@@ -1,4 +1,6 @@
 """Tests for kb_backward, kb_eval, and kb_describe."""
+import importlib.util
+
 import pytest
 import torch
 import torch.nn as nn
@@ -234,3 +236,83 @@ def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
     stats = kb_backward(torch.optim.SGD(mlp.parameters(), lr=0.1), interp, kb)
     assert 0.0 <= stats["agg_loss"] <= 1.0
     assert mlp.weight.grad is not None
+
+
+# ---------------------------------------------------------------------------
+# Trainable parameters the optimizer does not update
+# ---------------------------------------------------------------------------
+# A network used inside a lambda is not registered in the interpretation, so
+# an optimizer built from interp.parameters() never updated it: the scalarized
+# path gave it a gradient that no step applied, and the multi-objective path
+# skipped it. Training ran without any error.
+
+def _lambda_kb():
+    sig = Signature("unregistered")
+    S = sig.sort("S")
+    sig.predicate("P", ["S"])
+    sig.predicate("Q", ["S"])
+    sig.variable("x", S)
+    interp = Interpretation(sig)
+    interp[S] = Type("S", shape=(2,))
+    interp["x"] = torch.rand(4, 2)
+    interp["Q"] = nn.Sequential(nn.Linear(2, 1), nn.Sigmoid())
+    kb = {"a": sig.parse("forall x: P(x)"), "b": sig.parse("forall x: Q(x)")}
+    return interp, kb
+
+
+_AGGREGATORS = [None, pytest.param("upgrad", marks=pytest.mark.skipif(
+    importlib.util.find_spec("torchjd") is None, reason="needs torchjd"))]
+
+
+@pytest.mark.parametrize("aggregator", _AGGREGATORS)
+def test_kb_backward_rejects_a_network_inside_a_lambda(aggregator):
+    interp, kb = _lambda_kb()
+    mlp = nn.Linear(2, 1)
+    interp["P"] = lambda a: torch.sigmoid(mlp(a))
+    opt = torch.optim.SGD(interp.parameters(), lr=0.1)
+    with pytest.raises(ValueError, match="2 trainable parameter"):
+        kb_backward(opt, interp, kb, aggregator=aggregator)
+    assert mlp.weight.grad is None              # raised before any backward
+
+
+@pytest.mark.parametrize("aggregator", _AGGREGATORS)
+def test_kb_backward_rejects_a_raw_parameter_inside_a_lambda(aggregator):
+    interp, kb = _lambda_kb()
+    W = nn.Parameter(torch.randn(2, 1))
+    interp["P"] = lambda a: torch.sigmoid(a @ W)
+    opt = torch.optim.SGD(interp.parameters(), lr=0.1)
+    with pytest.raises(ValueError, match=r"1 trainable parameter.*\[2, 1\]"):
+        kb_backward(opt, interp, kb, aggregator=aggregator)
+
+
+@pytest.mark.parametrize("aggregator", _AGGREGATORS)
+def test_kb_backward_accepts_lambdas_that_train_nothing_new(aggregator):
+    # No parameters, a frozen network, and a grounded module reused by a lambda.
+    interp, kb = _lambda_kb()
+    frozen = nn.Linear(2, 1).requires_grad_(False)
+    interp["P"] = lambda a: torch.sigmoid(frozen(a)) * interp["Q"](a) * a.sum(-1, keepdim=True).sigmoid()
+    opt = torch.optim.SGD(interp.parameters(), lr=0.1)
+    kb_backward(opt, interp, kb, aggregator=aggregator)
+    assert interp["Q"][0].weight.grad is not None
+
+
+@pytest.mark.parametrize("aggregator", _AGGREGATORS)
+def test_kb_backward_accepts_an_external_encoder_in_the_optimizer(aggregator):
+    # A variable grounded with an encoder's output: the encoder is not in the
+    # interpretation, but the optimizer updates it.
+    interp, kb = _lambda_kb()
+    interp["P"] = nn.Sequential(nn.Linear(2, 1), nn.Sigmoid())
+    encoder = nn.Linear(3, 2)
+    interp["x"] = encoder(torch.rand(4, 3))
+    opt = torch.optim.SGD(list(interp.parameters()) + list(encoder.parameters()), lr=0.1)
+    kb_backward(opt, interp, kb, aggregator=aggregator)
+    assert encoder.weight.grad is not None
+
+
+@pytest.mark.parametrize("aggregator", _AGGREGATORS)
+def test_kb_backward_accepts_a_registered_module_left_out_of_the_optimizer(aggregator):
+    # Training only part of the KB is a choice the user can see.
+    interp, kb = _lambda_kb()
+    interp["P"] = nn.Sequential(nn.Linear(2, 1), nn.Sigmoid())
+    opt = torch.optim.SGD(interp["Q"].parameters(), lr=0.1)
+    kb_backward(opt, interp, kb, aggregator=aggregator)

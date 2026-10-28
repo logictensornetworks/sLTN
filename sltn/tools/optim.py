@@ -113,6 +113,43 @@ def _unpack_clauses(formulas) -> list:
     return list(formulas)
 
 
+def _graph_leaves(output: torch.Tensor) -> list[torch.Tensor]:
+    """The trainable leaf tensors *output* depends on, found by walking its autograd graph."""
+    found, seen, stack = {}, set(), [output.grad_fn]
+    while stack:
+        fn = stack.pop()
+        if fn is None or fn in seen:
+            continue
+        seen.add(fn)
+        if hasattr(fn, "variable"):              # AccumulateGrad: a leaf that requires grad
+            found[id(fn.variable)] = fn.variable
+        stack.extend(f for f, _ in fn.next_functions)
+    return list(found.values())
+
+
+def _check_untrained_parameters(optimizer: torch.optim.Optimizer, interp: Interpretation,
+                                output: torch.Tensor) -> None:
+    """Raise if *output* depends on trainable parameters that nothing will update.
+
+    A network used inside a lambda is not registered in the interpretation, so
+    an optimizer built from ``interp.parameters()`` would silently never train it.
+    Registered parameters left out of the optimizer are a visible choice (training
+    part of the KB) and are allowed.
+    """
+    known = {id(p) for group in optimizer.param_groups for p in group["params"]}
+    known |= {id(p) for p in interp.parameters()}
+    missing = [p for p in _graph_leaves(output) if id(p) not in known]
+    if missing:
+        shapes = [list(p.shape) for p in missing]
+        raise ValueError(
+            f"kb_backward: the KB depends on {len(missing)} trainable parameter(s) that are "
+            f"neither in the optimizer nor in the interpretation, of shapes {shapes}. "
+            "A network used inside a lambda "
+            "is not registered in the interpretation: wrap it in an nn.Module. Otherwise, add "
+            "these parameters to the optimizer, or freeze them with requires_grad_(False)."
+        )
+
+
 def kb_describe(formulas) -> OrderedDict[str, Formula]:
     """Create and display a labelled KB mapping short names to formulas.
 
@@ -223,10 +260,18 @@ def kb_backward(
                            ``None`` in standard / satagg mode.
         ``"aggregator"`` — the aggregator string or instance that was used, or
                            ``None`` for the standard mode.
+
+    Raises
+    ------
+    ValueError
+        If the KB depends on trainable parameters that are neither in the
+        optimizer nor in the interpretation (e.g. a network used inside a
+        lambda), since nothing would train them.  Raised before any backward.
     """
     clause_list = list(formulas.values())
     num_clauses = len(clause_list)
     sat_vals = torch.stack([interp(phi).value for phi in clause_list])
+    _check_untrained_parameters(optimizer, interp, sat_vals)
 
     clause_sats = OrderedDict(
         (name, sat_val.item())
