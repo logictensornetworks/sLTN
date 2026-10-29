@@ -105,8 +105,9 @@ def test_eval_implies(simple_sig, simple_interp):
     sig = simple_sig
     phi = sig.parse("P(x) -> P(x)")
     result = simple_interp(phi)
-    # implication of same thing should be 1
-    assert (result.value > 0.99).all()
+    # the default implication is Reichenbach: a -> a = 1 - a + a*a, not 1
+    a = simple_interp("P(x)").value
+    assert torch.allclose(result.value, 1 - a + a * a, atol=1e-5)
 
 
 def test_eval_not(simple_sig, simple_interp):
@@ -491,5 +492,39 @@ def test_equiv_default_uses_user_set_implies():
     expected = L.And(L.Implies(a, b), L.Implies(b, a))
     assert torch.allclose(L.Equiv(a, b), expected)
     assert torch.allclose(L.Equiv(a, b), torch.tensor([0.359, 0.346, 0.578]), atol=1e-3)
-    # with nothing set, <-> still uses the default implication (Goguen)
-    assert isinstance(Logic().with_defaults().Equiv.implies_op, fuzzy_ops.ImpliesGoguen)
+    # with nothing set, <-> still uses the default implication (Reichenbach)
+    assert isinstance(Logic().with_defaults().Equiv.implies_op, fuzzy_ops.ImpliesReichenbach)
+
+
+def test_default_implication_is_reichenbach():
+    # The default -> was Goguen (1 if a <= b, else b / a): a -> 0 was 0 for every
+    # a > 0, with no gradient, so P(x) <-> y could not learn from labels y = 0.
+    # The default is now LTN's Reichenbach, 1 - a + a*b.
+    L = Logic().with_defaults()
+    assert isinstance(L.Implies, fuzzy_ops.ImpliesReichenbach)
+    assert L.Implies.stable
+
+    a = torch.tensor([0.9, 0.2, 0.6, 0.3], requires_grad=True)
+    b = torch.tensor([0.3, 0.8, 0.6, 0.0])
+    assert torch.allclose(L.Implies(a, b), 1 - a + a * b, atol=1e-5)
+    # a -> 0 = 1 - a, with a gradient in a
+    L.Implies(a, b)[3].backward()
+    assert a.grad[3] < 0
+
+    # <-> with a crisp 0: (a -> 0) & (0 -> a) = 1 - a
+    x = torch.tensor([0.2, 0.7])
+    assert torch.allclose(L.Equiv(x, torch.zeros(2)), 1 - x, atol=1e-5)
+
+    # the same default through an Interpretation
+    sig = Signature("t")
+    sig.sort("S")
+    sig.variable("x", "S")
+    sig.predicate("P", ["S"])
+    sig.predicate("Q", ["S"])
+    interp = Interpretation(sig)
+    interp["S"] = Type("R1", shape=(1,))
+    interp["x"] = torch.tensor([[0.9], [0.2]])
+    interp["P"] = lambda v: v
+    interp["Q"] = lambda v: torch.full_like(v, 0.5)
+    expected = torch.tensor([[1 - 0.9 + 0.9 * 0.5], [1 - 0.2 + 0.2 * 0.5]])
+    assert torch.allclose(interp("P(x) -> Q(x)").value, expected, atol=1e-5)

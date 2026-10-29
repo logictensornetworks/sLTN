@@ -160,7 +160,7 @@ class Logic:
             implies_op = (
                 implication.ImpliesDual(and_op, not_op)
                 if derive_connectives
-                else implication.ImpliesGoguen(stable, eps)
+                else implication.ImpliesReichenbach(stable, eps)
             )
         else:
             implies_op = self.Implies
