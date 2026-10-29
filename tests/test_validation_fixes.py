@@ -157,6 +157,30 @@ def test_alias_lookup_returns_base_grounding(tsig):
         i["y1"] = torch.rand(4, 1)
 
 
+@pytest.mark.parametrize("value", [
+    lambda: torch.eye(5),
+    torch.eye(5).tolist(),
+    torch.nn.Linear(5, 5),
+], ids=["function", "list", "module"])
+def test_structural_relation_must_be_grounded_with_a_tensor(tsig, value):
+    # A relation grounded with anything but a tensor was accepted, and evaluation
+    # then failed with "AttributeError: 'function' object has no attribute 'axis_names'".
+    i = _interp(tsig)
+    i["next"] = torch.eye(5)
+    with pytest.raises(TypeError, match=r"Structural relation 'next' must be grounded with a tensor .*\(T x T\), got \w+"):
+        i["next"] = value
+    assert torch.equal(i["next"], torch.eye(5))         # the old grounding is kept
+    with pytest.raises(TypeError, match="Structural relation 'next'"):
+        Interpretation(tsig, overrides={"next": value})
+
+
+def test_structural_relation_accepts_tensors_and_parameters(tsig):
+    i = _interp(tsig)
+    i["next"] = torch.eye(5)
+    i["next"] = torch.nn.Parameter(torch.eye(5))
+    assert i("next(t, t1)").value.shape == (5, 5, 1)
+
+
 def test_logic_set_in_classical_mode_is_kept(tsig):
     i = _interp(tsig)
     i.classical = True

@@ -365,6 +365,13 @@ class Interpretation(torch.nn.Module):
                 f"Cannot ground '{key}': it is an alias of '{base}' and shares its "
                 f"grounding. Ground '{base}' instead."
             )
+        relation = self.signature.structural_relations.get(key)
+        if relation is not None and not isinstance(value, (torch.Tensor, Tensor)):
+            dims = " x ".join(d.name for d in relation.structural_variables)
+            raise TypeError(
+                f"Structural relation '{key}' must be grounded with a tensor with one axis "
+                f"per dimension ({dims}), got {type(value).__name__}."
+            )
         if self._device is not None:
             if isinstance(value, torch.nn.Parameter):
                 value.data = value.data.to(self._device)   # keep the Parameter object
