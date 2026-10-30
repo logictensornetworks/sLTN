@@ -176,6 +176,28 @@ def _apply_expression_callable(func: "TensorCallable", inputs: list, name: str) 
 # Callable-dispatch helpers (used by Interpretation._SymbolProxy)
 # ---------------------------------------------------------------------------
 
+def _copied_axes_note(inputs: list, preserved_structural_axes: list) -> str:
+    """Describe the preserved axes that an argument received only as copies."""
+    copied = [
+        (arg, pos, axis.name)
+        for arg, expr in enumerate(inputs, start=1)
+        for pos, axis in enumerate(preserved_structural_axes, start=1)
+        if axis.name not in {d.name for d in expr.structural_axes}
+    ]
+    if not copied:
+        return ""
+    described = ", ".join(
+        f"argument {arg} has no axis '{axis}' (position {pos} of its shape)"
+        for arg, pos, axis in copied
+    )
+    return (
+        f"\nEvery argument receives all the consumed axes of the call, so "
+        f"{described} and gets copies along it. If your grounding removes "
+        f"'{copied[0][2]}' (e.g. a GRU over the frames) before combining it with "
+        f"this argument, drop the copies first, e.g. arg.select({copied[0][1]}, 0)."
+    )
+
+
 def _apply_batch_callable(
     func,
     inputs: list,
@@ -188,7 +210,8 @@ def _apply_batch_callable(
 
     Variable axes and non-preserved structural axes are flattened into a single
     batch dimension before the call.  Preserved structural axes are kept as
-    leading dimensions throughout.
+    leading dimensions throughout, on every argument: an argument without one
+    receives copies along it, and a grounding that doesn't want them drops them.
     """
     if not inputs:
         out_tensor = func()
@@ -222,25 +245,33 @@ def _apply_batch_callable(
         expanded = v.expand(target_broad + domain)
         reshaped.append(expanded.reshape(batch_size, *pres_shape, *domain))
 
-    if batch_size == 0:
-        probe_inputs = [r.new_zeros((1,) + r.shape[1:]) for r in reshaped]
-        # Only the output shape is needed: eval mode keeps BatchNorm/Dropout state untouched.
-        modes = [(m, m.training) for m in func.modules()] if isinstance(func, torch.nn.Module) else []
-        try:
-            for m, _ in modes:
-                m.training = False
-            with torch.no_grad():
-                probe_out = func(*probe_inputs)
-        finally:
-            for m, mode in modes:
-                m.training = mode
-        if not isinstance(probe_out, torch.Tensor):
-            raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(probe_out)}.")
-        output_flat = reshaped[0].new_zeros((0,) + probe_out.shape[1:])
-    else:
-        output_flat = func(*reshaped)
-        if not isinstance(output_flat, torch.Tensor):
-            raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(output_flat)}.")
+    try:
+        if batch_size == 0:
+            probe_inputs = [r.new_zeros((1,) + r.shape[1:]) for r in reshaped]
+            # Only the output shape is needed: eval mode keeps BatchNorm/Dropout state untouched.
+            modes = [(m, m.training) for m in func.modules()] if isinstance(func, torch.nn.Module) else []
+            try:
+                for m, _ in modes:
+                    m.training = False
+                with torch.no_grad():
+                    probe_out = func(*probe_inputs)
+            finally:
+                for m, mode in modes:
+                    m.training = mode
+            if not isinstance(probe_out, torch.Tensor):
+                raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(probe_out)}.")
+            output_flat = reshaped[0].new_zeros((0,) + probe_out.shape[1:])
+        else:
+            output_flat = func(*reshaped)
+            if not isinstance(output_flat, torch.Tensor):
+                raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(output_flat)}.")
+    except RuntimeError as err:
+        note = _copied_axes_note(inputs, preserved_structural_axes)
+        # Subclasses such as out-of-memory errors are not about shapes.
+        if type(err) is not RuntimeError or not note:
+            raise
+        shapes = ", ".join(str(tuple(r.shape)) for r in reshaped)
+        raise RuntimeError(f"Grounding of '{name}' failed on arguments of shapes {shapes}: {err}{note}") from err
 
     output_axis_names_set = set(output_axis_names) if output_axis_names else set()
     output_preserved  = [d for d in preserved_structural_axes if d.name in output_axis_names_set]
@@ -263,9 +294,19 @@ def _apply_batch_callable(
 
     new_struct_out = [Axis(n, 'structural') for n in new_output_axis_names]
     out_axes       = new_struct_out + output_type.domain_axes
-    output         = output_flat.reshape(*batch_shape, *output_pres_shape, *out_data_shape)
     final_dims     = batch_axes + output_preserved + out_axes
 
+    leading = (batch_size, *output_pres_shape)
+    n_data  = n_struct_new + len(output_type.domain_axes)
+    if output_flat.shape[:len(leading)] != leading or len(out_data_shape) != n_data:
+        expected = [*leading, *"?" * n_struct_new, *output_type.shape]
+        raise ValueError(
+            f"The grounding of '{name}' returned shape {tuple(output_flat.shape)}, "
+            f"expected ({', '.join(map(str, expected))})."
+            + _copied_axes_note(inputs, preserved_structural_axes)
+        )
+
+    output = output_flat.reshape(*batch_shape, *output_pres_shape, *out_data_shape)
     return Tensor(value=output, axes=final_dims, domain_type=output_type)
 
 
