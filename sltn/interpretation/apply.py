@@ -198,6 +198,22 @@ def _copied_axes_note(inputs: list, preserved_structural_axes: list) -> str:
     )
 
 
+def _batch_axis_note(batch_axes: list, batch_shape: tuple, batch_size: int) -> str:
+    """Say where the size of the batch axis comes from, for a grounding that lost it."""
+    if not batch_axes:
+        where = "the arguments have no free variables, so it has a single row"
+    elif len(batch_axes) == 1:
+        where = f"one row per individual of {batch_axes[0].name} ({batch_size})"
+    else:
+        sizes = " × ".join(f"{d.name} ({n})" for d, n in zip(batch_axes, batch_shape))
+        where = f"one row per combination of {sizes} = {batch_size}, flattened"
+    return (
+        f"\nThe first axis the grounding receives is the batch: {where}. "
+        f"The grounding must keep it and reduce only over the other axes "
+        f"(e.g. dim=-1, not over all axes)."
+    )
+
+
 def _apply_batch_callable(
     func,
     inputs: list,
@@ -300,9 +316,11 @@ def _apply_batch_callable(
     n_data  = n_struct_new + len(output_type.domain_axes)
     if output_flat.shape[:len(leading)] != leading or len(out_data_shape) != n_data:
         expected = [*leading, *"?" * n_struct_new, *output_type.shape]
+        lost_batch = output_flat.dim() == 0 or output_flat.shape[0] != batch_size
         raise ValueError(
             f"The grounding of '{name}' returned shape {tuple(output_flat.shape)}, "
             f"expected ({', '.join(map(str, expected))})."
+            + (_batch_axis_note(batch_axes, batch_shape, batch_size) if lost_batch else "")
             + _copied_axes_note(inputs, preserved_structural_axes)
         )
 
