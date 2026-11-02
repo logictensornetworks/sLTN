@@ -258,3 +258,54 @@ def test_swapped_batch_and_kept_axis_are_not_merged_by_the_reshape():
     i["Q"] = lambda v: torch.sigmoid(v).permute(1, 0, 2)  # (3, 4, 1): same size as (4, 3, 1)
     with pytest.raises(ValueError, match=r"'Q' returned shape \(3, 4, 1\), expected \(4, 3, 1\)"):
         i("Q(x[t])[t]")
+
+
+def _pair_predicate():
+    """`Close` on two points: `x` has 3 individuals, `y` has 4."""
+    sig = Signature("pairs")
+    sig.sort("Point")
+    sig.variable("x", "Point")
+    sig.variable("y", "Point")
+    sig.constant("k", "Point")
+    sig.predicate("Close", ["Point", "Point"])
+    i = Interpretation(sig)
+    i["Point"] = Type("R2", shape=(2,))
+    i["x"] = torch.rand(3, 2)
+    i["y"] = torch.rand(4, 2)
+    i["k"] = torch.rand(2)
+    return i
+
+
+def test_reducing_the_batch_axis_explains_where_its_size_comes_from():
+    # A reduction without `dim` also reduces the batch axis: the message must say
+    # that its 12 rows are the 3 x 4 combinations of x and y, flattened.
+    i = _pair_predicate()
+    i["Close"] = lambda a, b: torch.exp(-torch.norm(a - b))
+    with pytest.raises(ValueError, match=r"returned shape \(\), expected \(12, 1\)") as err:
+        i("Close(x, y)")
+    assert "one row per combination of x (3) × y (4) = 12" in str(err.value)
+    assert "reduce only over the other axes" in str(err.value)
+
+
+def test_wrong_rows_with_one_variable_explain_the_batch_axis():
+    i = _pair_predicate()
+    i["Close"] = lambda a, b: torch.exp(-torch.norm(a - b, dim=-1, keepdim=True))[:1]
+    with pytest.raises(ValueError, match=r"expected \(3, 1\)") as err:
+        i("Close(x, k)")
+    assert "one row per individual of x (3)" in str(err.value)
+
+
+def test_constant_arguments_have_a_batch_axis_of_size_one():
+    i = _pair_predicate()
+    i["Close"] = lambda a, b: torch.exp(-torch.norm(a - b))
+    with pytest.raises(ValueError, match=r"expected \(1, 1\)") as err:
+        i("Close(k, k)")
+    assert "no free variables" in str(err.value)
+
+
+def test_missing_final_axis_has_no_batch_note():
+    # The batch axis is right here: only the final axis of size 1 is missing.
+    i = _pair_predicate()
+    i["Close"] = lambda a, b: torch.exp(-torch.norm(a - b, dim=-1))
+    with pytest.raises(ValueError, match=r"returned shape \(12,\), expected \(12, 1\)\.$"):
+        i("Close(x, y)")
