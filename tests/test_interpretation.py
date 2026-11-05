@@ -528,3 +528,165 @@ def test_default_implication_is_reichenbach():
     interp["Q"] = lambda v: torch.full_like(v, 0.5)
     expected = torch.tensor([[1 - 0.9 + 0.9 * 0.5], [1 - 0.2 + 0.2 * 0.5]])
     assert torch.allclose(interp("P(x) -> Q(x)").value, expected, atol=1e-5)
+
+
+# ---------------------------------------------------------------------------
+# Guards built with connectives
+#
+# The stable operators keep truth values away from 0 (the stable product maps
+# false & true to about 1e-6), and the aggregators count every entry with a
+# weight above 0 as inside the guard. So a guard written as `A(d) & B(d)` used
+# to keep the entries where it is false: max/min ignored it there, and a
+# compound guard that is false everywhere made the p-means average over every
+# entry instead of none. Guards are now evaluated with the exact connectives.
+# ---------------------------------------------------------------------------
+
+def _guard_sig():
+    """A dimension D with two disjoint relations A, B (A & B is never true) and their product AB."""
+    sig = Signature("guards")
+    sig.sort("R")
+    sig.dimension("D")
+    sig.structural_variable("d", "D")
+    sig.constant("c", "R", dims=["D"])
+    sig.predicate("P", ["R"])
+    for name in ("A", "B", "AB"):
+        sig.structural_relation(name, ["D"])
+    return sig
+
+
+def _guard_interp(sig, logic, forall, exists):
+    interp = Interpretation(sig, logic=logic)
+    interp.logic["∀,D"] = forall
+    interp.logic["∃,D"] = exists
+    interp["R"] = Type("r", shape=(1,))
+    interp["P"] = lambda v: v
+    interp["c"] = torch.tensor([[1.0], [0.0], [0.0], [0.0]])  # P true on d = 0 only
+    interp["A"] = torch.tensor([1.0, 1.0, 0.0, 0.0])
+    interp["B"] = torch.tensor([0.0, 0.0, 1.0, 1.0])
+    interp["AB"] = torch.zeros(4)
+    return interp
+
+
+@pytest.mark.parametrize("logic", [
+    lambda: Logic().with_defaults(),
+    lambda: Logic(And=fuzzy_ops.AndLuk()).with_defaults(),
+], ids=["product", "lukasiewicz"])
+@pytest.mark.parametrize("forall, exists", [
+    (fuzzy_ops.AggregPMeanError(p=4), fuzzy_ops.AggregPMean(p=4)),
+    (fuzzy_ops.AggregMin(), fuzzy_ops.AggregMax()),
+], ids=["pmeans", "min-max"])
+def test_empty_compound_guard_is_empty(logic, forall, exists):
+    # `A(d) & B(d)` is false everywhere: as for the precomputed relation AB,
+    # forall is vacuously true and exists is false.
+    sig = _guard_sig()
+    interp = _guard_interp(sig, logic(), forall, exists)
+    for q, expected in (("∀", 1.0), ("∃", 0.0)):
+        compound = interp(sig.parse(f"{q} d | (A(d) & B(d)): P(c[d])")).value.item()
+        precomputed = interp(sig.parse(f"{q} d | AB(d): P(c[d])")).value.item()
+        assert compound == pytest.approx(expected, abs=1e-5)
+        assert compound == pytest.approx(precomputed, abs=1e-6)
+
+
+def test_compound_guard_excludes_entries_for_max():
+    # "Are there two different red objects?" in two scenes of 3 objects, all
+    # present: scene 0 has one red object, scene 1 two. The guard
+    # `Pr(x[o]) & Pr(x[o1]) & neq(o, o1)` must exclude an object paired with
+    # itself, so scene 0 gives about 0, not 1.
+    sig = Signature("scenes")
+    sig.sort("V")
+    sig.dimension("O")
+    sig.structural_variable("o", "O")
+    sig.structural_relation("neq", ["O", "O"])
+    sig.variable("x", "V", dims=["O"])
+    sig.predicate("Red", ["V"])
+    sig.predicate("Pr", ["V"])
+    interp = Interpretation(sig, logic=Logic().with_defaults())
+    interp.logic["∃,O"] = fuzzy_ops.AggregMax()
+    interp["V"] = Type("v", shape=(2,))
+    interp["Red"] = lambda v: v[..., :1]
+    interp["Pr"] = lambda v: v[..., 1:]
+    interp["neq"] = 1 - torch.eye(3)
+    interp["x"] = torch.tensor([[[1., 1.], [0., 1.], [0., 1.]],
+                                [[1., 1.], [1., 1.], [0., 1.]]])
+    phi = sig.parse("∃ o, o1 | Pr(x[o]) & Pr(x[o1]) & neq(o, o1): (Red(x[o]) & Red(x[o1]))")
+    got = interp(phi).value.flatten()
+    assert got[0].item() < 1e-5
+    assert got[1].item() == pytest.approx(1.0, abs=1e-5)
+
+
+def test_empty_compound_guard_with_first_order_quantifier():
+    sig = Signature("fo")
+    sig.sort("S")
+    sig.variable("x", "S")
+    for name in ("A", "B", "P"):
+        sig.predicate(name, ["S"])
+    interp = Interpretation(sig, logic=Logic().with_defaults())
+    interp["S"] = Type("s", shape=(3,))
+    interp["x"] = torch.tensor([[1., 0., 1.], [0., 1., 0.]])
+    interp["A"] = lambda v: v[..., :1]
+    interp["B"] = lambda v: v[..., 1:2]
+    interp["P"] = lambda v: v[..., 2:]
+    assert interp("forall x | A(x) & B(x): P(x)").value.item() == pytest.approx(1.0, abs=1e-5)
+    assert interp("exists x | A(x) & B(x): P(x)").value.item() == pytest.approx(0.0, abs=1e-5)
+
+
+def test_soft_compound_guard_is_a_weighted_mean():
+    # A soft guard still weights the entries by the product of its atoms.
+    sig = _guard_sig()
+    interp = _guard_interp(sig, Logic().with_defaults(),
+                           fuzzy_ops.AggregPMeanError(p=2), fuzzy_ops.AggregPMean(p=2))
+    a = torch.tensor([0.9, 0.3, 0.6, 0.2])
+    b = torch.tensor([0.8, 0.5, 0.1, 0.7])
+    body = torch.tensor([0.9, 0.2, 0.6, 0.4])
+    interp["A"], interp["B"], interp["c"] = a, b, body[:, None]
+    w = a * b
+    expected = 1 - torch.sqrt((w * (1 - body) ** 2).sum() / w.sum())
+    got = interp(sig.parse("∀ d | (A(d) & B(d)): P(c[d])")).value
+    assert got.item() == pytest.approx(expected.item(), abs=1e-5)
+
+
+def test_guard_and_body_sharing_a_subformula():
+    # The same sub-formula in a guard and outside it gets each its own value:
+    # exact in the guard, stable elsewhere.
+    sig = _guard_sig()
+    interp = _guard_interp(sig, Logic().with_defaults(),
+                           fuzzy_ops.AggregPMeanError(p=4), fuzzy_ops.AggregPMean(p=4))
+    stable = interp("A(d) & B(d)").value
+    assert stable.min().item() > 0                         # the body keeps the stable value
+    # The body is evaluated before the guard ...
+    phi = sig.parse("∀ d | (A(d) & B(d)): (P(c[d]) & (A(d) & B(d)))")
+    assert interp(phi).value.item() == pytest.approx(1.0, abs=1e-5)
+    # ... and a guard evaluated first doesn't change a later use outside guards.
+    psi = sig.parse("(∀ d | (A(d) & B(d)): P(c[d])) & (∃ d: (A(d) & B(d)))")
+    exists = interp(sig.parse("∃ d: (A(d) & B(d))")).value
+    assert interp(psi).value.item() == pytest.approx(exists.item(), abs=1e-5)
+    assert exists.item() > 0
+
+
+def test_atom_in_guard_and_body_is_called_once():
+    sig = _guard_sig()
+    interp = _guard_interp(sig, Logic().with_defaults(),
+                           fuzzy_ops.AggregPMeanError(p=2), fuzzy_ops.AggregPMean(p=2))
+    calls = []
+    interp["P"] = lambda v: (calls.append(1), v)[1]
+    interp(sig.parse("∀ d | (A(d) & P(c[d])): (B(d) & P(c[d]))"))
+    assert len(calls) == 1
+
+
+def test_custom_connective_in_guard_is_used_as_is():
+    # An operator with no `stable` setting is used unchanged in a guard.
+    class AndTimesHalf(fuzzy_ops.base.BinaryConnectiveOperator):
+        def __repr__(self):
+            return "AndTimesHalf()"
+
+        def __call__(self, x, y):
+            return 0.5 * x * y
+
+    sig = _guard_sig()
+    interp = _guard_interp(sig, Logic(And=AndTimesHalf()).with_defaults(),
+                           fuzzy_ops.AggregPMeanError(p=1), fuzzy_ops.AggregPMean(p=1))
+    interp["A"] = torch.tensor([1.0, 1.0, 1.0, 1.0])
+    interp["B"] = torch.tensor([1.0, 1.0, 0.0, 0.0])
+    # weights 0.5, 0.5, 0, 0: the mean of P over d = 0, 1
+    got = interp(sig.parse("∀ d | (A(d) & B(d)): P(c[d])")).value.item()
+    assert got == pytest.approx(0.5, abs=1e-5)

@@ -52,6 +52,9 @@ from sltn.interpretation.logic import Logic, _lookup_kind
 # Variable values fixed by enclosing quantifiers (e.g. diagonalised groups) during evaluation.
 Assignment = Dict[str, Tensor]
 
+# Formula nodes whose value can contain connectives, so it differs inside a guard.
+_GUARD_DEPENDENT = (Not, And, Or, Implies, Equivalent, _BoundFormula, FormulaAxisSelect, KB)
+
 # ---------------------------------------------------------------------------
 # Symbol → sltn.Tensor wrapping helpers (formerly ground() on each symbol class)
 # ---------------------------------------------------------------------------
@@ -223,6 +226,9 @@ class Interpretation(torch.nn.Module):
         # Per-call sub-formula cache and variable groundings; set only during forward().
         self._eval_cache: dict | None = None
         self._eval_vars: dict | None = None
+        # True while a quantifier's guard is evaluated: connectives then use
+        # their exact operators (see apply._exact).
+        self._in_guard: bool = False
 
         # Toggle memoisation on/off (default: on).
         self.use_cache: bool = True
@@ -465,7 +471,10 @@ class Interpretation(torch.nn.Module):
         node_repr = node.__dict__.get('_cache_repr')
         if node_repr is None:
             node_repr = node.__dict__['_cache_repr'] = repr(node)
-        key = (node_repr, frozenset((k, id(v)) for k, v in asgn.items()))
+        # Nodes that contain connectives have a different value inside a guard;
+        # atoms and terms don't, so a network used in a guard and a body runs once.
+        in_guard = self._in_guard and isinstance(node, _GUARD_DEPENDENT)
+        key = (node_repr, frozenset((k, id(v)) for k, v in asgn.items()), in_guard)
         if key not in cache:
             # Storing asgn keeps its tensors alive, so their ids can't be reused in this call.
             cache[key] = (self._eval_node(node, asgn), asgn)
@@ -514,12 +523,14 @@ class Interpretation(torch.nn.Module):
             case AtomicFormula():
                 return self._eval_atomic(node, asgn)
             case Not():
-                return apply_connective(self.logic.Not, self._eval(node.operand, asgn))
+                return apply_connective(self.logic.Not, self._eval(node.operand, asgn),
+                                        exact=self._in_guard)
             case And() | Or() | Implies() | Equivalent():
                 return apply_connective(
                     getattr(self.logic, node.op_attr),
                     self._eval(node.left, asgn),
                     self._eval(node.right, asgn),
+                    exact=self._in_guard,
                 )
             case KB():
                 results = [self._eval(clause, asgn) for clause in node.clauses]
@@ -535,6 +546,20 @@ class Interpretation(torch.nn.Module):
         fn = self.resolve(node.symbol, structural_axes_override=node.structural_axes)
         evaluated = [self._eval(arg, asgn) for arg in node.args]
         return fn(*evaluated)
+
+    def _eval_guard(self, guard: Formula, asgn: Assignment) -> Tensor:
+        """Evaluate a quantifier's guard with the exact connectives.
+
+        The aggregators count every entry whose guard is above 0, so a guard
+        must be exactly 0 where it is false. The stable operators never give
+        0 (the stable product maps 0 & 1 to about 1e-6), so inside the whole
+        guard the connectives run without them. Bodies are unchanged.
+        """
+        outer, self._in_guard = self._in_guard, True
+        try:
+            return self._eval(guard, asgn)
+        finally:
+            self._in_guard = outer
 
     def _eval_bound(self, node: Any, asgn: Assignment) -> Tensor:
         """Evaluate a Forall/Exists quantifier node."""
@@ -562,7 +587,7 @@ class Interpretation(torch.nn.Module):
         symbol     = node.symbol      # "∀" or "∃"
 
         formula_result = self._eval(node.formula, assignment)
-        guard_result   = self._eval(node.guard, assignment) if node.guard else None
+        guard_result   = self._eval_guard(node.guard, assignment) if node.guard else None
 
         if struct_var_names:
             agg_op = self.get_struct_agg_op(struct_var_names[0], quantifier)

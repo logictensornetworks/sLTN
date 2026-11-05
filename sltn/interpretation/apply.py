@@ -12,6 +12,7 @@ __all__ = [
     "apply_sat_agg",
 ]
 
+import copy
 from math import prod
 from typing import Any, Optional
 
@@ -37,12 +38,41 @@ def _var_axis_names(vars: list) -> list[str]:
 # Public apply functions
 # ---------------------------------------------------------------------------
 
-def apply_connective(op: ConnectiveOperator, *exprs: Tensor) -> Tensor:
+def _exact(op: Any) -> Any:
+    """Return *op* without its stable approximations, for evaluating guards.
+
+    The stable operators keep truth values away from 0 (the stable product
+    maps 0 & 1 to about 1e-6), and the aggregators count every entry with a
+    weight above 0 as inside the guard. In a guard, the exact operator gives
+    a real 0 where an atom is false. Values strictly between 0 and 1 change
+    by about eps only, so soft guards are unaffected.
+
+    The copy has ``stable=False``, and so have the operators it is built
+    from (the conjunction inside ``OrProbSum`` or ``ImpliesReichenbach``).
+    An operator with no ``stable`` setting is returned as it is.
+    """
+    attrs = getattr(op, "__dict__", {})
+    inner = {k: v for k, v in attrs.items() if isinstance(v, ConnectiveOperator)}
+    if attrs.get("stable") is not True and not inner:
+        return op
+    exact = copy.copy(op)
+    if attrs.get("stable") is True:
+        exact.stable = False
+    for k, v in inner.items():
+        setattr(exact, k, _exact(v))
+    return exact
+
+
+def apply_connective(op: ConnectiveOperator, *exprs: Tensor, exact: bool = False) -> Tensor:
     """Apply a connective operator to one or more :class:`sltn.Tensor` objects.
 
     Handles axis alignment and wraps the result back in a Tensor with
-    domain type :class:`~sltn.Bool`.
+    domain type :class:`~sltn.Bool`. With ``exact=True`` (inside a guard),
+    the operator is applied without its stable approximations (see
+    :func:`_exact`).
     """
+    if exact:
+        op = _exact(op)
     aligned = Tensor.align(*exprs)
     out = op(*[e.value for e in aligned])
     return Tensor(value=out, axes=aligned[0].axes, domain_type=Bool)
