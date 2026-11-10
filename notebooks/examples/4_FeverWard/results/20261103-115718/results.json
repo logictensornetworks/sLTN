@@ -1,0 +1,4627 @@
+{
+ "meta": {
+  "config": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "n_train": 200,
+   "noise": 1.0,
+   "epochs": 300,
+   "fracs": [
+    0.05,
+    0.02,
+    0.01
+   ],
+   "relapses": [
+    0.0,
+    0.1,
+    0.3
+   ]
+  },
+  "sltn": {
+   "commit": "857c7ac25f0b84fe851cf2f6d6e1769f0d85593b",
+   "branch": "bug-fixes-temp",
+   "dirty": false
+  },
+  "length": "variable",
+  "n_test": 2000,
+  "p_agg": 4,
+  "lr": 0.01
+ },
+ "rows": [
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8595443964004517,
+   "viol_relapse": 0.017500000074505806,
+   "viol_admit": 0.04450000077486038,
+   "viol_discharge": 0.0430000014603138,
+   "sat": {
+    "sick": 0.9623918533325195,
+    "healthy": 0.9623920321464539,
+    "admitted with fever": 0.6605565547943115,
+    "no relapse": 0.8524640798568726,
+    "discharged without fever": 0.6505520343780518
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8553416728973389,
+   "viol_relapse": 0.026000000536441803,
+   "viol_admit": 0.07750000059604645,
+   "viol_discharge": 0.01549999974668026,
+   "sat": {
+    "sick": 0.9623076915740967,
+    "healthy": 0.9622934460639954,
+    "admitted with fever": 0.5675556659698486,
+    "no relapse": 0.8133752346038818,
+    "discharged without fever": 0.8425226807594299
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8660166263580322,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0020000000949949026,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9622617959976196,
+    "healthy": 0.9622260928153992,
+    "admitted with fever": 0.9682965874671936,
+    "no relapse": 0.9620485305786133,
+    "discharged without fever": 0.9623422026634216
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8603008985519409,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.061000000685453415,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9622080326080322,
+    "healthy": 0.9622096419334412,
+    "admitted with fever": 0.5889251232147217,
+    "no relapse": 0.9621558785438538,
+    "discharged without fever": 0.9623408913612366
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8499621748924255,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9622531533241272,
+    "healthy": 0.9622595310211182,
+    "admitted with fever": 0.9683483839035034,
+    "no relapse": 0.9081789255142212,
+    "discharged without fever": 0.9623420238494873
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8729091286659241,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.003000000026077032,
+   "viol_discharge": 0.016499999910593033,
+   "sat": {
+    "sick": 0.9623525142669678,
+    "healthy": 0.9622926712036133,
+    "admitted with fever": 0.9683319926261902,
+    "no relapse": 0.9621744751930237,
+    "discharged without fever": 0.6540111899375916
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8768801093101501,
+   "viol_relapse": 0.03700000047683716,
+   "viol_admit": 0.0625,
+   "viol_discharge": 0.02199999988079071,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6397961378097534,
+    "no relapse": 0.7697340250015259,
+    "discharged without fever": 0.6844456791877747
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8877291083335876,
+   "viol_relapse": 0.03099999949336052,
+   "viol_admit": 0.042500000447034836,
+   "viol_discharge": 0.019500000402331352,
+   "sat": {
+    "sick": 0.9623768329620361,
+    "healthy": 0.9623808860778809,
+    "admitted with fever": 0.7090750932693481,
+    "no relapse": 0.783694863319397,
+    "discharged without fever": 0.6514642238616943
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8913454413414001,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623324275016785,
+    "healthy": 0.9623433351516724,
+    "admitted with fever": 0.9683046340942383,
+    "no relapse": 0.9622524380683899,
+    "discharged without fever": 0.9623562693595886
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8767979145050049,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.05999999865889549,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623473286628723,
+    "healthy": 0.9623680114746094,
+    "admitted with fever": 0.6210563778877258,
+    "no relapse": 0.9623432159423828,
+    "discharged without fever": 0.9623804092407227
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8887975811958313,
+   "viol_relapse": 0.008500000461935997,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623369574546814,
+    "healthy": 0.9623561501502991,
+    "admitted with fever": 0.9683405160903931,
+    "no relapse": 0.8918489217758179,
+    "discharged without fever": 0.9623548984527588
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8884688019752502,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.001500000013038516,
+   "viol_discharge": 0.008999999612569809,
+   "sat": {
+    "sick": 0.9623603224754333,
+    "healthy": 0.962339460849762,
+    "admitted with fever": 0.9683100581169128,
+    "no relapse": 0.9622799158096313,
+    "discharged without fever": 0.751738965511322
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.8892421126365662,
+   "viol_relapse": 0.017000000923871994,
+   "viol_admit": 0.050999999046325684,
+   "viol_discharge": 0.012000000104308128,
+   "sat": {
+    "sick": 0.9623931646347046,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.6182692050933838,
+    "no relapse": 0.8323720097541809,
+    "discharged without fever": 0.6709575653076172
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8897440433502197,
+   "viol_relapse": 0.014000000432133675,
+   "viol_admit": 0.0430000014603138,
+   "viol_discharge": 0.010499999858438969,
+   "sat": {
+    "sick": 0.9623630046844482,
+    "healthy": 0.9623671174049377,
+    "admitted with fever": 0.6371089816093445,
+    "no relapse": 0.8328913450241089,
+    "discharged without fever": 0.7248483896255493
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.9014555811882019,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623470306396484,
+    "healthy": 0.9623008370399475,
+    "admitted with fever": 0.96830815076828,
+    "no relapse": 0.9622539281845093,
+    "discharged without fever": 0.9623451232910156
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8949305415153503,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.03099999949336052,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623411893844604,
+    "healthy": 0.9623499512672424,
+    "admitted with fever": 0.6343832015991211,
+    "no relapse": 0.9623316526412964,
+    "discharged without fever": 0.962338387966156
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.9011209607124329,
+   "viol_relapse": 0.03750000149011612,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.962325930595398,
+    "healthy": 0.9623211622238159,
+    "admitted with fever": 0.9683329463005066,
+    "no relapse": 0.7921383380889893,
+    "discharged without fever": 0.9623768925666809
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.8901622891426086,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.028999999165534973,
+   "sat": {
+    "sick": 0.9623462557792664,
+    "healthy": 0.9623135924339294,
+    "admitted with fever": 0.9683204293251038,
+    "no relapse": 0.9623265862464905,
+    "discharged without fever": 0.642417311668396
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8614946603775024,
+   "viol_relapse": 0.061500001698732376,
+   "viol_admit": 0.06750000268220901,
+   "viol_discharge": 0.057500001043081284,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.5113666653633118,
+    "no relapse": 0.7509869933128357,
+    "discharged without fever": 0.5890581607818604
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.8748012185096741,
+   "viol_relapse": 0.04450000077486038,
+   "viol_admit": 0.04399999976158142,
+   "viol_discharge": 0.02449999935925007,
+   "sat": {
+    "sick": 0.9623544216156006,
+    "healthy": 0.9623563289642334,
+    "admitted with fever": 0.5499355792999268,
+    "no relapse": 0.8091409206390381,
+    "discharged without fever": 0.7786967158317566
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.893966019153595,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622979760169983,
+    "healthy": 0.9622582197189331,
+    "admitted with fever": 0.9683040976524353,
+    "no relapse": 0.962303638458252,
+    "discharged without fever": 0.9623656272888184
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8768097758293152,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.05000000074505806,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623497724533081,
+    "healthy": 0.9623627066612244,
+    "admitted with fever": 0.5424164533615112,
+    "no relapse": 0.962343156337738,
+    "discharged without fever": 0.9623681306838989
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8742991089820862,
+   "viol_relapse": 0.1145000010728836,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622648358345032,
+    "healthy": 0.9622365236282349,
+    "admitted with fever": 0.9682924747467041,
+    "no relapse": 0.7242114543914795,
+    "discharged without fever": 0.9623545408248901
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8886099457740784,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.03500000014901161,
+   "sat": {
+    "sick": 0.9623495936393738,
+    "healthy": 0.9623194336891174,
+    "admitted with fever": 0.9683323502540588,
+    "no relapse": 0.9622891545295715,
+    "discharged without fever": 0.6271814107894897
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8447571992874146,
+   "viol_relapse": 0.10999999940395355,
+   "viol_admit": 0.01850000023841858,
+   "viol_discharge": 0.061500001698732376,
+   "sat": {
+    "sick": 0.9623913764953613,
+    "healthy": 0.9623929858207703,
+    "admitted with fever": 0.6260929107666016,
+    "no relapse": 0.6732754111289978,
+    "discharged without fever": 0.5425786375999451
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8494211435317993,
+   "viol_relapse": 0.05350000038743019,
+   "viol_admit": 0.023000000044703484,
+   "viol_discharge": 0.032499998807907104,
+   "sat": {
+    "sick": 0.9623417258262634,
+    "healthy": 0.962335467338562,
+    "admitted with fever": 0.6362227201461792,
+    "no relapse": 0.7786783576011658,
+    "discharged without fever": 0.6732251644134521
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8741567134857178,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9622644186019897,
+    "healthy": 0.9621957540512085,
+    "admitted with fever": 0.9682345390319824,
+    "no relapse": 0.9622376561164856,
+    "discharged without fever": 0.9623582363128662
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8720746040344238,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.014000000432133675,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622877240180969,
+    "healthy": 0.9623398184776306,
+    "admitted with fever": 0.7134749889373779,
+    "no relapse": 0.9622997641563416,
+    "discharged without fever": 0.9623419642448425
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8663280010223389,
+   "viol_relapse": 0.0689999982714653,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9622459411621094,
+    "healthy": 0.9622095227241516,
+    "admitted with fever": 0.9682802557945251,
+    "no relapse": 0.7854570746421814,
+    "discharged without fever": 0.9623627066612244
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8759890198707581,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.02850000001490116,
+   "sat": {
+    "sick": 0.9622844457626343,
+    "healthy": 0.9622118473052979,
+    "admitted with fever": 0.968277633190155,
+    "no relapse": 0.9622735381126404,
+    "discharged without fever": 0.6310700178146362
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8071114420890808,
+   "viol_relapse": 0.2694999873638153,
+   "viol_admit": 0.15399999916553497,
+   "viol_discharge": 0.06800000369548798,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.4287831783294678,
+    "no relapse": 0.6202438473701477,
+    "discharged without fever": 0.5994453430175781
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8206152319908142,
+   "viol_relapse": 0.29649999737739563,
+   "viol_admit": 0.12549999356269836,
+   "viol_discharge": 0.08150000125169754,
+   "sat": {
+    "sick": 0.9623683094978333,
+    "healthy": 0.9623671770095825,
+    "admitted with fever": 0.45730865001678467,
+    "no relapse": 0.6027496457099915,
+    "discharged without fever": 0.5543262362480164
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8708749413490295,
+   "viol_relapse": 0.017000000923871994,
+   "viol_admit": 0.004000000189989805,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9598428606987,
+    "healthy": 0.9610268473625183,
+    "admitted with fever": 0.9681392312049866,
+    "no relapse": 0.9069841504096985,
+    "discharged without fever": 0.9623146653175354
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8631242513656616,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.05400000140070915,
+   "viol_discharge": 0.005499999970197678,
+   "sat": {
+    "sick": 0.9607042074203491,
+    "healthy": 0.9600355625152588,
+    "admitted with fever": 0.6032958626747131,
+    "no relapse": 0.9076873660087585,
+    "discharged without fever": 0.9623069763183594
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8653615713119507,
+   "viol_relapse": 0.05900000035762787,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622893333435059,
+    "healthy": 0.9622810482978821,
+    "admitted with fever": 0.9683083295822144,
+    "no relapse": 0.8270836472511292,
+    "discharged without fever": 0.9623600840568542
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8589692115783691,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.060499999672174454,
+   "sat": {
+    "sick": 0.9605724811553955,
+    "healthy": 0.9603497385978699,
+    "admitted with fever": 0.9682787656784058,
+    "no relapse": 0.9075872302055359,
+    "discharged without fever": 0.6104638576507568
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8083307147026062,
+   "viol_relapse": 0.2619999945163727,
+   "viol_admit": 0.11150000244379044,
+   "viol_discharge": 0.09149999916553497,
+   "sat": {
+    "sick": 0.9623932838439941,
+    "healthy": 0.9623929262161255,
+    "admitted with fever": 0.4467828869819641,
+    "no relapse": 0.6172747611999512,
+    "discharged without fever": 0.5297119617462158
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8134199976921082,
+   "viol_relapse": 0.26600000262260437,
+   "viol_admit": 0.11249999701976776,
+   "viol_discharge": 0.051500000059604645,
+   "sat": {
+    "sick": 0.9623513221740723,
+    "healthy": 0.9623553156852722,
+    "admitted with fever": 0.466255247592926,
+    "no relapse": 0.6308178901672363,
+    "discharged without fever": 0.6377907991409302
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8618853688240051,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623122215270996,
+    "healthy": 0.9622895121574402,
+    "admitted with fever": 0.9683158993721008,
+    "no relapse": 0.9622032642364502,
+    "discharged without fever": 0.962345540523529
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.862198531627655,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.026000000536441803,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622678160667419,
+    "healthy": 0.9623222947120667,
+    "admitted with fever": 0.6448889970779419,
+    "no relapse": 0.962139904499054,
+    "discharged without fever": 0.9623317122459412
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8581271767616272,
+   "viol_relapse": 0.21549999713897705,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623450636863708,
+    "healthy": 0.9623453617095947,
+    "admitted with fever": 0.9683567881584167,
+    "no relapse": 0.6855999827384949,
+    "discharged without fever": 0.9623810052871704
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8538991808891296,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.027499999850988388,
+   "sat": {
+    "sick": 0.9623605608940125,
+    "healthy": 0.9623413681983948,
+    "admitted with fever": 0.9683372974395752,
+    "no relapse": 0.9623215198516846,
+    "discharged without fever": 0.7365010976791382
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.812235414981842,
+   "viol_relapse": 0.07050000131130219,
+   "viol_admit": 0.14399999380111694,
+   "viol_discharge": 0.06750000268220901,
+   "sat": {
+    "sick": 0.9623931646347046,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.4138876795768738,
+    "no relapse": 0.7771694660186768,
+    "discharged without fever": 0.5703616142272949
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8207012414932251,
+   "viol_relapse": 0.0820000022649765,
+   "viol_admit": 0.12150000035762787,
+   "viol_discharge": 0.07649999856948853,
+   "sat": {
+    "sick": 0.9623405337333679,
+    "healthy": 0.9623351693153381,
+    "admitted with fever": 0.48598575592041016,
+    "no relapse": 0.7392310500144958,
+    "discharged without fever": 0.523003339767456
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8513696789741516,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9622750282287598,
+    "healthy": 0.9623091220855713,
+    "admitted with fever": 0.9682775735855103,
+    "no relapse": 0.9620856642723083,
+    "discharged without fever": 0.9623549580574036
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8530468940734863,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.08100000023841858,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9623299837112427,
+    "healthy": 0.9623304605484009,
+    "admitted with fever": 0.5201493501663208,
+    "no relapse": 0.9622240662574768,
+    "discharged without fever": 0.9623642563819885
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8456992506980896,
+   "viol_relapse": 0.10499999672174454,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.007000000216066837,
+   "sat": {
+    "sick": 0.9623335003852844,
+    "healthy": 0.9623315930366516,
+    "admitted with fever": 0.9683367609977722,
+    "no relapse": 0.7460619211196899,
+    "discharged without fever": 0.9623763561248779
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.8421851396560669,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.02850000001490116,
+   "sat": {
+    "sick": 0.9623198509216309,
+    "healthy": 0.9622749090194702,
+    "admitted with fever": 0.9682941436767578,
+    "no relapse": 0.9621012210845947,
+    "discharged without fever": 0.6015311479568481
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8050529956817627,
+   "viol_relapse": 0.09149999916553497,
+   "viol_admit": 0.11400000005960464,
+   "viol_discharge": 0.03700000047683716,
+   "sat": {
+    "sick": 0.9623932242393494,
+    "healthy": 0.9623737335205078,
+    "admitted with fever": 0.4181678891181946,
+    "no relapse": 0.7159053087234497,
+    "discharged without fever": 0.6743422746658325
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.8174065351486206,
+   "viol_relapse": 0.0860000029206276,
+   "viol_admit": 0.1080000028014183,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.962369441986084,
+    "healthy": 0.9623590707778931,
+    "admitted with fever": 0.45870912075042725,
+    "no relapse": 0.7254641056060791,
+    "discharged without fever": 0.9532954692840576
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8494460582733154,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622538685798645,
+    "healthy": 0.9622917175292969,
+    "admitted with fever": 0.9682877659797668,
+    "no relapse": 0.9622657299041748,
+    "discharged without fever": 0.9623220562934875
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8411572575569153,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.06199999898672104,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623124003410339,
+    "healthy": 0.9623242020606995,
+    "admitted with fever": 0.5851175785064697,
+    "no relapse": 0.9623192548751831,
+    "discharged without fever": 0.9623597860336304
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8534311056137085,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623004198074341,
+    "healthy": 0.9622766971588135,
+    "admitted with fever": 0.96828693151474,
+    "no relapse": 0.8893489837646484,
+    "discharged without fever": 0.9623478055000305
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8531919717788696,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.016499999910593033,
+   "sat": {
+    "sick": 0.9623606204986572,
+    "healthy": 0.9622642397880554,
+    "admitted with fever": 0.9683195352554321,
+    "no relapse": 0.962081253528595,
+    "discharged without fever": 0.7851966023445129
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8363867998123169,
+   "viol_relapse": 0.11249999701976776,
+   "viol_admit": 0.025499999523162842,
+   "viol_discharge": 0.05000000074505806,
+   "sat": {
+    "sick": 0.9623925685882568,
+    "healthy": 0.962393045425415,
+    "admitted with fever": 0.7264077067375183,
+    "no relapse": 0.6824712753295898,
+    "discharged without fever": 0.5733304619789124
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.822128415107727,
+   "viol_relapse": 0.22050000727176666,
+   "viol_admit": 0.020999999716877937,
+   "viol_discharge": 0.0364999994635582,
+   "sat": {
+    "sick": 0.9623801112174988,
+    "healthy": 0.9623799324035645,
+    "admitted with fever": 0.6747112274169922,
+    "no relapse": 0.611150860786438,
+    "discharged without fever": 0.6595867276191711
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8467420935630798,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.00800000037997961,
+   "sat": {
+    "sick": 0.9623384475708008,
+    "healthy": 0.9622621536254883,
+    "admitted with fever": 0.9683139324188232,
+    "no relapse": 0.962174654006958,
+    "discharged without fever": 0.9623504877090454
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8559024930000305,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.017500000074505806,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623135328292847,
+    "healthy": 0.9623002409934998,
+    "admitted with fever": 0.6681281328201294,
+    "no relapse": 0.9621632695198059,
+    "discharged without fever": 0.9623533487319946
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8412458300590515,
+   "viol_relapse": 0.2224999964237213,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9622613787651062,
+    "healthy": 0.9622801542282104,
+    "admitted with fever": 0.968338131904602,
+    "no relapse": 0.6621884703636169,
+    "discharged without fever": 0.9623456597328186
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8405289053916931,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.029999999329447746,
+   "sat": {
+    "sick": 0.9623609781265259,
+    "healthy": 0.9623311758041382,
+    "admitted with fever": 0.9683291912078857,
+    "no relapse": 0.9622676968574524,
+    "discharged without fever": 0.6634599566459656
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.7901360988616943,
+   "viol_relapse": 0.3050000071525574,
+   "viol_admit": 0.16099999845027924,
+   "viol_discharge": 0.06449999660253525,
+   "sat": {
+    "sick": 0.9623932838439941,
+    "healthy": 0.9623925685882568,
+    "admitted with fever": 0.4484468698501587,
+    "no relapse": 0.6184438467025757,
+    "discharged without fever": 0.6736935377120972
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8028684258460999,
+   "viol_relapse": 0.3855000138282776,
+   "viol_admit": 0.1080000028014183,
+   "viol_discharge": 0.08649999648332596,
+   "sat": {
+    "sick": 0.9623690247535706,
+    "healthy": 0.9623659253120422,
+    "admitted with fever": 0.45817482471466064,
+    "no relapse": 0.5904915928840637,
+    "discharged without fever": 0.5343335270881653
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8442850708961487,
+   "viol_relapse": 0.012000000104308128,
+   "viol_admit": 0.001500000013038516,
+   "viol_discharge": 0.0035000001080334187,
+   "sat": {
+    "sick": 0.9605568051338196,
+    "healthy": 0.9601976275444031,
+    "admitted with fever": 0.9682443141937256,
+    "no relapse": 0.907719612121582,
+    "discharged without fever": 0.9623087644577026
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8450900316238403,
+   "viol_relapse": 0.012500000186264515,
+   "viol_admit": 0.019500000402331352,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9604001641273499,
+    "healthy": 0.9603418707847595,
+    "admitted with fever": 0.673233151435852,
+    "no relapse": 0.9076444506645203,
+    "discharged without fever": 0.9623344540596008
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8455290794372559,
+   "viol_relapse": 0.1745000034570694,
+   "viol_admit": 0.005499999970197678,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9622480273246765,
+    "healthy": 0.9622293710708618,
+    "admitted with fever": 0.9682924151420593,
+    "no relapse": 0.6990605592727661,
+    "discharged without fever": 0.9623523354530334
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.836089551448822,
+   "viol_relapse": 0.012000000104308128,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.057999998331069946,
+   "sat": {
+    "sick": 0.9604306817054749,
+    "healthy": 0.9600928425788879,
+    "admitted with fever": 0.9683204889297485,
+    "no relapse": 0.9073517918586731,
+    "discharged without fever": 0.6240395307540894
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8159373998641968,
+   "viol_relapse": 0.24799999594688416,
+   "viol_admit": 0.016499999910593033,
+   "viol_discharge": 0.06300000101327896,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6971829533576965,
+    "no relapse": 0.6623197793960571,
+    "discharged without fever": 0.5748740434646606
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.816506564617157,
+   "viol_relapse": 0.23899999260902405,
+   "viol_admit": 0.010499999858438969,
+   "viol_discharge": 0.09950000047683716,
+   "sat": {
+    "sick": 0.9623578786849976,
+    "healthy": 0.9623550772666931,
+    "admitted with fever": 0.7660565376281738,
+    "no relapse": 0.6881662011146545,
+    "discharged without fever": 0.5269107818603516
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8337957859039307,
+   "viol_relapse": 0.008999999612569809,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0035000001080334187,
+   "sat": {
+    "sick": 0.9608111381530762,
+    "healthy": 0.9609617590904236,
+    "admitted with fever": 0.9682409763336182,
+    "no relapse": 0.9189419746398926,
+    "discharged without fever": 0.962306559085846
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8328708410263062,
+   "viol_relapse": 0.01549999974668026,
+   "viol_admit": 0.004999999888241291,
+   "viol_discharge": 0.004999999888241291,
+   "sat": {
+    "sick": 0.9607958793640137,
+    "healthy": 0.9609479308128357,
+    "admitted with fever": 0.8740608096122742,
+    "no relapse": 0.9189455509185791,
+    "discharged without fever": 0.9623149037361145
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8303806185722351,
+   "viol_relapse": 0.22450000047683716,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.004000000189989805,
+   "sat": {
+    "sick": 0.9622929692268372,
+    "healthy": 0.9623064994812012,
+    "admitted with fever": 0.9683578014373779,
+    "no relapse": 0.7324401140213013,
+    "discharged without fever": 0.9623426198959351
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8257559537887573,
+   "viol_relapse": 0.019500000402331352,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.04050000011920929,
+   "sat": {
+    "sick": 0.9607810974121094,
+    "healthy": 0.9609641432762146,
+    "admitted with fever": 0.968333899974823,
+    "no relapse": 0.918809175491333,
+    "discharged without fever": 0.6595239639282227
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.738038182258606,
+   "viol_relapse": 0.12300000339746475,
+   "viol_admit": 0.13750000298023224,
+   "viol_discharge": 0.14749999344348907,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.39923661947250366,
+    "no relapse": 0.7112287282943726,
+    "discharged without fever": 0.47996288537979126
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.7574239373207092,
+   "viol_relapse": 0.07450000196695328,
+   "viol_admit": 0.11050000041723251,
+   "viol_discharge": 0.13300000131130219,
+   "sat": {
+    "sick": 0.9623663425445557,
+    "healthy": 0.962364912033081,
+    "admitted with fever": 0.4511515498161316,
+    "no relapse": 0.7801221609115601,
+    "discharged without fever": 0.4792189598083496
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8030204176902771,
+   "viol_relapse": 0.011500000022351742,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.014000000432133675,
+   "sat": {
+    "sick": 0.9622772932052612,
+    "healthy": 0.9621983170509338,
+    "admitted with fever": 0.9682372808456421,
+    "no relapse": 0.9620189666748047,
+    "discharged without fever": 0.9623804092407227
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.7968488931655884,
+   "viol_relapse": 0.006000000052154064,
+   "viol_admit": 0.07199999690055847,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623066186904907,
+    "healthy": 0.96233731508255,
+    "admitted with fever": 0.5180736780166626,
+    "no relapse": 0.9621903300285339,
+    "discharged without fever": 0.9623723030090332
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8033108115196228,
+   "viol_relapse": 0.18299999833106995,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.013500000350177288,
+   "sat": {
+    "sick": 0.9622989892959595,
+    "healthy": 0.9622933268547058,
+    "admitted with fever": 0.9683262705802917,
+    "no relapse": 0.7098026275634766,
+    "discharged without fever": 0.962371289730072
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.8109344244003296,
+   "viol_relapse": 0.017999999225139618,
+   "viol_admit": 0.006500000134110451,
+   "viol_discharge": 0.052000001072883606,
+   "sat": {
+    "sick": 0.9623417854309082,
+    "healthy": 0.9622859954833984,
+    "admitted with fever": 0.9682941436767578,
+    "no relapse": 0.9620687961578369,
+    "discharged without fever": 0.6399881839752197
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8233581185340881,
+   "viol_relapse": 0.19750000536441803,
+   "viol_admit": 0.039000000804662704,
+   "viol_discharge": 0.03200000151991844,
+   "sat": {
+    "sick": 0.9623932242393494,
+    "healthy": 0.9623931050300598,
+    "admitted with fever": 0.5797032713890076,
+    "no relapse": 0.6405504941940308,
+    "discharged without fever": 0.5992464423179626
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.8191350102424622,
+   "viol_relapse": 0.19349999725818634,
+   "viol_admit": 0.030500000342726707,
+   "viol_discharge": 0.041999999433755875,
+   "sat": {
+    "sick": 0.9623494148254395,
+    "healthy": 0.9623556137084961,
+    "admitted with fever": 0.6010153889656067,
+    "no relapse": 0.6597834825515747,
+    "discharged without fever": 0.5970646142959595
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8186253309249878,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.962300181388855,
+    "healthy": 0.9623444676399231,
+    "admitted with fever": 0.9683237075805664,
+    "no relapse": 0.9622207880020142,
+    "discharged without fever": 0.9623442888259888
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.818406879901886,
+   "viol_relapse": 0.027000000700354576,
+   "viol_admit": 0.01850000023841858,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9621884226799011,
+    "healthy": 0.962268054485321,
+    "admitted with fever": 0.7204042673110962,
+    "no relapse": 0.9620494842529297,
+    "discharged without fever": 0.9623115062713623
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8344255089759827,
+   "viol_relapse": 0.30649998784065247,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623232483863831,
+    "healthy": 0.9623132348060608,
+    "admitted with fever": 0.9683271646499634,
+    "no relapse": 0.5964813232421875,
+    "discharged without fever": 0.9623662233352661
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8072666525840759,
+   "viol_relapse": 0.016499999910593033,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0689999982714653,
+   "sat": {
+    "sick": 0.9622942209243774,
+    "healthy": 0.9623138904571533,
+    "admitted with fever": 0.9683172702789307,
+    "no relapse": 0.9622876048088074,
+    "discharged without fever": 0.5260816216468811
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8035520315170288,
+   "viol_relapse": 0.08150000125169754,
+   "viol_admit": 0.017999999225139618,
+   "viol_discharge": 0.06199999898672104,
+   "sat": {
+    "sick": 0.9623928070068359,
+    "healthy": 0.9623931646347046,
+    "admitted with fever": 0.7481114864349365,
+    "no relapse": 0.7233039140701294,
+    "discharged without fever": 0.5442742705345154
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.7975353598594666,
+   "viol_relapse": 0.2809999883174896,
+   "viol_admit": 0.010499999858438969,
+   "viol_discharge": 0.03150000050663948,
+   "sat": {
+    "sick": 0.9623714089393616,
+    "healthy": 0.9623698592185974,
+    "admitted with fever": 0.7500248551368713,
+    "no relapse": 0.6363248229026794,
+    "discharged without fever": 0.7104990482330322
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.7964479923248291,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622997045516968,
+    "healthy": 0.9623057246208191,
+    "admitted with fever": 0.968352198600769,
+    "no relapse": 0.9619329571723938,
+    "discharged without fever": 0.962304413318634
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8037694692611694,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.019500000402331352,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623256325721741,
+    "healthy": 0.962336540222168,
+    "admitted with fever": 0.7119868397712708,
+    "no relapse": 0.9622406363487244,
+    "discharged without fever": 0.9623298048973083
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8309532403945923,
+   "viol_relapse": 0.09449999779462814,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623008966445923,
+    "healthy": 0.9623051881790161,
+    "admitted with fever": 0.9683526754379272,
+    "no relapse": 0.7710891366004944,
+    "discharged without fever": 0.9623717069625854
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8031895756721497,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.07100000232458115,
+   "sat": {
+    "sick": 0.9623042345046997,
+    "healthy": 0.9622928500175476,
+    "admitted with fever": 0.9683312177658081,
+    "no relapse": 0.9619508385658264,
+    "discharged without fever": 0.5254513025283813
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8455913066864014,
+   "viol_relapse": 0.023499999195337296,
+   "viol_admit": 0.07599999755620956,
+   "viol_discharge": 0.04800000041723251,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5481321811676025,
+    "no relapse": 0.8174318075180054,
+    "discharged without fever": 0.5962222218513489
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8541648983955383,
+   "viol_relapse": 0.017999999225139618,
+   "viol_admit": 0.09049999713897705,
+   "viol_discharge": 0.04800000041723251,
+   "sat": {
+    "sick": 0.9623660445213318,
+    "healthy": 0.9623668193817139,
+    "admitted with fever": 0.5278971195220947,
+    "no relapse": 0.8545216917991638,
+    "discharged without fever": 0.5902076363563538
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8840043544769287,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.001500000013038516,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9623626470565796,
+    "healthy": 0.9623401761054993,
+    "admitted with fever": 0.9683023691177368,
+    "no relapse": 0.9621962308883667,
+    "discharged without fever": 0.9623615741729736
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8676977157592773,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.06949999928474426,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.962312638759613,
+    "healthy": 0.9623417854309082,
+    "admitted with fever": 0.5621945261955261,
+    "no relapse": 0.9623319506645203,
+    "discharged without fever": 0.9623461365699768
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8833319544792175,
+   "viol_relapse": 0.017500000074505806,
+   "viol_admit": 0.003000000026077032,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9623758792877197,
+    "healthy": 0.962364912033081,
+    "admitted with fever": 0.9683470726013184,
+    "no relapse": 0.84318608045578,
+    "discharged without fever": 0.9623780846595764
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.876523494720459,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.006000000052154064,
+   "viol_discharge": 0.030500000342726707,
+   "sat": {
+    "sick": 0.9623692035675049,
+    "healthy": 0.9622913002967834,
+    "admitted with fever": 0.9683107733726501,
+    "no relapse": 0.9622925519943237,
+    "discharged without fever": 0.6625329256057739
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8508260250091553,
+   "viol_relapse": 0.006000000052154064,
+   "viol_admit": 0.039500001817941666,
+   "viol_discharge": 0.06599999964237213,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6837562322616577,
+    "no relapse": 0.9011496305465698,
+    "discharged without fever": 0.5174994468688965
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8681679964065552,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.029500000178813934,
+   "viol_discharge": 0.029999999329447746,
+   "sat": {
+    "sick": 0.9623917937278748,
+    "healthy": 0.9623918533325195,
+    "admitted with fever": 0.7322473526000977,
+    "no relapse": 0.9432806968688965,
+    "discharged without fever": 0.6244206428527832
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8778663873672485,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623517990112305,
+    "healthy": 0.9623291492462158,
+    "admitted with fever": 0.968280017375946,
+    "no relapse": 0.9623203277587891,
+    "discharged without fever": 0.9623265862464905
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8747431635856628,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.050999999046325684,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623505473136902,
+    "healthy": 0.9623637795448303,
+    "admitted with fever": 0.5843822956085205,
+    "no relapse": 0.9623462557792664,
+    "discharged without fever": 0.9623451232910156
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8854277729988098,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623212218284607,
+    "healthy": 0.9623479247093201,
+    "admitted with fever": 0.9683117866516113,
+    "no relapse": 0.9367752075195312,
+    "discharged without fever": 0.9623298645019531
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8721131086349487,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.007499999832361937,
+   "viol_discharge": 0.029999999329447746,
+   "sat": {
+    "sick": 0.9623908400535583,
+    "healthy": 0.9623545408248901,
+    "admitted with fever": 0.9683281183242798,
+    "no relapse": 0.9623258113861084,
+    "discharged without fever": 0.5873982310295105
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.8516814708709717,
+   "viol_relapse": 0.035999998450279236,
+   "viol_admit": 0.057999998331069946,
+   "viol_discharge": 0.0885000005364418,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6003081202507019,
+    "no relapse": 0.7775887250900269,
+    "discharged without fever": 0.5071753263473511
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8519324064254761,
+   "viol_relapse": 0.03449999913573265,
+   "viol_admit": 0.057500001043081284,
+   "viol_discharge": 0.08900000154972076,
+   "sat": {
+    "sick": 0.9623880386352539,
+    "healthy": 0.9623875021934509,
+    "admitted with fever": 0.6071151494979858,
+    "no relapse": 0.8120619058609009,
+    "discharged without fever": 0.5283753871917725
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8524343371391296,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623151421546936,
+    "healthy": 0.9623115658760071,
+    "admitted with fever": 0.968298614025116,
+    "no relapse": 0.9622061252593994,
+    "discharged without fever": 0.9623255133628845
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8950978517532349,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.019999999552965164,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623333811759949,
+    "healthy": 0.9623551368713379,
+    "admitted with fever": 0.7054476737976074,
+    "no relapse": 0.9622828960418701,
+    "discharged without fever": 0.9623085856437683
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8675757050514221,
+   "viol_relapse": 0.04650000110268593,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.96233731508255,
+    "healthy": 0.962325394153595,
+    "admitted with fever": 0.9683143496513367,
+    "no relapse": 0.8299520611763,
+    "discharged without fever": 0.9623693823814392
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.850928544998169,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.11999999731779099,
+   "sat": {
+    "sick": 0.9623764157295227,
+    "healthy": 0.9623017907142639,
+    "admitted with fever": 0.9682736396789551,
+    "no relapse": 0.9623127579689026,
+    "discharged without fever": 0.4494946599006653
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.780148983001709,
+   "viol_relapse": 0.02199999988079071,
+   "viol_admit": 0.10599999874830246,
+   "viol_discharge": 0.01899999938905239,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.49744725227355957,
+    "no relapse": 0.880438506603241,
+    "discharged without fever": 0.6756888628005981
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7963009476661682,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.05700000002980232,
+   "viol_discharge": 0.012500000186264515,
+   "sat": {
+    "sick": 0.9623849391937256,
+    "healthy": 0.9623855352401733,
+    "admitted with fever": 0.585045576095581,
+    "no relapse": 0.9123477935791016,
+    "discharged without fever": 0.74663245677948
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.7479286789894104,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623173475265503,
+    "healthy": 0.9622558355331421,
+    "admitted with fever": 0.9682484269142151,
+    "no relapse": 0.9623109698295593,
+    "discharged without fever": 0.9623187780380249
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8043351173400879,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.04349999874830246,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623383283615112,
+    "healthy": 0.962369441986084,
+    "admitted with fever": 0.5844006538391113,
+    "no relapse": 0.9622520804405212,
+    "discharged without fever": 0.9623441100120544
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.761904776096344,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623174667358398,
+    "healthy": 0.9622521996498108,
+    "admitted with fever": 0.9682669043540955,
+    "no relapse": 0.9330862164497375,
+    "discharged without fever": 0.962330162525177
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.7501046061515808,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.023499999195337296,
+   "sat": {
+    "sick": 0.9623775482177734,
+    "healthy": 0.9623286724090576,
+    "admitted with fever": 0.9683018922805786,
+    "no relapse": 0.9623591303825378,
+    "discharged without fever": 0.6763347387313843
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.7505621910095215,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.1574999988079071,
+   "viol_discharge": 0.10999999940395355,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.46822190284729004,
+    "no relapse": 0.9102957844734192,
+    "discharged without fever": 0.4122008681297302
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.7677188515663147,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.09000000357627869,
+   "viol_discharge": 0.10700000077486038,
+   "sat": {
+    "sick": 0.9623746871948242,
+    "healthy": 0.9623752236366272,
+    "admitted with fever": 0.587034285068512,
+    "no relapse": 0.9188703298568726,
+    "discharged without fever": 0.4305116534233093
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8241859078407288,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9622945785522461,
+    "healthy": 0.9622466564178467,
+    "admitted with fever": 0.9682027697563171,
+    "no relapse": 0.9621624946594238,
+    "discharged without fever": 0.9622997641563416
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8159406781196594,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.11249999701976776,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623687863349915,
+    "healthy": 0.9623696804046631,
+    "admitted with fever": 0.4616585373878479,
+    "no relapse": 0.9623063802719116,
+    "discharged without fever": 0.9623802900314331
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8312650918960571,
+   "viol_relapse": 0.012500000186264515,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623019695281982,
+    "healthy": 0.9622659087181091,
+    "admitted with fever": 0.9682415723800659,
+    "no relapse": 0.866264283657074,
+    "discharged without fever": 0.9623271822929382
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8199383616447449,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.06750000268220901,
+   "sat": {
+    "sick": 0.962385892868042,
+    "healthy": 0.9622943997383118,
+    "admitted with fever": 0.9682801961898804,
+    "no relapse": 0.9622857570648193,
+    "discharged without fever": 0.5002424716949463
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.7837794423103333,
+   "viol_relapse": 0.17900000512599945,
+   "viol_admit": 0.1965000033378601,
+   "viol_discharge": 0.125,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.4053955078125,
+    "no relapse": 0.6623109579086304,
+    "discharged without fever": 0.46273690462112427
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.801598072052002,
+   "viol_relapse": 0.21050000190734863,
+   "viol_admit": 0.15449999272823334,
+   "viol_discharge": 0.12300000339746475,
+   "sat": {
+    "sick": 0.962384045124054,
+    "healthy": 0.9623835682868958,
+    "admitted with fever": 0.45609140396118164,
+    "no relapse": 0.6495593786239624,
+    "discharged without fever": 0.5087200403213501
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8698362112045288,
+   "viol_relapse": 0.0035000001080334187,
+   "viol_admit": 0.0044999998062849045,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9623454809188843,
+    "healthy": 0.9623043537139893,
+    "admitted with fever": 0.9682722091674805,
+    "no relapse": 0.9620747566223145,
+    "discharged without fever": 0.9623304009437561
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8699960112571716,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.04399999976158142,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9623359441757202,
+    "healthy": 0.9623467922210693,
+    "admitted with fever": 0.6073731184005737,
+    "no relapse": 0.9622976779937744,
+    "discharged without fever": 0.9623581767082214
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8354774117469788,
+   "viol_relapse": 0.1784999966621399,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0024999999441206455,
+   "sat": {
+    "sick": 0.9623213410377502,
+    "healthy": 0.9623206257820129,
+    "admitted with fever": 0.9683418869972229,
+    "no relapse": 0.6956433057785034,
+    "discharged without fever": 0.9623340964317322
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8608869314193726,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.08250000327825546,
+   "sat": {
+    "sick": 0.9623692631721497,
+    "healthy": 0.9623368382453918,
+    "admitted with fever": 0.9683380126953125,
+    "no relapse": 0.962230920791626,
+    "discharged without fever": 0.5466077923774719
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.843172550201416,
+   "viol_relapse": 0.1404999941587448,
+   "viol_admit": 0.08799999952316284,
+   "viol_discharge": 0.009499999694526196,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.5660496950149536,
+    "no relapse": 0.7120586633682251,
+    "discharged without fever": 0.6841979026794434
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8702630996704102,
+   "viol_relapse": 0.07249999791383743,
+   "viol_admit": 0.035999998450279236,
+   "viol_discharge": 0.004999999888241291,
+   "sat": {
+    "sick": 0.9623638391494751,
+    "healthy": 0.9623541235923767,
+    "admitted with fever": 0.6406252980232239,
+    "no relapse": 0.8004114627838135,
+    "discharged without fever": 0.744314968585968
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8766833543777466,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623365998268127,
+    "healthy": 0.9623173475265503,
+    "admitted with fever": 0.9682413935661316,
+    "no relapse": 0.9621899127960205,
+    "discharged without fever": 0.962324857711792
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8625117540359497,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.051500000059604645,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623315334320068,
+    "healthy": 0.9623777866363525,
+    "admitted with fever": 0.5977697372436523,
+    "no relapse": 0.9623146057128906,
+    "discharged without fever": 0.9623309373855591
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.882868766784668,
+   "viol_relapse": 0.03700000047683716,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623404145240784,
+    "healthy": 0.9623234868049622,
+    "admitted with fever": 0.9683021903038025,
+    "no relapse": 0.8990063667297363,
+    "discharged without fever": 0.9623553156852722
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8825556039810181,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.01850000023841858,
+   "sat": {
+    "sick": 0.9623483419418335,
+    "healthy": 0.9623258709907532,
+    "admitted with fever": 0.9683096408843994,
+    "no relapse": 0.9622769355773926,
+    "discharged without fever": 0.6552205085754395
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.7839629650115967,
+   "viol_relapse": 0.03750000149011612,
+   "viol_admit": 0.17749999463558197,
+   "viol_discharge": 0.008500000461935997,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.45450544357299805,
+    "no relapse": 0.7897981405258179,
+    "discharged without fever": 0.7281073331832886
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8452998995780945,
+   "viol_relapse": 0.012500000186264515,
+   "viol_admit": 0.06700000166893005,
+   "viol_discharge": 0.020500000566244125,
+   "sat": {
+    "sick": 0.9623778462409973,
+    "healthy": 0.9623780250549316,
+    "admitted with fever": 0.6282958388328552,
+    "no relapse": 0.8678716421127319,
+    "discharged without fever": 0.7411781549453735
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8419455289840698,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.009999999776482582,
+   "sat": {
+    "sick": 0.9622323513031006,
+    "healthy": 0.9623064994812012,
+    "admitted with fever": 0.9682934880256653,
+    "no relapse": 0.9623037576675415,
+    "discharged without fever": 0.9622770547866821
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8207012414932251,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.06499999761581421,
+   "viol_discharge": 0.0024999999441206455,
+   "sat": {
+    "sick": 0.9623072147369385,
+    "healthy": 0.9623315334320068,
+    "admitted with fever": 0.6545637845993042,
+    "no relapse": 0.9622313976287842,
+    "discharged without fever": 0.962336540222168
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8500120043754578,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.004999999888241291,
+   "sat": {
+    "sick": 0.9622830748558044,
+    "healthy": 0.9623204469680786,
+    "admitted with fever": 0.9683077335357666,
+    "no relapse": 0.8783048987388611,
+    "discharged without fever": 0.9623095989227295
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.8175864815711975,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.039000000804662704,
+   "sat": {
+    "sick": 0.9623374342918396,
+    "healthy": 0.9623266458511353,
+    "admitted with fever": 0.9683016538619995,
+    "no relapse": 0.9623352289199829,
+    "discharged without fever": 0.6836010217666626
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.7712600827217102,
+   "viol_relapse": 0.012000000104308128,
+   "viol_admit": 0.15850000083446503,
+   "viol_discharge": 0.05700000002980232,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.39476436376571655,
+    "no relapse": 0.905173122882843,
+    "discharged without fever": 0.6432771682739258
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7628915309906006,
+   "viol_relapse": 0.02250000089406967,
+   "viol_admit": 0.1535000056028366,
+   "viol_discharge": 0.050999999046325684,
+   "sat": {
+    "sick": 0.9623758792877197,
+    "healthy": 0.9623786211013794,
+    "admitted with fever": 0.45043277740478516,
+    "no relapse": 0.8249534964561462,
+    "discharged without fever": 0.681172251701355
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8404399752616882,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623177647590637,
+    "healthy": 0.9623367190361023,
+    "admitted with fever": 0.9682914614677429,
+    "no relapse": 0.9623015522956848,
+    "discharged without fever": 0.9623719453811646
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8006694912910461,
+   "viol_relapse": 0.0035000001080334187,
+   "viol_admit": 0.1120000034570694,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623568058013916,
+    "healthy": 0.9623659253120422,
+    "admitted with fever": 0.439561128616333,
+    "no relapse": 0.9623667597770691,
+    "discharged without fever": 0.9623791575431824
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8326293230056763,
+   "viol_relapse": 0.05249999836087227,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623375535011292,
+    "healthy": 0.9623185992240906,
+    "admitted with fever": 0.9683051109313965,
+    "no relapse": 0.8108886480331421,
+    "discharged without fever": 0.962378978729248
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8268111944198608,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.03550000116229057,
+   "sat": {
+    "sick": 0.9623400568962097,
+    "healthy": 0.9623284339904785,
+    "admitted with fever": 0.968305230140686,
+    "no relapse": 0.9622618556022644,
+    "discharged without fever": 0.7037363648414612
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8649036288261414,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.014999999664723873,
+   "viol_discharge": 0.04500000178813934,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.7470096349716187,
+    "no relapse": 0.9360348582267761,
+    "discharged without fever": 0.6336336731910706
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8516010642051697,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.014000000432133675,
+   "viol_discharge": 0.03449999913573265,
+   "sat": {
+    "sick": 0.9623832702636719,
+    "healthy": 0.9623832702636719,
+    "admitted with fever": 0.7335953116416931,
+    "no relapse": 0.9478803277015686,
+    "discharged without fever": 0.717108964920044
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8657798171043396,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.962303638458252,
+    "healthy": 0.9622938632965088,
+    "admitted with fever": 0.9682504534721375,
+    "no relapse": 0.9621683359146118,
+    "discharged without fever": 0.9622939229011536
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8488928079605103,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.017500000074505806,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623280763626099,
+    "healthy": 0.9623706936836243,
+    "admitted with fever": 0.7206438183784485,
+    "no relapse": 0.9622753858566284,
+    "discharged without fever": 0.9623046517372131
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8623546361923218,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623286724090576,
+    "healthy": 0.9623184204101562,
+    "admitted with fever": 0.9682936072349548,
+    "no relapse": 0.9356389045715332,
+    "discharged without fever": 0.9623338580131531
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8402103185653687,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.003000000026077032,
+   "viol_discharge": 0.05000000074505806,
+   "sat": {
+    "sick": 0.9623366594314575,
+    "healthy": 0.9623205661773682,
+    "admitted with fever": 0.9683254957199097,
+    "no relapse": 0.9623134732246399,
+    "discharged without fever": 0.6060804724693298
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.7921850085258484,
+   "viol_relapse": 0.1979999989271164,
+   "viol_admit": 0.13199999928474426,
+   "viol_discharge": 0.13449999690055847,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5215442776679993,
+    "no relapse": 0.6999214887619019,
+    "discharged without fever": 0.5383328199386597
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.7879408597946167,
+   "viol_relapse": 0.23749999701976776,
+   "viol_admit": 0.14749999344348907,
+   "viol_discharge": 0.13950000703334808,
+   "sat": {
+    "sick": 0.9623873233795166,
+    "healthy": 0.9623875021934509,
+    "admitted with fever": 0.49330198764801025,
+    "no relapse": 0.6984411478042603,
+    "discharged without fever": 0.5537412166595459
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8349919319152832,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0020000000949949026,
+   "viol_discharge": 0.0024999999441206455,
+   "sat": {
+    "sick": 0.9618396162986755,
+    "healthy": 0.9618114233016968,
+    "admitted with fever": 0.9682469367980957,
+    "no relapse": 0.9603437185287476,
+    "discharged without fever": 0.9622581005096436
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8451631665229797,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.01600000075995922,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.96233069896698,
+    "healthy": 0.9623413681983948,
+    "admitted with fever": 0.6693618893623352,
+    "no relapse": 0.9622777104377747,
+    "discharged without fever": 0.9623522162437439
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8222596049308777,
+   "viol_relapse": 0.1745000034570694,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0024999999441206455,
+   "sat": {
+    "sick": 0.9622976183891296,
+    "healthy": 0.9622860550880432,
+    "admitted with fever": 0.9683371782302856,
+    "no relapse": 0.7276126146316528,
+    "discharged without fever": 0.9623410701751709
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8120152354240417,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.06300000101327896,
+   "sat": {
+    "sick": 0.9623032212257385,
+    "healthy": 0.9622520208358765,
+    "admitted with fever": 0.9683106541633606,
+    "no relapse": 0.9617847204208374,
+    "discharged without fever": 0.6096547245979309
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8022056221961975,
+   "viol_relapse": 0.13300000131130219,
+   "viol_admit": 0.023499999195337296,
+   "viol_discharge": 0.1574999988079071,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6933753490447998,
+    "no relapse": 0.7245779037475586,
+    "discharged without fever": 0.4635434150695801
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.803130567073822,
+   "viol_relapse": 0.2709999978542328,
+   "viol_admit": 0.01549999974668026,
+   "viol_discharge": 0.17149999737739563,
+   "sat": {
+    "sick": 0.9623914361000061,
+    "healthy": 0.9623910784721375,
+    "admitted with fever": 0.8531464338302612,
+    "no relapse": 0.7033846378326416,
+    "discharged without fever": 0.4415830969810486
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.834151566028595,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.006000000052154064,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623725414276123,
+    "healthy": 0.9623331427574158,
+    "admitted with fever": 0.9682724475860596,
+    "no relapse": 0.9622941017150879,
+    "discharged without fever": 0.9623472094535828
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.833511233329773,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.020999999716877937,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623671174049377,
+    "healthy": 0.9623693227767944,
+    "admitted with fever": 0.762213408946991,
+    "no relapse": 0.9623520374298096,
+    "discharged without fever": 0.9623714685440063
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8409107327461243,
+   "viol_relapse": 0.030500000342726707,
+   "viol_admit": 0.006500000134110451,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.962361216545105,
+    "healthy": 0.9623600840568542,
+    "admitted with fever": 0.968316912651062,
+    "no relapse": 0.8392892479896545,
+    "discharged without fever": 0.962334930896759
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8243329524993896,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.05950000137090683,
+   "sat": {
+    "sick": 0.9623672962188721,
+    "healthy": 0.9623466730117798,
+    "admitted with fever": 0.968328058719635,
+    "no relapse": 0.9622547626495361,
+    "discharged without fever": 0.5526854395866394
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.7124809622764587,
+   "viol_relapse": 0.18000000715255737,
+   "viol_admit": 0.19200000166893005,
+   "viol_discharge": 0.1535000056028366,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.4546999931335449,
+    "no relapse": 0.7106378078460693,
+    "discharged without fever": 0.47999274730682373
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.7679517865180969,
+   "viol_relapse": 0.09200000017881393,
+   "viol_admit": 0.04450000077486038,
+   "viol_discharge": 0.09399999678134918,
+   "sat": {
+    "sick": 0.9623619318008423,
+    "healthy": 0.9623726606369019,
+    "admitted with fever": 0.723098635673523,
+    "no relapse": 0.7719587087631226,
+    "discharged without fever": 0.5878370404243469
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.7754302024841309,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.02500000037252903,
+   "sat": {
+    "sick": 0.9622862339019775,
+    "healthy": 0.9623340964317322,
+    "admitted with fever": 0.9683550000190735,
+    "no relapse": 0.9622579216957092,
+    "discharged without fever": 0.9623035192489624
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.7990996837615967,
+   "viol_relapse": 0.006000000052154064,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.00800000037997961,
+   "sat": {
+    "sick": 0.9623537659645081,
+    "healthy": 0.9623552560806274,
+    "admitted with fever": 0.9292410612106323,
+    "no relapse": 0.9622775316238403,
+    "discharged without fever": 0.9623714089393616
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.7929282188415527,
+   "viol_relapse": 0.04149999842047691,
+   "viol_admit": 0.0024999999441206455,
+   "viol_discharge": 0.02449999935925007,
+   "sat": {
+    "sick": 0.9623159170150757,
+    "healthy": 0.9623463749885559,
+    "admitted with fever": 0.9683476686477661,
+    "no relapse": 0.7874023914337158,
+    "discharged without fever": 0.9623403549194336
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.7779713869094849,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.07349999994039536,
+   "sat": {
+    "sick": 0.9623273611068726,
+    "healthy": 0.9623131155967712,
+    "admitted with fever": 0.9683197736740112,
+    "no relapse": 0.9622962474822998,
+    "discharged without fever": 0.6208580732345581
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.7683122158050537,
+   "viol_relapse": 0.03750000149011612,
+   "viol_admit": 0.07100000232458115,
+   "viol_discharge": 0.21199999749660492,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.4854782819747925,
+    "no relapse": 0.8433696627616882,
+    "discharged without fever": 0.3855533003807068
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7700597047805786,
+   "viol_relapse": 0.02500000037252903,
+   "viol_admit": 0.0794999971985817,
+   "viol_discharge": 0.1525000035762787,
+   "sat": {
+    "sick": 0.9623737335205078,
+    "healthy": 0.962375283241272,
+    "admitted with fever": 0.48787349462509155,
+    "no relapse": 0.852397084236145,
+    "discharged without fever": 0.4181180000305176
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8286005258560181,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623425602912903,
+    "healthy": 0.9623358249664307,
+    "admitted with fever": 0.9682709574699402,
+    "no relapse": 0.9622822999954224,
+    "discharged without fever": 0.9623647928237915
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8200087547302246,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.04899999871850014,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.962349534034729,
+    "healthy": 0.9623730778694153,
+    "admitted with fever": 0.6013415455818176,
+    "no relapse": 0.9623121023178101,
+    "discharged without fever": 0.9623753428459167
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.7929955124855042,
+   "viol_relapse": 0.22300000488758087,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623322486877441,
+    "healthy": 0.9623051881790161,
+    "admitted with fever": 0.9682811498641968,
+    "no relapse": 0.6475422382354736,
+    "discharged without fever": 0.9623666405677795
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8013688921928406,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.10350000113248825,
+   "sat": {
+    "sick": 0.9623419642448425,
+    "healthy": 0.9623196721076965,
+    "admitted with fever": 0.9682726263999939,
+    "no relapse": 0.9622892141342163,
+    "discharged without fever": 0.4665265679359436
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.7765132188796997,
+   "viol_relapse": 0.020500000566244125,
+   "viol_admit": 0.14650000631809235,
+   "viol_discharge": 0.009499999694526196,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.43965184688568115,
+    "no relapse": 0.8467625379562378,
+    "discharged without fever": 0.8648247122764587
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.7725987434387207,
+   "viol_relapse": 0.008500000461935997,
+   "viol_admit": 0.1354999989271164,
+   "viol_discharge": 0.0024999999441206455,
+   "sat": {
+    "sick": 0.9623916149139404,
+    "healthy": 0.962392270565033,
+    "admitted with fever": 0.48666566610336304,
+    "no relapse": 0.8775374889373779,
+    "discharged without fever": 0.8620850443840027
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.7954331040382385,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623529314994812,
+    "healthy": 0.9623609185218811,
+    "admitted with fever": 0.9683058261871338,
+    "no relapse": 0.9623121619224548,
+    "discharged without fever": 0.9623727798461914
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.7651323080062866,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.16099999845027924,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623833298683167,
+    "healthy": 0.9623850584030151,
+    "admitted with fever": 0.4112662076950073,
+    "no relapse": 0.9623631238937378,
+    "discharged without fever": 0.9623767733573914
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.791663646697998,
+   "viol_relapse": 0.006000000052154064,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.962348997592926,
+    "healthy": 0.9623476266860962,
+    "admitted with fever": 0.9683230519294739,
+    "no relapse": 0.9095463752746582,
+    "discharged without fever": 0.9623725414276123
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8023197054862976,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0430000014603138,
+   "sat": {
+    "sick": 0.9623655676841736,
+    "healthy": 0.9623525738716125,
+    "admitted with fever": 0.968329131603241,
+    "no relapse": 0.9622877836227417,
+    "discharged without fever": 0.5675287246704102
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8789610862731934,
+   "viol_relapse": 0.03150000050663948,
+   "viol_admit": 0.05900000035762787,
+   "viol_discharge": 0.06449999660253525,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6149008274078369,
+    "no relapse": 0.8393893241882324,
+    "discharged without fever": 0.6115124225616455
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8727410435676575,
+   "viol_relapse": 0.027000000700354576,
+   "viol_admit": 0.06800000369548798,
+   "viol_discharge": 0.05649999901652336,
+   "sat": {
+    "sick": 0.9623793363571167,
+    "healthy": 0.962375819683075,
+    "admitted with fever": 0.6124846935272217,
+    "no relapse": 0.8501851558685303,
+    "discharged without fever": 0.6657928228378296
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8948474526405334,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623312950134277,
+    "healthy": 0.9622977375984192,
+    "admitted with fever": 0.9682647585868835,
+    "no relapse": 0.962218165397644,
+    "discharged without fever": 0.9623351097106934
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8658485412597656,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.08950000256299973,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623298048973083,
+    "healthy": 0.9623509049415588,
+    "admitted with fever": 0.5331521034240723,
+    "no relapse": 0.9623392820358276,
+    "discharged without fever": 0.9623382687568665
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.887450635433197,
+   "viol_relapse": 0.039500001817941666,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623364210128784,
+    "healthy": 0.9623280167579651,
+    "admitted with fever": 0.9683254361152649,
+    "no relapse": 0.8302956223487854,
+    "discharged without fever": 0.9623605608940125
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8914852738380432,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.032999999821186066,
+   "sat": {
+    "sick": 0.9623755216598511,
+    "healthy": 0.9623403549194336,
+    "admitted with fever": 0.9683040380477905,
+    "no relapse": 0.9622288346290588,
+    "discharged without fever": 0.6518030762672424
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8556751608848572,
+   "viol_relapse": 0.0035000001080334187,
+   "viol_admit": 0.009499999694526196,
+   "viol_discharge": 0.11749999970197678,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.865352988243103,
+    "no relapse": 0.9152466654777527,
+    "discharged without fever": 0.48839640617370605
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8838661909103394,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.008500000461935997,
+   "viol_discharge": 0.003000000026077032,
+   "sat": {
+    "sick": 0.9623890519142151,
+    "healthy": 0.9623903036117554,
+    "admitted with fever": 0.8752086758613586,
+    "no relapse": 0.9513290524482727,
+    "discharged without fever": 0.7954568862915039
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8768801093101501,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623817801475525,
+    "healthy": 0.9623320698738098,
+    "admitted with fever": 0.9682576060295105,
+    "no relapse": 0.9622600674629211,
+    "discharged without fever": 0.9623318910598755
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8585518002510071,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.041999999433755875,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623739719390869,
+    "healthy": 0.9623830914497375,
+    "admitted with fever": 0.5696954727172852,
+    "no relapse": 0.9623445272445679,
+    "discharged without fever": 0.9623578786849976
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8874003291130066,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623528718948364,
+    "healthy": 0.9623634219169617,
+    "admitted with fever": 0.9683147668838501,
+    "no relapse": 0.9559984803199768,
+    "discharged without fever": 0.9623249769210815
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8525519967079163,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.09799999743700027,
+   "sat": {
+    "sick": 0.9623796939849854,
+    "healthy": 0.9623655080795288,
+    "admitted with fever": 0.9683567881584167,
+    "no relapse": 0.9622952938079834,
+    "discharged without fever": 0.5338800549507141
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.7374100685119629,
+   "viol_relapse": 0.15649999678134918,
+   "viol_admit": 0.2955000102519989,
+   "viol_discharge": 0.10350000113248825,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.3719189167022705,
+    "no relapse": 0.7466980218887329,
+    "discharged without fever": 0.5008548498153687
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.7225196361541748,
+   "viol_relapse": 0.18150000274181366,
+   "viol_admit": 0.3504999876022339,
+   "viol_discharge": 0.12200000137090683,
+   "sat": {
+    "sick": 0.962392270565033,
+    "healthy": 0.9623925685882568,
+    "admitted with fever": 0.3621222972869873,
+    "no relapse": 0.7684292793273926,
+    "discharged without fever": 0.49716389179229736
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8471641540527344,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623749852180481,
+    "healthy": 0.9623206257820129,
+    "admitted with fever": 0.9682515263557434,
+    "no relapse": 0.9622390866279602,
+    "discharged without fever": 0.9623662829399109
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.871507465839386,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.08049999922513962,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.962376058101654,
+    "healthy": 0.9623829126358032,
+    "admitted with fever": 0.5866661667823792,
+    "no relapse": 0.9623435139656067,
+    "discharged without fever": 0.9623764157295227
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8806257247924805,
+   "viol_relapse": 0.014000000432133675,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623671770095825,
+    "healthy": 0.9623444676399231,
+    "admitted with fever": 0.968317985534668,
+    "no relapse": 0.8456692099571228,
+    "discharged without fever": 0.9623730182647705
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.760498583316803,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.26600000262260437,
+   "sat": {
+    "sick": 0.9623926281929016,
+    "healthy": 0.9623645544052124,
+    "admitted with fever": 0.9683186411857605,
+    "no relapse": 0.9623342752456665,
+    "discharged without fever": 0.33732908964157104
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.678885281085968,
+   "viol_relapse": 0.0860000029206276,
+   "viol_admit": 0.36000001430511475,
+   "viol_discharge": 0.019500000402331352,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.3229867219924927,
+    "no relapse": 0.7976177930831909,
+    "discharged without fever": 0.7216004133224487
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7239099740982056,
+   "viol_relapse": 0.12399999797344208,
+   "viol_admit": 0.2985000014305115,
+   "viol_discharge": 0.032499998807907104,
+   "sat": {
+    "sick": 0.9623919725418091,
+    "healthy": 0.962390124797821,
+    "admitted with fever": 0.38262641429901123,
+    "no relapse": 0.7940768003463745,
+    "discharged without fever": 0.6503739356994629
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.7737886309623718,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623520374298096,
+    "healthy": 0.9623438119888306,
+    "admitted with fever": 0.968313992023468,
+    "no relapse": 0.9622841477394104,
+    "discharged without fever": 0.9623081088066101
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.7607331275939941,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.014000000432133675,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623703956604004,
+    "healthy": 0.9623885154724121,
+    "admitted with fever": 0.70571368932724,
+    "no relapse": 0.9622141718864441,
+    "discharged without fever": 0.9623488783836365
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.7978073358535767,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623677134513855,
+    "healthy": 0.9623368978500366,
+    "admitted with fever": 0.9682924747467041,
+    "no relapse": 0.9564913511276245,
+    "discharged without fever": 0.9623377323150635
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8075989484786987,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.10649999976158142,
+   "sat": {
+    "sick": 0.9623835682868958,
+    "healthy": 0.9623567461967468,
+    "admitted with fever": 0.9683372378349304,
+    "no relapse": 0.9623398780822754,
+    "discharged without fever": 0.4908784031867981
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.6050637364387512,
+   "viol_relapse": 0.05350000038743019,
+   "viol_admit": 0.4740000069141388,
+   "viol_discharge": 0.09200000017881393,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.2126321792602539,
+    "no relapse": 0.8121887445449829,
+    "discharged without fever": 0.5834839344024658
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.5774964690208435,
+   "viol_relapse": 0.035999998450279236,
+   "viol_admit": 0.5920000076293945,
+   "viol_discharge": 0.06400000303983688,
+   "sat": {
+    "sick": 0.9623931646347046,
+    "healthy": 0.9623907804489136,
+    "admitted with fever": 0.21190005540847778,
+    "no relapse": 0.8271480798721313,
+    "discharged without fever": 0.6299566626548767
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.796035647392273,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623243808746338,
+    "healthy": 0.9623597264289856,
+    "admitted with fever": 0.9682450294494629,
+    "no relapse": 0.9621970653533936,
+    "discharged without fever": 0.9622528553009033
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.6497043371200562,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.39500001072883606,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623727798461914,
+    "healthy": 0.9623917937278748,
+    "admitted with fever": 0.27494800090789795,
+    "no relapse": 0.9623098373413086,
+    "discharged without fever": 0.9623540639877319
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8114433288574219,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623281955718994,
+    "healthy": 0.9623388051986694,
+    "admitted with fever": 0.9682615399360657,
+    "no relapse": 0.9457468390464783,
+    "discharged without fever": 0.9623016715049744
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.751311719417572,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.08550000190734863,
+   "sat": {
+    "sick": 0.9623836278915405,
+    "healthy": 0.9623696804046631,
+    "admitted with fever": 0.968326985836029,
+    "no relapse": 0.9623531699180603,
+    "discharged without fever": 0.4841291308403015
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8003995418548584,
+   "viol_relapse": 0.026499999687075615,
+   "viol_admit": 0.06949999928474426,
+   "viol_discharge": 0.23000000417232513,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5412901639938354,
+    "no relapse": 0.7941824197769165,
+    "discharged without fever": 0.38276463747024536
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8028765320777893,
+   "viol_relapse": 0.03400000184774399,
+   "viol_admit": 0.07349999994039536,
+   "viol_discharge": 0.20900000631809235,
+   "sat": {
+    "sick": 0.9623905420303345,
+    "healthy": 0.9623926281929016,
+    "admitted with fever": 0.5711953043937683,
+    "no relapse": 0.8280306458473206,
+    "discharged without fever": 0.42793983221054077
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8739113211631775,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623615145683289,
+    "healthy": 0.962323784828186,
+    "admitted with fever": 0.9682644605636597,
+    "no relapse": 0.9622077345848083,
+    "discharged without fever": 0.9623521566390991
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.858250081539154,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.03500000014901161,
+   "viol_discharge": 0.004999999888241291,
+   "sat": {
+    "sick": 0.9623427391052246,
+    "healthy": 0.9623783826828003,
+    "admitted with fever": 0.6314048171043396,
+    "no relapse": 0.9623748064041138,
+    "discharged without fever": 0.9623467326164246
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8542549014091492,
+   "viol_relapse": 0.029500000178813934,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.962371289730072,
+    "healthy": 0.9623628854751587,
+    "admitted with fever": 0.9683299660682678,
+    "no relapse": 0.8733466863632202,
+    "discharged without fever": 0.9623600840568542
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.8047942519187927,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.18549999594688416,
+   "sat": {
+    "sick": 0.9623714685440063,
+    "healthy": 0.9623383283615112,
+    "admitted with fever": 0.9682877659797668,
+    "no relapse": 0.9622385501861572,
+    "discharged without fever": 0.3735925555229187
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8794237375259399,
+   "viol_relapse": 0.03200000151991844,
+   "viol_admit": 0.025499999523162842,
+   "viol_discharge": 0.039500001817941666,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.683184802532196,
+    "no relapse": 0.7893029451370239,
+    "discharged without fever": 0.6236799955368042
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.8830253481864929,
+   "viol_relapse": 0.032999999821186066,
+   "viol_admit": 0.019500000402331352,
+   "viol_discharge": 0.032999999821186066,
+   "sat": {
+    "sick": 0.9623863697052002,
+    "healthy": 0.9623860120773315,
+    "admitted with fever": 0.7129805088043213,
+    "no relapse": 0.8484334945678711,
+    "discharged without fever": 0.6565092206001282
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8773097395896912,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623640179634094,
+    "healthy": 0.9622957110404968,
+    "admitted with fever": 0.968235433101654,
+    "no relapse": 0.9622625708580017,
+    "discharged without fever": 0.9623363018035889
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8608675003051758,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.05050000175833702,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623495936393738,
+    "healthy": 0.9623569250106812,
+    "admitted with fever": 0.6006330251693726,
+    "no relapse": 0.9623429179191589,
+    "discharged without fever": 0.9623297452926636
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8871750831604004,
+   "viol_relapse": 0.02449999935925007,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623317718505859,
+    "healthy": 0.9623288512229919,
+    "admitted with fever": 0.9683091640472412,
+    "no relapse": 0.9042863845825195,
+    "discharged without fever": 0.96234130859375
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8744910955429077,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.02850000001490116,
+   "sat": {
+    "sick": 0.9623526930809021,
+    "healthy": 0.962307870388031,
+    "admitted with fever": 0.9682843685150146,
+    "no relapse": 0.9622116088867188,
+    "discharged without fever": 0.6349541544914246
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.7460266947746277,
+   "viol_relapse": 0.08399999886751175,
+   "viol_admit": 0.2639999985694885,
+   "viol_discharge": 0.0560000017285347,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.3348533511161804,
+    "no relapse": 0.739948570728302,
+    "discharged without fever": 0.6631436347961426
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.7231051921844482,
+   "viol_relapse": 0.14149999618530273,
+   "viol_admit": 0.3425000011920929,
+   "viol_discharge": 0.041999999433755875,
+   "sat": {
+    "sick": 0.9623928070068359,
+    "healthy": 0.9623916149139404,
+    "admitted with fever": 0.31238770484924316,
+    "no relapse": 0.7173742651939392,
+    "discharged without fever": 0.6754134893417358
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8420253992080688,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623521566390991,
+    "healthy": 0.9623332023620605,
+    "admitted with fever": 0.9682501554489136,
+    "no relapse": 0.9622623920440674,
+    "discharged without fever": 0.9623669981956482
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.768389105796814,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.19050000607967377,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623630046844482,
+    "healthy": 0.9623754024505615,
+    "admitted with fever": 0.46304017305374146,
+    "no relapse": 0.9623647928237915,
+    "discharged without fever": 0.9623894691467285
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8320421576499939,
+   "viol_relapse": 0.06350000202655792,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623633027076721,
+    "healthy": 0.9623608589172363,
+    "admitted with fever": 0.968322217464447,
+    "no relapse": 0.7959548234939575,
+    "discharged without fever": 0.9623516798019409
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.8319622874259949,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.03500000014901161,
+   "sat": {
+    "sick": 0.9623619318008423,
+    "healthy": 0.9623348116874695,
+    "admitted with fever": 0.9682666063308716,
+    "no relapse": 0.9622749090194702,
+    "discharged without fever": 0.7551547288894653
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8069658279418945,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.14149999618530273,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.3955806493759155,
+    "no relapse": 0.9621144533157349,
+    "discharged without fever": 0.9576159119606018
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7880768179893494,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.1550000011920929,
+   "viol_discharge": 0.014499999582767487,
+   "sat": {
+    "sick": 0.9623832702636719,
+    "healthy": 0.9623781442642212,
+    "admitted with fever": 0.4354702830314636,
+    "no relapse": 0.9114124178886414,
+    "discharged without fever": 0.8119677305221558
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8367737531661987,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.962352991104126,
+    "healthy": 0.9622975587844849,
+    "admitted with fever": 0.968269944190979,
+    "no relapse": 0.9623608589172363,
+    "discharged without fever": 0.9623838067054749
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8138200640678406,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.10400000214576721,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623819589614868,
+    "healthy": 0.9623836874961853,
+    "admitted with fever": 0.4379410743713379,
+    "no relapse": 0.9623864889144897,
+    "discharged without fever": 0.9623851776123047
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.839085042476654,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623486399650574,
+    "healthy": 0.9623129367828369,
+    "admitted with fever": 0.9682908654212952,
+    "no relapse": 0.9623119831085205,
+    "discharged without fever": 0.9623851776123047
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.8311150074005127,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.007000000216066837,
+   "sat": {
+    "sick": 0.9623852372169495,
+    "healthy": 0.9623180031776428,
+    "admitted with fever": 0.9682983756065369,
+    "no relapse": 0.9623140692710876,
+    "discharged without fever": 0.7650050520896912
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8581328392028809,
+   "viol_relapse": 0.019500000402331352,
+   "viol_admit": 0.02800000086426735,
+   "viol_discharge": 0.026000000536441803,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6330456733703613,
+    "no relapse": 0.8845824599266052,
+    "discharged without fever": 0.7364039421081543
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8633901476860046,
+   "viol_relapse": 0.07599999755620956,
+   "viol_admit": 0.02800000086426735,
+   "viol_discharge": 0.032999999821186066,
+   "sat": {
+    "sick": 0.9623906016349792,
+    "healthy": 0.9623898863792419,
+    "admitted with fever": 0.705176591873169,
+    "no relapse": 0.8294246196746826,
+    "discharged without fever": 0.7209895253181458
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8413254618644714,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9623616337776184,
+    "healthy": 0.9622558355331421,
+    "admitted with fever": 0.9682212471961975,
+    "no relapse": 0.9623069167137146,
+    "discharged without fever": 0.9623510837554932
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8502469062805176,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.025499999523162842,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623781442642212,
+    "healthy": 0.9623848795890808,
+    "admitted with fever": 0.6643165349960327,
+    "no relapse": 0.9623681902885437,
+    "discharged without fever": 0.9623635411262512
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.843874454498291,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9623351693153381,
+    "healthy": 0.9623197317123413,
+    "admitted with fever": 0.9682838916778564,
+    "no relapse": 0.9393939971923828,
+    "discharged without fever": 0.9623389840126038
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.1,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8386171460151672,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0010000000474974513,
+   "viol_discharge": 0.03350000083446503,
+   "sat": {
+    "sick": 0.962391197681427,
+    "healthy": 0.9622920155525208,
+    "admitted with fever": 0.9682762622833252,
+    "no relapse": 0.9623055458068848,
+    "discharged without fever": 0.68992018699646
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8065271377563477,
+   "viol_relapse": 0.023000000044703484,
+   "viol_admit": 0.041999999433755875,
+   "viol_discharge": 0.17649999260902405,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5705575346946716,
+    "no relapse": 0.8743884563446045,
+    "discharged without fever": 0.44399410486221313
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.7970876693725586,
+   "viol_relapse": 0.048500001430511475,
+   "viol_admit": 0.04349999874830246,
+   "viol_discharge": 0.20499999821186066,
+   "sat": {
+    "sick": 0.962392270565033,
+    "healthy": 0.9623921513557434,
+    "admitted with fever": 0.5995285511016846,
+    "no relapse": 0.8335920572280884,
+    "discharged without fever": 0.46399086713790894
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8428947925567627,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623512625694275,
+    "healthy": 0.9623038172721863,
+    "admitted with fever": 0.9682653546333313,
+    "no relapse": 0.9622160792350769,
+    "discharged without fever": 0.9623543620109558
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.837260365486145,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.01850000023841858,
+   "viol_discharge": 0.003000000026077032,
+   "sat": {
+    "sick": 0.962361216545105,
+    "healthy": 0.962364673614502,
+    "admitted with fever": 0.6872068643569946,
+    "no relapse": 0.9623413681983948,
+    "discharged without fever": 0.9623494148254395
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8088687062263489,
+   "viol_relapse": 0.11299999803304672,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623583555221558,
+    "healthy": 0.962354838848114,
+    "admitted with fever": 0.9683274030685425,
+    "no relapse": 0.8292941451072693,
+    "discharged without fever": 0.9623515605926514
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-discharged without fever",
+   "acc": 0.7975267171859741,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.14749999344348907,
+   "sat": {
+    "sick": 0.9623792767524719,
+    "healthy": 0.9623304009437561,
+    "admitted with fever": 0.9682915210723877,
+    "no relapse": 0.9622441530227661,
+    "discharged without fever": 0.4336417317390442
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.7316969037055969,
+   "viol_relapse": 0.20100000500679016,
+   "viol_admit": 0.05550000071525574,
+   "viol_discharge": 0.2175000011920929,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6189254522323608,
+    "no relapse": 0.7476009130477905,
+    "discharged without fever": 0.43942803144454956
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.7439345717430115,
+   "viol_relapse": 0.2134999930858612,
+   "viol_admit": 0.019500000402331352,
+   "viol_discharge": 0.2639999985694885,
+   "sat": {
+    "sick": 0.9623920321464539,
+    "healthy": 0.9623923897743225,
+    "admitted with fever": 0.7514170408248901,
+    "no relapse": 0.7471849918365479,
+    "discharged without fever": 0.42046433687210083
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8251867890357971,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.001500000013038516,
+   "viol_discharge": 0.0005000000237487257,
+   "sat": {
+    "sick": 0.9623879194259644,
+    "healthy": 0.9623603224754333,
+    "admitted with fever": 0.9683090448379517,
+    "no relapse": 0.9623004794120789,
+    "discharged without fever": 0.962357223033905
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8224119544029236,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.04100000113248825,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623819589614868,
+    "healthy": 0.962384045124054,
+    "admitted with fever": 0.6762100458145142,
+    "no relapse": 0.9623505473136902,
+    "discharged without fever": 0.9623779058456421
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.7980078458786011,
+   "viol_relapse": 0.25200000405311584,
+   "viol_admit": 0.004999999888241291,
+   "viol_discharge": 0.0020000000949949026,
+   "sat": {
+    "sick": 0.9623655676841736,
+    "healthy": 0.96237713098526,
+    "admitted with fever": 0.9683446884155273,
+    "no relapse": 0.7969748973846436,
+    "discharged without fever": 0.9623419642448425
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-discharged without fever",
+   "acc": 0.8032017350196838,
+   "viol_relapse": 0.006500000134110451,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.06700000166893005,
+   "sat": {
+    "sick": 0.9623878598213196,
+    "healthy": 0.9623767137527466,
+    "admitted with fever": 0.9683336019515991,
+    "no relapse": 0.9621968269348145,
+    "discharged without fever": 0.5746841430664062
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.6525811553001404,
+   "viol_relapse": 0.628000020980835,
+   "viol_admit": 0.4724999964237213,
+   "viol_discharge": 0.0885000005364418,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.2420666217803955,
+    "no relapse": 0.4623342752456665,
+    "discharged without fever": 0.5972785949707031
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.6850359439849854,
+   "viol_relapse": 0.6834999918937683,
+   "viol_admit": 0.46299999952316284,
+   "viol_discharge": 0.0560000017285347,
+   "sat": {
+    "sick": 0.9623918533325195,
+    "healthy": 0.9623897075653076,
+    "admitted with fever": 0.2511422038078308,
+    "no relapse": 0.4297221899032593,
+    "discharged without fever": 0.6276108622550964
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.786030650138855,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0010000000474974513,
+   "sat": {
+    "sick": 0.9623607397079468,
+    "healthy": 0.962354302406311,
+    "admitted with fever": 0.9682453274726868,
+    "no relapse": 0.9622738361358643,
+    "discharged without fever": 0.9623575210571289
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.715239942073822,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.2290000021457672,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623652696609497,
+    "healthy": 0.9623665809631348,
+    "admitted with fever": 0.42295128107070923,
+    "no relapse": 0.9623668193817139,
+    "discharged without fever": 0.9623903632164001
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.777826189994812,
+   "viol_relapse": 0.4339999854564667,
+   "viol_admit": 0.003000000026077032,
+   "viol_discharge": 0.001500000013038516,
+   "sat": {
+    "sick": 0.9623812437057495,
+    "healthy": 0.9623560905456543,
+    "admitted with fever": 0.9683323502540588,
+    "no relapse": 0.6295183897018433,
+    "discharged without fever": 0.9623882174491882
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-discharged without fever",
+   "acc": 0.791113018989563,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.012000000104308128,
+   "sat": {
+    "sick": 0.9623728394508362,
+    "healthy": 0.9623541831970215,
+    "admitted with fever": 0.9682746529579163,
+    "no relapse": 0.9622722864151001,
+    "discharged without fever": 0.8921176791191101
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.6377602815628052,
+   "viol_relapse": 0.04800000041723251,
+   "viol_admit": 0.11800000071525574,
+   "viol_discharge": 0.5870000123977661,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.47895127534866333,
+    "no relapse": 0.8340413570404053,
+    "discharged without fever": 0.16741973161697388
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.6352118849754333,
+   "viol_relapse": 0.0430000014603138,
+   "viol_admit": 0.10700000077486038,
+   "viol_discharge": 0.6299999952316284,
+   "sat": {
+    "sick": 0.9623847007751465,
+    "healthy": 0.9623917937278748,
+    "admitted with fever": 0.4754766821861267,
+    "no relapse": 0.8415389060974121,
+    "discharged without fever": 0.14946359395980835
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.758846640586853,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623634815216064,
+    "healthy": 0.9623754024505615,
+    "admitted with fever": 0.9682891368865967,
+    "no relapse": 0.9622762203216553,
+    "discharged without fever": 0.9623775482177734
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.7584097981452942,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.06700000166893005,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623781442642212,
+    "healthy": 0.9623908400535583,
+    "admitted with fever": 0.5349597930908203,
+    "no relapse": 0.9623873233795166,
+    "discharged without fever": 0.9623748064041138
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.7321246266365051,
+   "viol_relapse": 0.0820000022649765,
+   "viol_admit": 0.0020000000949949026,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623605608940125,
+    "healthy": 0.9623813629150391,
+    "admitted with fever": 0.968367874622345,
+    "no relapse": 0.7815393209457397,
+    "discharged without fever": 0.9623624086380005
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-discharged without fever",
+   "acc": 0.7222222089767456,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_discharge": 0.3564999997615814,
+   "sat": {
+    "sick": 0.9623913764953613,
+    "healthy": 0.9623445272445679,
+    "admitted with fever": 0.9683350324630737,
+    "no relapse": 0.9622788429260254,
+    "discharged without fever": 0.26725733280181885
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.7472272515296936,
+   "viol_relapse": 0.23499999940395355,
+   "viol_admit": 0.09399999678134918,
+   "viol_discharge": 0.24950000643730164,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5147255659103394,
+    "no relapse": 0.6238754987716675,
+    "discharged without fever": 0.4331963062286377
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.7430228590965271,
+   "viol_relapse": 0.13050000369548798,
+   "viol_admit": 0.12250000238418579,
+   "viol_discharge": 0.14650000631809235,
+   "sat": {
+    "sick": 0.9623894095420837,
+    "healthy": 0.9623886346817017,
+    "admitted with fever": 0.5029494166374207,
+    "no relapse": 0.7050387859344482,
+    "discharged without fever": 0.5328463315963745
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8129032254219055,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623641967773438,
+    "healthy": 0.9623416066169739,
+    "admitted with fever": 0.9682820439338684,
+    "no relapse": 0.9622566103935242,
+    "discharged without fever": 0.9623588919639587
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.7655672430992126,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.15850000083446503,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623681306838989,
+    "healthy": 0.9623826742172241,
+    "admitted with fever": 0.411133348941803,
+    "no relapse": 0.9623693227767944,
+    "discharged without fever": 0.9623687267303467
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8050742745399475,
+   "viol_relapse": 0.008500000461935997,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0,
+   "sat": {
+    "sick": 0.9623618125915527,
+    "healthy": 0.9623501300811768,
+    "admitted with fever": 0.9683104157447815,
+    "no relapse": 0.8948020935058594,
+    "discharged without fever": 0.9623609185218811
+   }
+  },
+  {
+   "frac": 0.01,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-discharged without fever",
+   "acc": 0.8063791394233704,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_discharge": 0.0949999988079071,
+   "sat": {
+    "sick": 0.9623781442642212,
+    "healthy": 0.962350606918335,
+    "admitted with fever": 0.9683231711387634,
+    "no relapse": 0.9622177481651306,
+    "discharged without fever": 0.5312047004699707
+   }
+  }
+ ]
+}

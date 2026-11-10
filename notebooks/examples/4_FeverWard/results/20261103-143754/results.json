@@ -1,0 +1,4840 @@
+{
+ "meta": {
+  "config": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "n_train": 200,
+   "noise": 0.5,
+   "epochs": 300,
+   "fracs": [
+    0.05,
+    0.02
+   ],
+   "relapses": [
+    0.0,
+    0.3
+   ]
+  },
+  "sltn": {
+   "commit": "857c7ac25f0b84fe851cf2f6d6e1769f0d85593b",
+   "branch": "bug-fixes-temp",
+   "dirty": false
+  },
+  "length": "variable",
+  "n_test": 2000,
+  "p_agg": 4,
+  "lr": 0.01
+ },
+ "rows": [
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8645485043525696,
+   "viol_relapse": 0.012000000104308128,
+   "viol_admit": 0.0044999998062849045,
+   "viol_treat": 0.2849949598312378,
+   "acc_day0": 0.9955000281333923,
+   "acc_treat_day": 0.7008456587791443,
+   "acc_post_recovery": 0.7398406267166138,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623926281929016,
+    "admitted with fever": 0.7268323302268982,
+    "no relapse": 0.8752812147140503,
+    "treatment works": 0.3250892758369446
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.870680034160614,
+   "viol_relapse": 0.005499999970197678,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.3665659725666046,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.6152219772338867,
+   "acc_post_recovery": 0.741235077381134,
+   "sat": {
+    "sick": 0.9623674154281616,
+    "healthy": 0.9623600840568542,
+    "admitted with fever": 0.849855363368988,
+    "no relapse": 0.9135438203811646,
+    "treatment works": 0.30031538009643555
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.9320884346961975,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0010070493444800377,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9989429116249084,
+   "acc_post_recovery": 0.888247013092041,
+   "sat": {
+    "sick": 0.9623429179191589,
+    "healthy": 0.9623220562934875,
+    "admitted with fever": 0.9683340191841125,
+    "no relapse": 0.9623343348503113,
+    "treatment works": 0.9623515009880066
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.9381271004676819,
+   "viol_relapse": 0.0044999998062849045,
+   "viol_admit": 0.0020000000949949026,
+   "viol_treat": 0.0010070493444800377,
+   "acc_day0": 0.9980000257492065,
+   "acc_treat_day": 0.9989429116249084,
+   "acc_post_recovery": 0.9017928242683411,
+   "sat": {
+    "sick": 0.9623420834541321,
+    "healthy": 0.9623540043830872,
+    "admitted with fever": 0.791405439376831,
+    "no relapse": 0.962312638759613,
+    "treatment works": 0.9623446464538574
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.9407283663749695,
+   "viol_relapse": 0.011500000022351742,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0010070493444800377,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9989429116249084,
+   "acc_post_recovery": 0.9125497937202454,
+   "sat": {
+    "sick": 0.9623391628265381,
+    "healthy": 0.9623363018035889,
+    "admitted with fever": 0.9683476090431213,
+    "no relapse": 0.9043175578117371,
+    "treatment works": 0.9623594284057617
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-treatment works",
+   "acc": 0.8543292284011841,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.43907350301742554,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.5391120314598083,
+   "acc_post_recovery": 0.7041832804679871,
+   "sat": {
+    "sick": 0.9623720049858093,
+    "healthy": 0.962313711643219,
+    "admitted with fever": 0.968320369720459,
+    "no relapse": 0.9623472094535828,
+    "treatment works": 0.2259928584098816
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.9011213183403015,
+   "viol_relapse": 0.09200000017881393,
+   "viol_admit": 0.00800000037997961,
+   "viol_treat": 0.018410852178931236,
+   "acc_day0": 0.9919999837875366,
+   "acc_treat_day": 0.9805725812911987,
+   "acc_post_recovery": 0.8995397090911865,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.7507073283195496,
+    "no relapse": 0.7218731641769409,
+    "treatment works": 0.8814226388931274
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.9005652666091919,
+   "viol_relapse": 0.10750000178813934,
+   "viol_admit": 0.014499999582767487,
+   "viol_treat": 0.05910852551460266,
+   "acc_day0": 0.9854999780654907,
+   "acc_treat_day": 0.9376277923583984,
+   "acc_post_recovery": 0.9069441556930542,
+   "sat": {
+    "sick": 0.962386429309845,
+    "healthy": 0.9623874425888062,
+    "admitted with fever": 0.7103220224380493,
+    "no relapse": 0.7611468434333801,
+    "treatment works": 0.6035760641098022
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.9478269219398499,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9349609613418579,
+   "sat": {
+    "sick": 0.9623720049858093,
+    "healthy": 0.9622620940208435,
+    "admitted with fever": 0.9682971835136414,
+    "no relapse": 0.9622173309326172,
+    "treatment works": 0.96230548620224
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.9308683276176453,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.006500000134110451,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9934999942779541,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9377626776695251,
+   "sat": {
+    "sick": 0.9623537063598633,
+    "healthy": 0.9623279571533203,
+    "admitted with fever": 0.7640295028686523,
+    "no relapse": 0.9622389078140259,
+    "treatment works": 0.9623645544052124
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8983412384986877,
+   "viol_relapse": 0.11550000309944153,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0038759689778089523,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9959100484848022,
+   "acc_post_recovery": 0.920952558517456,
+   "sat": {
+    "sick": 0.9623715877532959,
+    "healthy": 0.9623626470565796,
+    "admitted with fever": 0.9683377742767334,
+    "no relapse": 0.7014856338500977,
+    "treatment works": 0.9623749256134033
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-treatment works",
+   "acc": 0.9524604082107544,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.060077518224716187,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9366053342819214,
+   "acc_post_recovery": 0.9337602853775024,
+   "sat": {
+    "sick": 0.9623801708221436,
+    "healthy": 0.9623035192489624,
+    "admitted with fever": 0.9683290123939514,
+    "no relapse": 0.9623017907142639,
+    "treatment works": 0.6300138235092163
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.8964076638221741,
+   "viol_relapse": 0.012500000186264515,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.04699999839067459,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.9503171443939209,
+   "acc_post_recovery": 0.807731032371521,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.951962411403656,
+    "no relapse": 0.8715509176254272,
+    "treatment works": 0.5855370163917542
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.9515455365180969,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.006000000052154064,
+   "viol_treat": 0.01600000075995922,
+   "acc_day0": 0.9940000176429749,
+   "acc_treat_day": 0.9830867052078247,
+   "acc_post_recovery": 0.9174551963806152,
+   "sat": {
+    "sick": 0.9623779058456421,
+    "healthy": 0.96238112449646,
+    "admitted with fever": 0.9246952533721924,
+    "no relapse": 0.8809430003166199,
+    "treatment works": 0.7855319976806641
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.9197995066642761,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8516206741333008,
+   "sat": {
+    "sick": 0.9623151421546936,
+    "healthy": 0.962333619594574,
+    "admitted with fever": 0.9683427810668945,
+    "no relapse": 0.9623228907585144,
+    "treatment works": 0.9623535871505737
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.920170783996582,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8794040679931641,
+   "sat": {
+    "sick": 0.962334930896759,
+    "healthy": 0.9623546600341797,
+    "admitted with fever": 0.9648340940475464,
+    "no relapse": 0.9623448848724365,
+    "treatment works": 0.9623600244522095
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.9337232112884521,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8820213675498962,
+   "sat": {
+    "sick": 0.9623515009880066,
+    "healthy": 0.9623646140098572,
+    "admitted with fever": 0.9683477878570557,
+    "no relapse": 0.9183121919631958,
+    "treatment works": 0.9623679518699646
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-treatment works",
+   "acc": 0.9336303472518921,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.06700000166893005,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9291754961013794,
+   "acc_post_recovery": 0.8763841390609741,
+   "sat": {
+    "sick": 0.9623521566390991,
+    "healthy": 0.9623361229896545,
+    "admitted with fever": 0.9683399200439453,
+    "no relapse": 0.9623249769210815,
+    "treatment works": 0.6105390787124634
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.9371669292449951,
+   "viol_relapse": 0.00800000037997961,
+   "viol_admit": 0.0035000001080334187,
+   "viol_treat": 0.05263157933950424,
+   "acc_day0": 0.9965000152587891,
+   "acc_treat_day": 0.9442622661590576,
+   "acc_post_recovery": 0.9288880228996277,
+   "sat": {
+    "sick": 0.9623932838439941,
+    "healthy": 0.9623931050300598,
+    "admitted with fever": 0.7553553581237793,
+    "no relapse": 0.8974742293357849,
+    "treatment works": 0.5889127850532532
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.9395979642868042,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.003000000026077032,
+   "viol_treat": 0.06295149773359299,
+   "acc_day0": 0.996999979019165,
+   "acc_treat_day": 0.9333333373069763,
+   "acc_post_recovery": 0.9351329803466797,
+   "sat": {
+    "sick": 0.9623614549636841,
+    "healthy": 0.9623624086380005,
+    "admitted with fever": 0.7586176991462708,
+    "no relapse": 0.9035628437995911,
+    "treatment works": 0.6138370633125305
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.9349228739738464,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_treat": 0.007223942317068577,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9923497438430786,
+   "acc_post_recovery": 0.9290894269943237,
+   "sat": {
+    "sick": 0.9623326063156128,
+    "healthy": 0.9623032808303833,
+    "admitted with fever": 0.9683275818824768,
+    "no relapse": 0.9622623920440674,
+    "treatment works": 0.9623850584030151
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.9460495710372925,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.007499999832361937,
+   "viol_treat": 0.007223942317068577,
+   "acc_day0": 0.9925000071525574,
+   "acc_treat_day": 0.9923497438430786,
+   "acc_post_recovery": 0.9713940620422363,
+   "sat": {
+    "sick": 0.9623470306396484,
+    "healthy": 0.9623673558235168,
+    "admitted with fever": 0.7325678467750549,
+    "no relapse": 0.9622763395309448,
+    "treatment works": 0.9623666405677795
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.9330528378486633,
+   "viol_relapse": 0.03999999910593033,
+   "viol_admit": 0.0,
+   "viol_treat": 0.005159958731383085,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.994535505771637,
+   "acc_post_recovery": 0.939363420009613,
+   "sat": {
+    "sick": 0.9623385667800903,
+    "healthy": 0.9623242616653442,
+    "admitted with fever": 0.9683479070663452,
+    "no relapse": 0.8186053037643433,
+    "treatment works": 0.9623824954032898
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-treatment works",
+   "acc": 0.928284227848053,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.05366357043385506,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9431694149971008,
+   "acc_post_recovery": 0.9109588861465454,
+   "sat": {
+    "sick": 0.9623339176177979,
+    "healthy": 0.9622487425804138,
+    "admitted with fever": 0.9682915806770325,
+    "no relapse": 0.9622377753257751,
+    "treatment works": 0.621097207069397
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8996017575263977,
+   "viol_relapse": 0.061500001698732376,
+   "viol_admit": 0.0215000007301569,
+   "viol_treat": 0.1169474720954895,
+   "acc_day0": 0.9785000085830688,
+   "acc_treat_day": 0.8763102889060974,
+   "acc_post_recovery": 0.879696249961853,
+   "sat": {
+    "sick": 0.9623928070068359,
+    "healthy": 0.9623926281929016,
+    "admitted with fever": 0.7649074792861938,
+    "no relapse": 0.7185620069503784,
+    "treatment works": 0.4662054181098938
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.9064555168151855,
+   "viol_relapse": 0.027499999850988388,
+   "viol_admit": 0.003000000026077032,
+   "viol_treat": 0.14667987823486328,
+   "acc_day0": 0.996999979019165,
+   "acc_treat_day": 0.8448637127876282,
+   "acc_post_recovery": 0.8864908218383789,
+   "sat": {
+    "sick": 0.9623538255691528,
+    "healthy": 0.9623368382453918,
+    "admitted with fever": 0.8999012112617493,
+    "no relapse": 0.7820675373077393,
+    "treatment works": 0.47504228353500366
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.9325738549232483,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9310551285743713,
+   "sat": {
+    "sick": 0.962286114692688,
+    "healthy": 0.9622640609741211,
+    "admitted with fever": 0.9683741331100464,
+    "no relapse": 0.96229487657547,
+    "treatment works": 0.9623363614082336
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.94026118516922,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9252597689628601,
+   "sat": {
+    "sick": 0.9623081088066101,
+    "healthy": 0.9622829556465149,
+    "admitted with fever": 0.9674500823020935,
+    "no relapse": 0.9623121023178101,
+    "treatment works": 0.9623402953147888
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.9309993386268616,
+   "viol_relapse": 0.0560000017285347,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9186650514602661,
+   "sat": {
+    "sick": 0.9622840285301208,
+    "healthy": 0.9622858762741089,
+    "admitted with fever": 0.9683656096458435,
+    "no relapse": 0.7820950746536255,
+    "treatment works": 0.9623415470123291
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-treatment works",
+   "acc": 0.9071964621543884,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.1843409389257431,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.805031418800354,
+   "acc_post_recovery": 0.8517186045646667,
+   "sat": {
+    "sick": 0.9623312950134277,
+    "healthy": 0.9622883796691895,
+    "admitted with fever": 0.9683771729469299,
+    "no relapse": 0.9622657895088196,
+    "treatment works": 0.44514477252960205
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "bce",
+   "acc": 0.8833255767822266,
+   "viol_relapse": 0.0044999998062849045,
+   "viol_admit": 0.023499999195337296,
+   "viol_treat": 0.32709360122680664,
+   "acc_day0": 0.9764999747276306,
+   "acc_treat_day": 0.6523560285568237,
+   "acc_post_recovery": 0.8041591048240662,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.962393045425415,
+    "admitted with fever": 0.6804350018501282,
+    "no relapse": 0.8777036666870117,
+    "treatment works": 0.296234667301178
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "labels",
+   "acc": 0.8842597007751465,
+   "viol_relapse": 0.00800000037997961,
+   "viol_admit": 0.01899999938905239,
+   "viol_treat": 0.3221674859523773,
+   "acc_day0": 0.9810000061988831,
+   "acc_treat_day": 0.6575916409492493,
+   "acc_post_recovery": 0.8009287118911743,
+   "sat": {
+    "sick": 0.9623745083808899,
+    "healthy": 0.9623755216598511,
+    "admitted with fever": 0.7196873426437378,
+    "no relapse": 0.9040115475654602,
+    "treatment works": 0.33763760328292847
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "rules",
+   "acc": 0.9484353065490723,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.95174640417099,
+   "sat": {
+    "sick": 0.9623439311981201,
+    "healthy": 0.9623096585273743,
+    "admitted with fever": 0.9682981371879578,
+    "no relapse": 0.962314248085022,
+    "treatment works": 0.9623473882675171
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-admitted with fever",
+   "acc": 0.9355441331863403,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.026000000536441803,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9739999771118164,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9396325349807739,
+   "sat": {
+    "sick": 0.9623389840126038,
+    "healthy": 0.9623546600341797,
+    "admitted with fever": 0.6593906879425049,
+    "no relapse": 0.9623399376869202,
+    "treatment works": 0.9623591303825378
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-no relapse",
+   "acc": 0.9507706761360168,
+   "viol_relapse": 0.05350000038743019,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9578033685684204,
+   "sat": {
+    "sick": 0.9623397588729858,
+    "healthy": 0.9623427391052246,
+    "admitted with fever": 0.9683243632316589,
+    "no relapse": 0.7737292647361755,
+    "treatment works": 0.9623569250106812
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-treatment works",
+   "acc": 0.8777207136154175,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_treat": 0.3724137842655182,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.6041885018348694,
+   "acc_post_recovery": 0.7754896283149719,
+   "sat": {
+    "sick": 0.9623696804046631,
+    "healthy": 0.9623225927352905,
+    "admitted with fever": 0.9682946801185608,
+    "no relapse": 0.9622902274131775,
+    "treatment works": 0.2772853970527649
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "bce",
+   "acc": 0.9201754927635193,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.08399999886751175,
+   "viol_treat": 0.0505952388048172,
+   "acc_day0": 0.9160000085830688,
+   "acc_treat_day": 0.9465968608856201,
+   "acc_post_recovery": 0.9808382987976074,
+   "sat": {
+    "sick": 0.9623932838439941,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.5209471583366394,
+    "no relapse": 0.9383347034454346,
+    "treatment works": 0.6122205853462219
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "labels",
+   "acc": 0.932312548160553,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.08100000023841858,
+   "viol_treat": 0.0882936492562294,
+   "acc_day0": 0.9190000295639038,
+   "acc_treat_day": 0.9068062901496887,
+   "acc_post_recovery": 0.9652694463729858,
+   "sat": {
+    "sick": 0.9623739719390869,
+    "healthy": 0.9623728394508362,
+    "admitted with fever": 0.5638276934623718,
+    "no relapse": 0.9235528707504272,
+    "treatment works": 0.5906398296356201
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "rules",
+   "acc": 0.9524787664413452,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0019841270986944437,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9979057312011719,
+   "acc_post_recovery": 0.9844311475753784,
+   "sat": {
+    "sick": 0.9623235464096069,
+    "healthy": 0.9622902274131775,
+    "admitted with fever": 0.9682776927947998,
+    "no relapse": 0.9622735977172852,
+    "treatment works": 0.9623557925224304
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-admitted with fever",
+   "acc": 0.9161609411239624,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.06849999725818634,
+   "viol_treat": 0.004960317630320787,
+   "acc_day0": 0.9315000176429749,
+   "acc_treat_day": 0.9947643876075745,
+   "acc_post_recovery": 0.9952095746994019,
+   "sat": {
+    "sick": 0.9623235464096069,
+    "healthy": 0.9623513221740723,
+    "admitted with fever": 0.5598931312561035,
+    "no relapse": 0.9623446464538574,
+    "treatment works": 0.9623706936836243
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-no relapse",
+   "acc": 0.9549995064735413,
+   "viol_relapse": 0.01549999974668026,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0029761905316263437,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9968586564064026,
+   "acc_post_recovery": 0.9758483171463013,
+   "sat": {
+    "sick": 0.9623441696166992,
+    "healthy": 0.9623321890830994,
+    "admitted with fever": 0.9683158993721008,
+    "no relapse": 0.8777788281440735,
+    "treatment works": 0.962367832660675
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-treatment works",
+   "acc": 0.9489309787750244,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.02876984141767025,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9696335196495056,
+   "acc_post_recovery": 0.9640718698501587,
+   "sat": {
+    "sick": 0.9623534083366394,
+    "healthy": 0.9623033404350281,
+    "admitted with fever": 0.9683071970939636,
+    "no relapse": 0.9623234272003174,
+    "treatment works": 0.6989955902099609
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "bce",
+   "acc": 0.9289907813072205,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.029500000178813934,
+   "viol_treat": 0.029556650668382645,
+   "acc_day0": 0.9704999923706055,
+   "acc_treat_day": 0.9687173962593079,
+   "acc_post_recovery": 0.980329155921936,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623932242393494,
+    "admitted with fever": 0.6057556867599487,
+    "no relapse": 0.9600183963775635,
+    "treatment works": 0.6409897804260254
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "labels",
+   "acc": 0.9256359934806824,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.03400000184774399,
+   "viol_treat": 0.03842364624142647,
+   "acc_day0": 0.9660000205039978,
+   "acc_treat_day": 0.9593326449394226,
+   "acc_post_recovery": 0.9781212210655212,
+   "sat": {
+    "sick": 0.9623885750770569,
+    "healthy": 0.9623872637748718,
+    "admitted with fever": 0.6065978407859802,
+    "no relapse": 0.9600360989570618,
+    "treatment works": 0.6205177903175354
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "rules",
+   "acc": 0.9306681752204895,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9632677435874939,
+   "sat": {
+    "sick": 0.9623765349388123,
+    "healthy": 0.9623543620109558,
+    "admitted with fever": 0.9683079719543457,
+    "no relapse": 0.9622529149055481,
+    "treatment works": 0.9623658061027527
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-admitted with fever",
+   "acc": 0.9184605479240417,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.03400000184774399,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9660000205039978,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9863508343696594,
+   "sat": {
+    "sick": 0.9623785614967346,
+    "healthy": 0.962374746799469,
+    "admitted with fever": 0.6097946763038635,
+    "no relapse": 0.9623286724090576,
+    "treatment works": 0.9623774886131287
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-no relapse",
+   "acc": 0.9253564476966858,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.96527498960495,
+   "sat": {
+    "sick": 0.9623556137084961,
+    "healthy": 0.9623488783836365,
+    "admitted with fever": 0.9683273434638977,
+    "no relapse": 0.9349856972694397,
+    "treatment works": 0.9623661637306213
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-treatment works",
+   "acc": 0.9478147625923157,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.04236453026533127,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9551616311073303,
+   "acc_post_recovery": 0.9668807983398438,
+   "sat": {
+    "sick": 0.9623793363571167,
+    "healthy": 0.9623293876647949,
+    "admitted with fever": 0.9683294296264648,
+    "no relapse": 0.962279736995697,
+    "treatment works": 0.6640562415122986
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "bce",
+   "acc": 0.9235206842422485,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.03099999949336052,
+   "viol_treat": 0.07876370847225189,
+   "acc_day0": 0.968999981880188,
+   "acc_treat_day": 0.9172775149345398,
+   "acc_post_recovery": 0.9107533097267151,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6061034202575684,
+    "no relapse": 0.949583888053894,
+    "treatment works": 0.5482139587402344
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "labels",
+   "acc": 0.9281727075576782,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.019500000402331352,
+   "viol_treat": 0.13160517811775208,
+   "acc_day0": 0.9804999828338623,
+   "acc_treat_day": 0.8617801070213318,
+   "acc_post_recovery": 0.9149274230003357,
+   "sat": {
+    "sick": 0.9623799920082092,
+    "healthy": 0.9623755216598511,
+    "admitted with fever": 0.6506028175354004,
+    "no relapse": 0.9593181014060974,
+    "treatment works": 0.47305965423583984
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "rules",
+   "acc": 0.9223111271858215,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8763665556907654,
+   "sat": {
+    "sick": 0.962368369102478,
+    "healthy": 0.96232008934021,
+    "admitted with fever": 0.9682815670967102,
+    "no relapse": 0.9622945189476013,
+    "treatment works": 0.9623622298240662
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-admitted with fever",
+   "acc": 0.9309638738632202,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.017500000074505806,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9825000166893005,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9455376863479614,
+   "sat": {
+    "sick": 0.9623582363128662,
+    "healthy": 0.9623362421989441,
+    "admitted with fever": 0.6272448301315308,
+    "no relapse": 0.9620416164398193,
+    "treatment works": 0.9623243808746338
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-no relapse",
+   "acc": 0.9258466958999634,
+   "viol_relapse": 0.05700000002980232,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8920691609382629,
+   "sat": {
+    "sick": 0.9623689651489258,
+    "healthy": 0.9623655676841736,
+    "admitted with fever": 0.9683315753936768,
+    "no relapse": 0.7784117460250854,
+    "treatment works": 0.9623731374740601
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-treatment works",
+   "acc": 0.9303126335144043,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0857427716255188,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9099476337432861,
+   "acc_post_recovery": 0.881136953830719,
+   "sat": {
+    "sick": 0.9623832106590271,
+    "healthy": 0.9623282551765442,
+    "admitted with fever": 0.9683083295822144,
+    "no relapse": 0.9622899889945984,
+    "treatment works": 0.5963176488876343
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "bce",
+   "acc": 0.9326483011245728,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.010999999940395355,
+   "viol_treat": 0.12961116433143616,
+   "acc_day0": 0.9890000224113464,
+   "acc_treat_day": 0.8631578683853149,
+   "acc_post_recovery": 0.8939667344093323,
+   "sat": {
+    "sick": 0.9623932838439941,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.8875330686569214,
+    "no relapse": 0.9053741693496704,
+    "treatment works": 0.4598345160484314
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "labels",
+   "acc": 0.9216254353523254,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.010999999940395355,
+   "viol_treat": 0.20638085901737213,
+   "acc_day0": 0.9890000224113464,
+   "acc_treat_day": 0.7821052670478821,
+   "acc_post_recovery": 0.868911623954773,
+   "sat": {
+    "sick": 0.9623696804046631,
+    "healthy": 0.9623666405677795,
+    "admitted with fever": 0.8909757733345032,
+    "no relapse": 0.8848164677619934,
+    "treatment works": 0.3868998885154724
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "rules",
+   "acc": 0.9466604590415955,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9094007015228271,
+   "sat": {
+    "sick": 0.9623562097549438,
+    "healthy": 0.962324857711792,
+    "admitted with fever": 0.9683253765106201,
+    "no relapse": 0.9622694849967957,
+    "treatment works": 0.9623241424560547
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-admitted with fever",
+   "acc": 0.9351704716682434,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.011500000022351742,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9884999990463257,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8989777565002441,
+   "sat": {
+    "sick": 0.9623021483421326,
+    "healthy": 0.9623206257820129,
+    "admitted with fever": 0.8656623959541321,
+    "no relapse": 0.9623292684555054,
+    "treatment works": 0.9623060822486877
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-no relapse",
+   "acc": 0.9444184899330139,
+   "viol_relapse": 0.004000000189989805,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.896572470664978,
+   "sat": {
+    "sick": 0.9623292684555054,
+    "healthy": 0.9623486995697021,
+    "admitted with fever": 0.9683758020401001,
+    "no relapse": 0.9073445200920105,
+    "treatment works": 0.9623453617095947
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-treatment works",
+   "acc": 0.9390004873275757,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.003000000026077032,
+   "viol_treat": 0.11565303802490234,
+   "acc_day0": 0.996999979019165,
+   "acc_treat_day": 0.8778947591781616,
+   "acc_post_recovery": 0.8929645419120789,
+   "sat": {
+    "sick": 0.9623618125915527,
+    "healthy": 0.9622855186462402,
+    "admitted with fever": 0.968307375907898,
+    "no relapse": 0.9623119831085205,
+    "treatment works": 0.4778457283973694
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.9189317226409912,
+   "viol_relapse": 0.26899999380111694,
+   "viol_admit": 0.009499999694526196,
+   "viol_treat": 0.11681772768497467,
+   "acc_day0": 0.9904999732971191,
+   "acc_treat_day": 0.8792924284934998,
+   "acc_post_recovery": 0.88671875,
+   "sat": {
+    "sick": 0.9623897075653076,
+    "healthy": 0.9623931646347046,
+    "admitted with fever": 0.6480485200881958,
+    "no relapse": 0.5994266271591187,
+    "treatment works": 0.4902576208114624
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.9129266738891602,
+   "viol_relapse": 0.32100000977516174,
+   "viol_admit": 0.02449999935925007,
+   "viol_treat": 0.09869083762168884,
+   "acc_day0": 0.9754999876022339,
+   "acc_treat_day": 0.8980228900909424,
+   "acc_post_recovery": 0.8739872574806213,
+   "sat": {
+    "sick": 0.9623724818229675,
+    "healthy": 0.9623672962188721,
+    "admitted with fever": 0.5903224945068359,
+    "no relapse": 0.5781389474868774,
+    "treatment works": 0.5234562754631042
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.887326180934906,
+   "viol_relapse": 0.02500000037252903,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8305844664573669,
+   "sat": {
+    "sick": 0.9439884424209595,
+    "healthy": 0.9530405402183533,
+    "admitted with fever": 0.9681839346885681,
+    "no relapse": 0.8540681600570679,
+    "treatment works": 0.9504615664482117
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8833754658699036,
+   "viol_relapse": 0.025499999523162842,
+   "viol_admit": 0.014999999664723873,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9850000143051147,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8216145634651184,
+   "sat": {
+    "sick": 0.944045901298523,
+    "healthy": 0.952977180480957,
+    "admitted with fever": 0.6169266700744629,
+    "no relapse": 0.8540921211242676,
+    "treatment works": 0.9505913853645325
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.9121365547180176,
+   "viol_relapse": 0.40299999713897705,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8946759104728699,
+   "sat": {
+    "sick": 0.9623412489891052,
+    "healthy": 0.9623211622238159,
+    "admitted with fever": 0.9683341979980469,
+    "no relapse": 0.5652886629104614,
+    "treatment works": 0.9623799920082092
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-treatment works",
+   "acc": 0.8718394637107849,
+   "viol_relapse": 0.017000000923871994,
+   "viol_admit": 0.0,
+   "viol_treat": 0.2134944647550583,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.7793964743614197,
+   "acc_post_recovery": 0.8074363470077515,
+   "sat": {
+    "sick": 0.9510962963104248,
+    "healthy": 0.9467496275901794,
+    "admitted with fever": 0.9682905077934265,
+    "no relapse": 0.8775235414505005,
+    "treatment works": 0.38345909118652344
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8988128304481506,
+   "viol_relapse": 0.3244999945163727,
+   "viol_admit": 0.019999999552965164,
+   "viol_treat": 0.12306201457977295,
+   "acc_day0": 0.9800000190734863,
+   "acc_treat_day": 0.8723618388175964,
+   "acc_post_recovery": 0.8949238061904907,
+   "sat": {
+    "sick": 0.962393045425415,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.6147181987762451,
+    "no relapse": 0.5914213061332703,
+    "treatment works": 0.557693600654602
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.9090112447738647,
+   "viol_relapse": 0.34200000762939453,
+   "viol_admit": 0.00800000037997961,
+   "viol_treat": 0.05329457297921181,
+   "acc_day0": 0.9919999837875366,
+   "acc_treat_day": 0.9447236061096191,
+   "acc_post_recovery": 0.909427285194397,
+   "sat": {
+    "sick": 0.9623733758926392,
+    "healthy": 0.9623711109161377,
+    "admitted with fever": 0.6597089171409607,
+    "no relapse": 0.6051841974258423,
+    "treatment works": 0.6834680438041687
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.8306908011436462,
+   "viol_relapse": 0.01850000023841858,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0009689922444522381,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9989949464797974,
+   "acc_post_recovery": 0.8521533012390137,
+   "sat": {
+    "sick": 0.9471398591995239,
+    "healthy": 0.9486036896705627,
+    "admitted with fever": 0.9682086706161499,
+    "no relapse": 0.8355383276939392,
+    "treatment works": 0.9561150074005127
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8301330804824829,
+   "viol_relapse": 0.017000000923871994,
+   "viol_admit": 0.007499999832361937,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9925000071525574,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8571851253509521,
+   "sat": {
+    "sick": 0.9428606033325195,
+    "healthy": 0.9493969678878784,
+    "admitted with fever": 0.6728076934814453,
+    "no relapse": 0.8371149301528931,
+    "treatment works": 0.9563393592834473
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8971396684646606,
+   "viol_relapse": 0.35350000858306885,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9153470396995544,
+   "sat": {
+    "sick": 0.9623092412948608,
+    "healthy": 0.9622999429702759,
+    "admitted with fever": 0.9683172702789307,
+    "no relapse": 0.6142721176147461,
+    "treatment works": 0.9623607993125916
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-treatment works",
+   "acc": 0.8349932432174683,
+   "viol_relapse": 0.008500000461935997,
+   "viol_admit": 0.0,
+   "viol_treat": 0.10755813866853714,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.8884422183036804,
+   "acc_post_recovery": 0.8314340710639954,
+   "sat": {
+    "sick": 0.9469223618507385,
+    "healthy": 0.937420666217804,
+    "admitted with fever": 0.9682325124740601,
+    "no relapse": 0.8441942930221558,
+    "treatment works": 0.506251335144043
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.8911104202270508,
+   "viol_relapse": 0.3075000047683716,
+   "viol_admit": 0.05000000074505806,
+   "viol_treat": 0.10199999809265137,
+   "acc_day0": 0.949999988079071,
+   "acc_treat_day": 0.8939709067344666,
+   "acc_post_recovery": 0.8626259565353394,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.602733314037323,
+    "no relapse": 0.5938771963119507,
+    "treatment works": 0.5250827074050903
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8785247802734375,
+   "viol_relapse": 0.32100000977516174,
+   "viol_admit": 0.057999998331069946,
+   "viol_treat": 0.1550000011920929,
+   "acc_day0": 0.9419999718666077,
+   "acc_treat_day": 0.8388773202896118,
+   "acc_post_recovery": 0.8478067517280579,
+   "sat": {
+    "sick": 0.9623832106590271,
+    "healthy": 0.9623802304267883,
+    "admitted with fever": 0.5624366998672485,
+    "no relapse": 0.5787113904953003,
+    "treatment works": 0.4456304907798767
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8794806599617004,
+   "viol_relapse": 0.0625,
+   "viol_admit": 0.004000000189989805,
+   "viol_treat": 0.004999999888241291,
+   "acc_day0": 0.9959999918937683,
+   "acc_treat_day": 0.9948024749755859,
+   "acc_post_recovery": 0.819502055644989,
+   "sat": {
+    "sick": 0.9488065242767334,
+    "healthy": 0.9620852470397949,
+    "admitted with fever": 0.9683533310890198,
+    "no relapse": 0.8277166485786438,
+    "treatment works": 0.9337438344955444
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8733471632003784,
+   "viol_relapse": 0.060499999672174454,
+   "viol_admit": 0.014499999582767487,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9854999780654907,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8070539236068726,
+   "sat": {
+    "sick": 0.9471772313117981,
+    "healthy": 0.9620972871780396,
+    "admitted with fever": 0.7621076703071594,
+    "no relapse": 0.8320086598396301,
+    "treatment works": 0.9324755668640137
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8888003826141357,
+   "viol_relapse": 0.3855000138282776,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0020000000949949026,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9979209899902344,
+   "acc_post_recovery": 0.8550681471824646,
+   "sat": {
+    "sick": 0.9623595476150513,
+    "healthy": 0.9623627066612244,
+    "admitted with fever": 0.968368411064148,
+    "no relapse": 0.5635086297988892,
+    "treatment works": 0.9623798727989197
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-treatment works",
+   "acc": 0.8620359897613525,
+   "viol_relapse": 0.014000000432133675,
+   "viol_admit": 0.009499999694526196,
+   "viol_treat": 0.25099998712539673,
+   "acc_day0": 0.9904999732971191,
+   "acc_treat_day": 0.7390852570533752,
+   "acc_post_recovery": 0.7897154688835144,
+   "sat": {
+    "sick": 0.9623415470123291,
+    "healthy": 0.9622770547866821,
+    "admitted with fever": 0.9683580994606018,
+    "no relapse": 0.9620607495307922,
+    "treatment works": 0.3705463409423828
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8175556659698486,
+   "viol_relapse": 0.3160000145435333,
+   "viol_admit": 0.1589999943971634,
+   "viol_treat": 0.1424148678779602,
+   "acc_day0": 0.8410000205039978,
+   "acc_treat_day": 0.8512930870056152,
+   "acc_post_recovery": 0.8660251498222351,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.4214093089103699,
+    "no relapse": 0.6150686740875244,
+    "treatment works": 0.4890916347503662
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.7916867136955261,
+   "viol_relapse": 0.3070000112056732,
+   "viol_admit": 0.21299999952316284,
+   "viol_treat": 0.11764705926179886,
+   "acc_day0": 0.7870000004768372,
+   "acc_treat_day": 0.8771551847457886,
+   "acc_post_recovery": 0.8670614361763,
+   "sat": {
+    "sick": 0.9623791575431824,
+    "healthy": 0.9623780250549316,
+    "admitted with fever": 0.3845559358596802,
+    "no relapse": 0.5970730781555176,
+    "treatment works": 0.49607300758361816
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.85479736328125,
+   "viol_relapse": 0.017500000074505806,
+   "viol_admit": 0.0,
+   "viol_treat": 0.005159958731383085,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9946120977401733,
+   "acc_post_recovery": 0.8108068108558655,
+   "sat": {
+    "sick": 0.9556182026863098,
+    "healthy": 0.9622378349304199,
+    "admitted with fever": 0.9682601690292358,
+    "no relapse": 0.871497392654419,
+    "treatment works": 0.9450553059577942
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8361364603042603,
+   "viol_relapse": 0.019500000402331352,
+   "viol_admit": 0.03849999979138374,
+   "viol_treat": 0.004127967171370983,
+   "acc_day0": 0.9614999890327454,
+   "acc_treat_day": 0.9956896305084229,
+   "acc_post_recovery": 0.8356772661209106,
+   "sat": {
+    "sick": 0.9541732668876648,
+    "healthy": 0.9622500538825989,
+    "admitted with fever": 0.6310787200927734,
+    "no relapse": 0.8719578385353088,
+    "treatment works": 0.9454182386398315
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8750600814819336,
+   "viol_relapse": 0.4390000104904175,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0030959751456975937,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9967672228813171,
+   "acc_post_recovery": 0.8660251498222351,
+   "sat": {
+    "sick": 0.962354302406311,
+    "healthy": 0.9623523354530334,
+    "admitted with fever": 0.9683305025100708,
+    "no relapse": 0.5566988587379456,
+    "treatment works": 0.962368905544281
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-treatment works",
+   "acc": 0.8274868130683899,
+   "viol_relapse": 0.0035000001080334187,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.3488132059574127,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.6357758641242981,
+   "acc_post_recovery": 0.7631384134292603,
+   "sat": {
+    "sick": 0.9623394012451172,
+    "healthy": 0.9623011350631714,
+    "admitted with fever": 0.9683265686035156,
+    "no relapse": 0.9620909094810486,
+    "treatment works": 0.3125232458114624
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8582460284233093,
+   "viol_relapse": 0.38850000500679016,
+   "viol_admit": 0.21850000321865082,
+   "viol_treat": 0.01982160471379757,
+   "acc_day0": 0.781499981880188,
+   "acc_treat_day": 0.9793601632118225,
+   "acc_post_recovery": 0.8963467478752136,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.39868706464767456,
+    "no relapse": 0.5657346248626709,
+    "treatment works": 0.786767303943634
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8674651384353638,
+   "viol_relapse": 0.45899999141693115,
+   "viol_admit": 0.22050000727176666,
+   "viol_treat": 0.02675916813313961,
+   "acc_day0": 0.7795000076293945,
+   "acc_treat_day": 0.9721361994743347,
+   "acc_post_recovery": 0.9073644280433655,
+   "sat": {
+    "sick": 0.9623821377754211,
+    "healthy": 0.962380051612854,
+    "admitted with fever": 0.4002375602722168,
+    "no relapse": 0.5535002946853638,
+    "treatment works": 0.6862357258796692
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8766054511070251,
+   "viol_relapse": 0.013500000350177288,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8011017441749573,
+   "sat": {
+    "sick": 0.9605060815811157,
+    "healthy": 0.9612011909484863,
+    "admitted with fever": 0.9682501554489136,
+    "no relapse": 0.8963558673858643,
+    "treatment works": 0.960739016532898
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8647072911262512,
+   "viol_relapse": 0.014000000432133675,
+   "viol_admit": 0.012000000104308128,
+   "viol_treat": 0.0009910803055390716,
+   "acc_day0": 0.9879999756813049,
+   "acc_treat_day": 0.9989680051803589,
+   "acc_post_recovery": 0.7902290225028992,
+   "sat": {
+    "sick": 0.9596065878868103,
+    "healthy": 0.9616347551345825,
+    "admitted with fever": 0.7812103033065796,
+    "no relapse": 0.8964007496833801,
+    "treatment works": 0.9615564942359924
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.9033961296081543,
+   "viol_relapse": 0.21400000154972076,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0009910803055390716,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9989680051803589,
+   "acc_post_recovery": 0.8625688552856445,
+   "sat": {
+    "sick": 0.9623660445213318,
+    "healthy": 0.9623584747314453,
+    "admitted with fever": 0.9683572053909302,
+    "no relapse": 0.6850340366363525,
+    "treatment works": 0.9623860716819763
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-treatment works",
+   "acc": 0.8716413378715515,
+   "viol_relapse": 0.00800000037997961,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.062438055872917175,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.9349845051765442,
+   "acc_post_recovery": 0.7931284308433533,
+   "sat": {
+    "sick": 0.9610850214958191,
+    "healthy": 0.9608935713768005,
+    "admitted with fever": 0.9683058857917786,
+    "no relapse": 0.912445604801178,
+    "treatment works": 0.604292631149292
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "bce",
+   "acc": 0.8782787919044495,
+   "viol_relapse": 0.3855000138282776,
+   "viol_admit": 0.09000000357627869,
+   "viol_treat": 0.09852216392755508,
+   "acc_day0": 0.9100000262260437,
+   "acc_treat_day": 0.8978549838066101,
+   "acc_post_recovery": 0.8976263403892517,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.49539726972579956,
+    "no relapse": 0.5564318895339966,
+    "treatment works": 0.4201167821884155
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "labels",
+   "acc": 0.8847769498825073,
+   "viol_relapse": 0.3409999907016754,
+   "viol_admit": 0.04500000178813934,
+   "viol_treat": 0.1231527104973793,
+   "acc_day0": 0.9549999833106995,
+   "acc_treat_day": 0.872318685054779,
+   "acc_post_recovery": 0.8837920427322388,
+   "sat": {
+    "sick": 0.962348997592926,
+    "healthy": 0.9623475074768066,
+    "admitted with fever": 0.5606964230537415,
+    "no relapse": 0.596380352973938,
+    "treatment works": 0.43066859245300293
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "rules",
+   "acc": 0.8507805466651917,
+   "viol_relapse": 0.03750000149011612,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.001970443408936262,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9979571104049683,
+   "acc_post_recovery": 0.8405417203903198,
+   "sat": {
+    "sick": 0.9517802000045776,
+    "healthy": 0.9621374011039734,
+    "admitted with fever": 0.9682289958000183,
+    "no relapse": 0.8644979596138,
+    "treatment works": 0.9415590167045593
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-admitted with fever",
+   "acc": 0.8650447726249695,
+   "viol_relapse": 0.029999999329447746,
+   "viol_admit": 0.03799999877810478,
+   "viol_treat": 0.000985221704468131,
+   "acc_day0": 0.9620000123977661,
+   "acc_treat_day": 0.9989785552024841,
+   "acc_post_recovery": 0.8351536393165588,
+   "sat": {
+    "sick": 0.9518139362335205,
+    "healthy": 0.9623402953147888,
+    "admitted with fever": 0.5560930967330933,
+    "no relapse": 0.8665041923522949,
+    "treatment works": 0.9412267804145813
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-no relapse",
+   "acc": 0.8886599540710449,
+   "viol_relapse": 0.39649999141693115,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9009757041931152,
+   "sat": {
+    "sick": 0.962334394454956,
+    "healthy": 0.9623362421989441,
+    "admitted with fever": 0.9683327674865723,
+    "no relapse": 0.5878110527992249,
+    "treatment works": 0.962367057800293
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-treatment works",
+   "acc": 0.8323163390159607,
+   "viol_relapse": 0.023000000044703484,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.34384235739707947,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.6435137987136841,
+   "acc_post_recovery": 0.7779234051704407,
+   "sat": {
+    "sick": 0.9623328447341919,
+    "healthy": 0.9623199105262756,
+    "admitted with fever": 0.9683454632759094,
+    "no relapse": 0.9621492028236389,
+    "treatment works": 0.2438737154006958
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "bce",
+   "acc": 0.8696135878562927,
+   "viol_relapse": 0.1445000022649765,
+   "viol_admit": 0.04149999842047691,
+   "viol_treat": 0.102182537317276,
+   "acc_day0": 0.9585000276565552,
+   "acc_treat_day": 0.8945752382278442,
+   "acc_post_recovery": 0.8324850797653198,
+   "sat": {
+    "sick": 0.9623932242393494,
+    "healthy": 0.9623925685882568,
+    "admitted with fever": 0.6445295810699463,
+    "no relapse": 0.6575918197631836,
+    "treatment works": 0.552761435508728
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "labels",
+   "acc": 0.8658769130706787,
+   "viol_relapse": 0.1550000011920929,
+   "viol_admit": 0.04650000110268593,
+   "viol_treat": 0.164682537317276,
+   "acc_day0": 0.953499972820282,
+   "acc_treat_day": 0.8300921320915222,
+   "acc_post_recovery": 0.8237603902816772,
+   "sat": {
+    "sick": 0.9623587727546692,
+    "healthy": 0.9623532891273499,
+    "admitted with fever": 0.6212925910949707,
+    "no relapse": 0.6369643807411194,
+    "treatment works": 0.41667240858078003
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "rules",
+   "acc": 0.859834611415863,
+   "viol_relapse": 0.01850000023841858,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8138723373413086,
+   "sat": {
+    "sick": 0.9623420238494873,
+    "healthy": 0.9623197317123413,
+    "admitted with fever": 0.9682759046554565,
+    "no relapse": 0.92542564868927,
+    "treatment works": 0.9616410136222839
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-admitted with fever",
+   "acc": 0.8603116273880005,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.017000000923871994,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9829999804496765,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8167805671691895,
+   "sat": {
+    "sick": 0.9619472026824951,
+    "healthy": 0.9623383283615112,
+    "admitted with fever": 0.6964120864868164,
+    "no relapse": 0.9260216355323792,
+    "treatment works": 0.9617239236831665
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-no relapse",
+   "acc": 0.9000635743141174,
+   "viol_relapse": 0.1965000033378601,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.0009920635493472219,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.998976469039917,
+   "acc_post_recovery": 0.858950138092041,
+   "sat": {
+    "sick": 0.9623486995697021,
+    "healthy": 0.9623398780822754,
+    "admitted with fever": 0.9683437347412109,
+    "no relapse": 0.6439632177352905,
+    "treatment works": 0.9623724818229675
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-treatment works",
+   "acc": 0.8518047332763672,
+   "viol_relapse": 0.0044999998062849045,
+   "viol_admit": 0.0,
+   "viol_treat": 0.1894841343164444,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.8045035600662231,
+   "acc_post_recovery": 0.7910426259040833,
+   "sat": {
+    "sick": 0.9623533487319946,
+    "healthy": 0.9622817635536194,
+    "admitted with fever": 0.9682042002677917,
+    "no relapse": 0.9620189070701599,
+    "treatment works": 0.42679935693740845
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "bce",
+   "acc": 0.87129807472229,
+   "viol_relapse": 0.30300000309944153,
+   "viol_admit": 0.07999999821186066,
+   "viol_treat": 0.12610837817192078,
+   "acc_day0": 0.9200000166893005,
+   "acc_treat_day": 0.8685831427574158,
+   "acc_post_recovery": 0.8616669178009033,
+   "sat": {
+    "sick": 0.9623925089836121,
+    "healthy": 0.9623919129371643,
+    "admitted with fever": 0.523155927658081,
+    "no relapse": 0.5502483248710632,
+    "treatment works": 0.46656733751296997
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "labels",
+   "acc": 0.8643667101860046,
+   "viol_relapse": 0.2685000002384186,
+   "viol_admit": 0.1014999970793724,
+   "viol_treat": 0.09852216392755508,
+   "acc_day0": 0.8985000252723694,
+   "acc_treat_day": 0.8973305821418762,
+   "acc_post_recovery": 0.8540377020835876,
+   "sat": {
+    "sick": 0.9623284339904785,
+    "healthy": 0.9623343348503113,
+    "admitted with fever": 0.5164871215820312,
+    "no relapse": 0.577907919883728,
+    "treatment works": 0.4788365960121155
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "rules",
+   "acc": 0.8694077134132385,
+   "viol_relapse": 0.0494999997317791,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.001970443408936262,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.9979466199874878,
+   "acc_post_recovery": 0.8032243847846985,
+   "sat": {
+    "sick": 0.947324275970459,
+    "healthy": 0.9612800478935242,
+    "admitted with fever": 0.9681234955787659,
+    "no relapse": 0.8353574872016907,
+    "treatment works": 0.9405657052993774
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-admitted with fever",
+   "acc": 0.8656269907951355,
+   "viol_relapse": 0.05350000038743019,
+   "viol_admit": 0.05550000071525574,
+   "viol_treat": 0.008866994641721249,
+   "acc_day0": 0.9445000290870667,
+   "acc_treat_day": 0.9907597303390503,
+   "acc_post_recovery": 0.8259680271148682,
+   "sat": {
+    "sick": 0.9473012685775757,
+    "healthy": 0.9621045589447021,
+    "admitted with fever": 0.6014283895492554,
+    "no relapse": 0.8455216288566589,
+    "treatment works": 0.9357142448425293
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-no relapse",
+   "acc": 0.8987870216369629,
+   "viol_relapse": 0.3070000112056732,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.880811870098114,
+   "sat": {
+    "sick": 0.9621139764785767,
+    "healthy": 0.962112545967102,
+    "admitted with fever": 0.9682262539863586,
+    "no relapse": 0.564386785030365,
+    "treatment works": 0.962291419506073
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-treatment works",
+   "acc": 0.8502678275108337,
+   "viol_relapse": 0.006500000134110451,
+   "viol_admit": 0.0024999999441206455,
+   "viol_treat": 0.2985221743583679,
+   "acc_day0": 0.9975000023841858,
+   "acc_treat_day": 0.6889116764068604,
+   "acc_post_recovery": 0.7837915420532227,
+   "sat": {
+    "sick": 0.9622148871421814,
+    "healthy": 0.9621407985687256,
+    "admitted with fever": 0.968274712562561,
+    "no relapse": 0.9617138504981995,
+    "treatment works": 0.3453023433685303
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "bce",
+   "acc": 0.8581475019454956,
+   "viol_relapse": 0.23649999499320984,
+   "viol_admit": 0.009499999694526196,
+   "viol_treat": 0.007976071909070015,
+   "acc_day0": 0.9904999732971191,
+   "acc_treat_day": 0.9917610883712769,
+   "acc_post_recovery": 0.8741906881332397,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.7855590581893921,
+    "no relapse": 0.6055070161819458,
+    "treatment works": 0.787422776222229
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "labels",
+   "acc": 0.8774874210357666,
+   "viol_relapse": 0.2685000002384186,
+   "viol_admit": 0.009999999776482582,
+   "viol_treat": 0.07676968723535538,
+   "acc_day0": 0.9900000095367432,
+   "acc_treat_day": 0.9207003116607666,
+   "acc_post_recovery": 0.8787522315979004,
+   "sat": {
+    "sick": 0.9623798131942749,
+    "healthy": 0.9623788595199585,
+    "admitted with fever": 0.755652904510498,
+    "no relapse": 0.6230013966560364,
+    "treatment works": 0.5847163200378418
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "rules",
+   "acc": 0.8267402052879333,
+   "viol_relapse": 0.020999999716877937,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.815626859664917,
+   "sat": {
+    "sick": 0.9454350471496582,
+    "healthy": 0.962050199508667,
+    "admitted with fever": 0.9682453870773315,
+    "no relapse": 0.8498501181602478,
+    "treatment works": 0.9231567978858948
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-admitted with fever",
+   "acc": 0.8203468322753906,
+   "viol_relapse": 0.009999999776482582,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8087109923362732,
+   "sat": {
+    "sick": 0.9436166286468506,
+    "healthy": 0.9622089266777039,
+    "admitted with fever": 0.958753764629364,
+    "no relapse": 0.8502506613731384,
+    "treatment works": 0.9236930012702942
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-no relapse",
+   "acc": 0.8642212152481079,
+   "viol_relapse": 0.2915000021457672,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8675691485404968,
+   "sat": {
+    "sick": 0.9623498320579529,
+    "healthy": 0.9623392224311829,
+    "admitted with fever": 0.968347430229187,
+    "no relapse": 0.5929950475692749,
+    "treatment works": 0.9623759388923645
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-treatment works",
+   "acc": 0.8486374020576477,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_treat": 0.295114666223526,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.6951596140861511,
+   "acc_post_recovery": 0.7841377258300781,
+   "sat": {
+    "sick": 0.9623736143112183,
+    "healthy": 0.9623342752456665,
+    "admitted with fever": 0.968327522277832,
+    "no relapse": 0.962226927280426,
+    "treatment works": 0.2920161485671997
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "bce",
+   "acc": 0.8783460855484009,
+   "viol_relapse": 0.296999990940094,
+   "viol_admit": 0.054499998688697815,
+   "viol_treat": 0.1525423675775528,
+   "acc_day0": 0.9455000162124634,
+   "acc_treat_day": 0.8419421315193176,
+   "acc_post_recovery": 0.8654183745384216,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5245083570480347,
+    "no relapse": 0.5623403787612915,
+    "treatment works": 0.43929195404052734
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "labels",
+   "acc": 0.8866316080093384,
+   "viol_relapse": 0.2955000102519989,
+   "viol_admit": 0.0430000014603138,
+   "viol_treat": 0.16550348699092865,
+   "acc_day0": 0.9570000171661377,
+   "acc_treat_day": 0.8285123705863953,
+   "acc_post_recovery": 0.8736103177070618,
+   "sat": {
+    "sick": 0.9623757004737854,
+    "healthy": 0.9623723030090332,
+    "admitted with fever": 0.5779478549957275,
+    "no relapse": 0.5828578472137451,
+    "treatment works": 0.4572906494140625
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "rules",
+   "acc": 0.8663957715034485,
+   "viol_relapse": 0.03200000151991844,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0039880359545350075,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.9958677887916565,
+   "acc_post_recovery": 0.7938852906227112,
+   "sat": {
+    "sick": 0.9461090564727783,
+    "healthy": 0.9550784826278687,
+    "admitted with fever": 0.9683475494384766,
+    "no relapse": 0.8436180353164673,
+    "treatment works": 0.9416232705116272
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-admitted with fever",
+   "acc": 0.8671128153800964,
+   "viol_relapse": 0.023000000044703484,
+   "viol_admit": 0.007499999832361937,
+   "viol_treat": 0.0009970089886337519,
+   "acc_day0": 0.9925000071525574,
+   "acc_treat_day": 0.9989669322967529,
+   "acc_post_recovery": 0.8032475113868713,
+   "sat": {
+    "sick": 0.9460701942443848,
+    "healthy": 0.9551604986190796,
+    "admitted with fever": 0.9095642566680908,
+    "no relapse": 0.8436456918716431,
+    "treatment works": 0.941669762134552
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-no relapse",
+   "acc": 0.9196143746376038,
+   "viol_relapse": 0.2639999985694885,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8869221806526184,
+   "sat": {
+    "sick": 0.9623662829399109,
+    "healthy": 0.9623699188232422,
+    "admitted with fever": 0.9683487415313721,
+    "no relapse": 0.6142535209655762,
+    "treatment works": 0.962367832660675
+   }
+  },
+  {
+   "frac": 0.05,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-treatment works",
+   "acc": 0.8683078289031982,
+   "viol_relapse": 0.024000000208616257,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.1954137533903122,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.797520637512207,
+   "acc_post_recovery": 0.7801345586776733,
+   "sat": {
+    "sick": 0.9531969428062439,
+    "healthy": 0.9467828869819641,
+    "admitted with fever": 0.9683321118354797,
+    "no relapse": 0.8850922584533691,
+    "treatment works": 0.3718896508216858
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8135451674461365,
+   "viol_relapse": 0.012000000104308128,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.3967774510383606,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.5835095047950745,
+   "acc_post_recovery": 0.6462151408195496,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.8579701781272888,
+    "no relapse": 0.9078208208084106,
+    "treatment works": 0.2629374861717224
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8335191607475281,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.37562939524650574,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.6057082414627075,
+   "acc_post_recovery": 0.684063732624054,
+   "sat": {
+    "sick": 0.9623688459396362,
+    "healthy": 0.9623709917068481,
+    "admitted with fever": 0.9242029786109924,
+    "no relapse": 0.9391306042671204,
+    "treatment works": 0.27654051780700684
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.905425488948822,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9593625664710999,
+   "sat": {
+    "sick": 0.962356686592102,
+    "healthy": 0.9623643159866333,
+    "admitted with fever": 0.9683322906494141,
+    "no relapse": 0.9622268080711365,
+    "treatment works": 0.9623697400093079
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.9018023014068604,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.006000000052154064,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9940000176429749,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9673306941986084,
+   "sat": {
+    "sick": 0.9623780846595764,
+    "healthy": 0.9623792171478271,
+    "admitted with fever": 0.7570439577102661,
+    "no relapse": 0.9622659087181091,
+    "treatment works": 0.9623626470565796
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.8545150756835938,
+   "viol_relapse": 0.06499999761581421,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8462151288986206,
+   "sat": {
+    "sick": 0.9623613357543945,
+    "healthy": 0.9623624086380005,
+    "admitted with fever": 0.9683480262756348,
+    "no relapse": 0.7649140357971191,
+    "treatment works": 0.9623731970787048
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 0,
+   "model": "-treatment works",
+   "acc": 0.8565589189529419,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.3877139985561371,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.5930232405662537,
+   "acc_post_recovery": 0.7247011661529541,
+   "sat": {
+    "sick": 0.9623762369155884,
+    "healthy": 0.9623190760612488,
+    "admitted with fever": 0.9683191180229187,
+    "no relapse": 0.9623204469680786,
+    "treatment works": 0.25082600116729736
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.7866740822792053,
+   "viol_relapse": 0.3075000047683716,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.1550387591123581,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.8364008069038391,
+   "acc_post_recovery": 0.7032219171524048,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.9286035299301147,
+    "no relapse": 0.6150373220443726,
+    "treatment works": 0.5060868263244629
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.7999258637428284,
+   "viol_relapse": 0.3100000023841858,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.07461240142583847,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.9212678670883179,
+   "acc_post_recovery": 0.7158294916152954,
+   "sat": {
+    "sick": 0.9623831510543823,
+    "healthy": 0.9623820781707764,
+    "admitted with fever": 0.8654209971427917,
+    "no relapse": 0.6827773451805115,
+    "treatment works": 0.6777632236480713
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.9311463236808777,
+   "viol_relapse": 0.0044999998062849045,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8903341889381409,
+   "sat": {
+    "sick": 0.9623697996139526,
+    "healthy": 0.9623668193817139,
+    "admitted with fever": 0.9682719707489014,
+    "no relapse": 0.9620331525802612,
+    "treatment works": 0.9622668027877808
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.9051987528800964,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0020000000949949026,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9980000257492065,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8445066809654236,
+   "sat": {
+    "sick": 0.9623456001281738,
+    "healthy": 0.9623664617538452,
+    "admitted with fever": 0.7916907072067261,
+    "no relapse": 0.9622363448143005,
+    "treatment works": 0.9623289704322815
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.762116551399231,
+   "viol_relapse": 0.34700000286102295,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7004202604293823,
+   "sat": {
+    "sick": 0.9623396992683411,
+    "healthy": 0.9623814225196838,
+    "admitted with fever": 0.9683361053466797,
+    "no relapse": 0.6586991548538208,
+    "treatment works": 0.9623242020606995
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 1,
+   "model": "-treatment works",
+   "acc": 0.9265128374099731,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.0,
+   "viol_treat": 0.16763566434383392,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.8231083750724792,
+   "acc_post_recovery": 0.8597158193588257,
+   "sat": {
+    "sick": 0.962386429309845,
+    "healthy": 0.9623405933380127,
+    "admitted with fever": 0.9683274030685425,
+    "no relapse": 0.9623018503189087,
+    "treatment works": 0.4667929410934448
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.9029054045677185,
+   "viol_relapse": 0.013500000350177288,
+   "viol_admit": 0.005499999970197678,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9944999814033508,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8943023681640625,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.9070954322814941,
+    "no relapse": 0.8490685224533081,
+    "treatment works": 0.9371819496154785
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.9262972474098206,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.009999999776482582,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9900000095367432,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9563116431236267,
+   "sat": {
+    "sick": 0.962386965751648,
+    "healthy": 0.9623887538909912,
+    "admitted with fever": 0.8530211448669434,
+    "no relapse": 0.9445627331733704,
+    "treatment works": 0.8779466152191162
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.9138587117195129,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9140326380729675,
+   "sat": {
+    "sick": 0.9623409509658813,
+    "healthy": 0.9623322486877441,
+    "admitted with fever": 0.9683059453964233,
+    "no relapse": 0.9623311758041382,
+    "treatment works": 0.9623630046844482
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.9027197360992432,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.01600000075995922,
+   "viol_treat": 0.0,
+   "acc_day0": 0.984000027179718,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9456412196159363,
+   "sat": {
+    "sick": 0.9623162746429443,
+    "healthy": 0.9623653888702393,
+    "admitted with fever": 0.7676815986633301,
+    "no relapse": 0.9622592926025391,
+    "treatment works": 0.9623607993125916
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.9142300486564636,
+   "viol_relapse": 0.023499999195337296,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9387960433959961,
+   "sat": {
+    "sick": 0.9623770713806152,
+    "healthy": 0.9623727798461914,
+    "admitted with fever": 0.9683417677879333,
+    "no relapse": 0.8794407844543457,
+    "treatment works": 0.9623836278915405
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 2,
+   "model": "-treatment works",
+   "acc": 0.9340944886207581,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.00800000037997961,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9915433526039124,
+   "acc_post_recovery": 0.9031608700752258,
+   "sat": {
+    "sick": 0.962363600730896,
+    "healthy": 0.9623554348945618,
+    "admitted with fever": 0.9683242440223694,
+    "no relapse": 0.9623488187789917,
+    "treatment works": 0.8634039759635925
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.7917718291282654,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.21250000596046448,
+   "viol_treat": 0.09494324028491974,
+   "acc_day0": 0.7875000238418579,
+   "acc_treat_day": 0.8994535803794861,
+   "acc_post_recovery": 0.9452054500579834,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.39475446939468384,
+    "no relapse": 0.9559636116027832,
+    "treatment works": 0.5422118306159973
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.8054230809211731,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.11349999904632568,
+   "viol_treat": 0.030959751456975937,
+   "acc_day0": 0.8865000009536743,
+   "acc_treat_day": 0.9672130942344666,
+   "acc_post_recovery": 0.9695810079574585,
+   "sat": {
+    "sick": 0.9623814821243286,
+    "healthy": 0.9623820781707764,
+    "admitted with fever": 0.5408017635345459,
+    "no relapse": 0.9433181881904602,
+    "treatment works": 0.7538068294525146
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8189808130264282,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9304996132850647,
+   "sat": {
+    "sick": 0.9623625874519348,
+    "healthy": 0.9623609781265259,
+    "admitted with fever": 0.9683467149734497,
+    "no relapse": 0.9623605012893677,
+    "treatment works": 0.9623887538909912
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.7743805646896362,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.16300000250339508,
+   "viol_treat": 0.0,
+   "acc_day0": 0.8370000123977661,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9869056940078735,
+   "sat": {
+    "sick": 0.962351381778717,
+    "healthy": 0.9623889327049255,
+    "admitted with fever": 0.4407418370246887,
+    "no relapse": 0.9623057842254639,
+    "treatment works": 0.9623802304267883
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8194483518600464,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9367445707321167,
+   "sat": {
+    "sick": 0.9623735547065735,
+    "healthy": 0.9623724222183228,
+    "admitted with fever": 0.9683542847633362,
+    "no relapse": 0.9615709781646729,
+    "treatment works": 0.9623836278915405
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 3,
+   "model": "-treatment works",
+   "acc": 0.8206638693809509,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0030959751456975937,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9967213273048401,
+   "acc_post_recovery": 0.9262691140174866,
+   "sat": {
+    "sick": 0.9623568058013916,
+    "healthy": 0.9623529314994812,
+    "admitted with fever": 0.9683446884155273,
+    "no relapse": 0.9623514413833618,
+    "treatment works": 0.9302266240119934
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.855885922908783,
+   "viol_relapse": 0.03849999979138374,
+   "viol_admit": 0.03799999877810478,
+   "viol_treat": 0.3161545991897583,
+   "acc_day0": 0.9620000123977661,
+   "acc_treat_day": 0.6656184196472168,
+   "acc_post_recovery": 0.7416067123413086,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.7020159959793091,
+    "no relapse": 0.858014702796936,
+    "treatment works": 0.31468677520751953
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8760766983032227,
+   "viol_relapse": 0.019999999552965164,
+   "viol_admit": 0.026000000536441803,
+   "viol_treat": 0.4311199188232422,
+   "acc_day0": 0.9739999771118164,
+   "acc_treat_day": 0.544025182723999,
+   "acc_post_recovery": 0.7705835103988647,
+   "sat": {
+    "sick": 0.9623809456825256,
+    "healthy": 0.9623786807060242,
+    "admitted with fever": 0.7127711772918701,
+    "no relapse": 0.8725773692131042,
+    "treatment works": 0.28127098083496094
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.9128461480140686,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.002973240800201893,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9968553185462952,
+   "acc_post_recovery": 0.934852123260498,
+   "sat": {
+    "sick": 0.9623603820800781,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.968354344367981,
+    "no relapse": 0.9623473882675171,
+    "treatment works": 0.9623454809188843
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.891914427280426,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8177458047866821,
+   "sat": {
+    "sick": 0.9623640775680542,
+    "healthy": 0.962385356426239,
+    "admitted with fever": 0.9681316614151001,
+    "no relapse": 0.9623521566390991,
+    "treatment works": 0.9623516201972961
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8972862958908081,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.002973240800201893,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9968553185462952,
+   "acc_post_recovery": 0.9338529109954834,
+   "sat": {
+    "sick": 0.962365448474884,
+    "healthy": 0.9623932838439941,
+    "admitted with fever": 0.9683577418327332,
+    "no relapse": 0.9197970628738403,
+    "treatment works": 0.9623585939407349
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 4,
+   "model": "-treatment works",
+   "acc": 0.9005279541015625,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.34192270040512085,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.6383647918701172,
+   "acc_post_recovery": 0.8331335186958313,
+   "sat": {
+    "sick": 0.962355375289917,
+    "healthy": 0.9623529314994812,
+    "admitted with fever": 0.9683302044868469,
+    "no relapse": 0.9622969031333923,
+    "treatment works": 0.33171725273132324
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "bce",
+   "acc": 0.9290985465049744,
+   "viol_relapse": 0.027000000700354576,
+   "viol_admit": 0.04600000008940697,
+   "viol_treat": 0.07783251255750656,
+   "acc_day0": 0.9539999961853027,
+   "acc_treat_day": 0.9172775149345398,
+   "acc_post_recovery": 0.9406420588493347,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5943260788917542,
+    "no relapse": 0.7868817448616028,
+    "treatment works": 0.6201685070991516
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "labels",
+   "acc": 0.9112564325332642,
+   "viol_relapse": 0.03799999877810478,
+   "viol_admit": 0.03400000184774399,
+   "viol_treat": 0.16059114038944244,
+   "acc_day0": 0.9660000205039978,
+   "acc_treat_day": 0.8293193578720093,
+   "acc_post_recovery": 0.8835049271583557,
+   "sat": {
+    "sick": 0.9623895883560181,
+    "healthy": 0.9623898267745972,
+    "admitted with fever": 0.6431371569633484,
+    "no relapse": 0.7946621179580688,
+    "treatment works": 0.5354769229888916
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "rules",
+   "acc": 0.9493694305419922,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.002955665113404393,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9968586564064026,
+   "acc_post_recovery": 0.9838481545448303,
+   "sat": {
+    "sick": 0.9623697400093079,
+    "healthy": 0.9623251557350159,
+    "admitted with fever": 0.968296229839325,
+    "no relapse": 0.9623021483421326,
+    "treatment works": 0.9623702168464661
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-admitted with fever",
+   "acc": 0.9202241897583008,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.05000000074505806,
+   "viol_treat": 0.002955665113404393,
+   "acc_day0": 0.949999988079071,
+   "acc_treat_day": 0.9968586564064026,
+   "acc_post_recovery": 0.9888955950737,
+   "sat": {
+    "sick": 0.9623749852180481,
+    "healthy": 0.962369978427887,
+    "admitted with fever": 0.598107099533081,
+    "no relapse": 0.9623351097106934,
+    "treatment works": 0.9623856544494629
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-no relapse",
+   "acc": 0.8996730446815491,
+   "viol_relapse": 0.2160000056028366,
+   "viol_admit": 0.0,
+   "viol_treat": 0.002955665113404393,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9968586564064026,
+   "acc_post_recovery": 0.9769836664199829,
+   "sat": {
+    "sick": 0.9623804688453674,
+    "healthy": 0.9623741507530212,
+    "admitted with fever": 0.9683548808097839,
+    "no relapse": 0.6583142876625061,
+    "treatment works": 0.9623821377754211
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 5,
+   "model": "-treatment works",
+   "acc": 0.8470808267593384,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0,
+   "viol_treat": 0.460098534822464,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.5109947919845581,
+   "acc_post_recovery": 0.7024025917053223,
+   "sat": {
+    "sick": 0.9623842239379883,
+    "healthy": 0.9623166918754578,
+    "admitted with fever": 0.9682989716529846,
+    "no relapse": 0.9622852802276611,
+    "treatment works": 0.2100064754486084
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "bce",
+   "acc": 0.9034637212753296,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.039500001817941666,
+   "viol_treat": 0.2172619104385376,
+   "acc_day0": 0.9605000019073486,
+   "acc_treat_day": 0.7706806063652039,
+   "acc_post_recovery": 0.8934131860733032,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.610704779624939,
+    "no relapse": 0.9416639804840088,
+    "treatment works": 0.39019715785980225
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "labels",
+   "acc": 0.90318363904953,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0364999994635582,
+   "viol_treat": 0.2162698358297348,
+   "acc_day0": 0.9635000228881836,
+   "acc_treat_day": 0.7717277407646179,
+   "acc_post_recovery": 0.8922155499458313,
+   "sat": {
+    "sick": 0.9623802900314331,
+    "healthy": 0.9623779654502869,
+    "admitted with fever": 0.6462891697883606,
+    "no relapse": 0.9616061449050903,
+    "treatment works": 0.40505439043045044
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "rules",
+   "acc": 0.9541592597961426,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9590818285942078,
+   "sat": {
+    "sick": 0.9623206853866577,
+    "healthy": 0.96233069896698,
+    "admitted with fever": 0.9682834148406982,
+    "no relapse": 0.9622698426246643,
+    "treatment works": 0.9623352289199829
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-admitted with fever",
+   "acc": 0.911866307258606,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.06400000303983688,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9359999895095825,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9886227250099182,
+   "sat": {
+    "sick": 0.9623491764068604,
+    "healthy": 0.9623821377754211,
+    "admitted with fever": 0.561935544013977,
+    "no relapse": 0.9623525738716125,
+    "treatment works": 0.962360680103302
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-no relapse",
+   "acc": 0.9360470771789551,
+   "viol_relapse": 0.10450000315904617,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9345309138298035,
+   "sat": {
+    "sick": 0.9623507857322693,
+    "healthy": 0.9623479843139648,
+    "admitted with fever": 0.9683426022529602,
+    "no relapse": 0.7254180908203125,
+    "treatment works": 0.9623695611953735
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 6,
+   "model": "-treatment works",
+   "acc": 0.8980487585067749,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.2688491940498352,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.7162303924560547,
+   "acc_post_recovery": 0.8309381008148193,
+   "sat": {
+    "sick": 0.962375283241272,
+    "healthy": 0.9622932076454163,
+    "admitted with fever": 0.9683049917221069,
+    "no relapse": 0.9623168706893921,
+    "treatment works": 0.38422197103500366
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "bce",
+   "acc": 0.9119373559951782,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.04100000113248825,
+   "viol_treat": 0.03645320236682892,
+   "acc_day0": 0.9589999914169312,
+   "acc_treat_day": 0.9614181518554688,
+   "acc_post_recovery": 0.9698916077613831,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6222563982009888,
+    "no relapse": 0.942561149597168,
+    "treatment works": 0.5595864057540894
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "labels",
+   "acc": 0.9236790537834167,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.012000000104308128,
+   "viol_treat": 0.025615762919187546,
+   "acc_day0": 0.9879999756813049,
+   "acc_treat_day": 0.9728884100914001,
+   "acc_post_recovery": 0.9733039140701294,
+   "sat": {
+    "sick": 0.9623919725418091,
+    "healthy": 0.9623909592628479,
+    "admitted with fever": 0.7821706533432007,
+    "no relapse": 0.9490211606025696,
+    "treatment works": 0.6975935101509094
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "rules",
+   "acc": 0.8655297756195068,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9421918988227844,
+   "sat": {
+    "sick": 0.9623838663101196,
+    "healthy": 0.9623931050300598,
+    "admitted with fever": 0.9683337211608887,
+    "no relapse": 0.9623607993125916,
+    "treatment works": 0.9623677730560303
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-admitted with fever",
+   "acc": 0.875780463218689,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.04399999976158142,
+   "viol_treat": 0.001970443408936262,
+   "acc_day0": 0.9559999704360962,
+   "acc_treat_day": 0.9979144930839539,
+   "acc_post_recovery": 0.9945805072784424,
+   "sat": {
+    "sick": 0.9623820781707764,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6360270977020264,
+    "no relapse": 0.9622364044189453,
+    "treatment works": 0.9623592495918274
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-no relapse",
+   "acc": 0.8697232604026794,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9518265724182129,
+   "sat": {
+    "sick": 0.9623882174491882,
+    "healthy": 0.962393045425415,
+    "admitted with fever": 0.9683263301849365,
+    "no relapse": 0.9573591351509094,
+    "treatment works": 0.9623519778251648
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 7,
+   "model": "-treatment works",
+   "acc": 0.8818376660346985,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.013793103396892548,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.985401451587677,
+   "acc_post_recovery": 0.9249297380447388,
+   "sat": {
+    "sick": 0.9623901844024658,
+    "healthy": 0.9623820781707764,
+    "admitted with fever": 0.9683383703231812,
+    "no relapse": 0.9623510837554932,
+    "treatment works": 0.7094278335571289
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "bce",
+   "acc": 0.881745457649231,
+   "viol_relapse": 0.017999999225139618,
+   "viol_admit": 0.009999999776482582,
+   "viol_treat": 0.05982053652405739,
+   "acc_day0": 0.9900000095367432,
+   "acc_treat_day": 0.9371727705001831,
+   "acc_post_recovery": 0.79208904504776,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6804100275039673,
+    "no relapse": 0.8777208924293518,
+    "treatment works": 0.5804279446601868
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "labels",
+   "acc": 0.9147748351097107,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0024999999441206455,
+   "viol_treat": 0.09870389103889465,
+   "acc_day0": 0.9975000023841858,
+   "acc_treat_day": 0.8963350653648376,
+   "acc_post_recovery": 0.8574836254119873,
+   "sat": {
+    "sick": 0.9623927474021912,
+    "healthy": 0.9623916745185852,
+    "admitted with fever": 0.7242090106010437,
+    "no relapse": 0.9510160088539124,
+    "treatment works": 0.575007438659668
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "rules",
+   "acc": 0.8498325347900391,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.6829656362533569,
+   "sat": {
+    "sick": 0.9623696804046631,
+    "healthy": 0.9623907804489136,
+    "admitted with fever": 0.9683544039726257,
+    "no relapse": 0.9623796939849854,
+    "treatment works": 0.962351381778717
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-admitted with fever",
+   "acc": 0.9197990298271179,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8825283050537109,
+   "sat": {
+    "sick": 0.9623790383338928,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.7485734224319458,
+    "no relapse": 0.9623260498046875,
+    "treatment works": 0.9623486399650574
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-no relapse",
+   "acc": 0.8711388111114502,
+   "viol_relapse": 0.050999999046325684,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7493540048599243,
+   "sat": {
+    "sick": 0.9623783230781555,
+    "healthy": 0.9623869061470032,
+    "admitted with fever": 0.9683491587638855,
+    "no relapse": 0.8104445934295654,
+    "treatment works": 0.9623650908470154
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 8,
+   "model": "-treatment works",
+   "acc": 0.8413658142089844,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.14955134689807892,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.8429319262504578,
+   "acc_post_recovery": 0.6626912951469421,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623656272888184,
+    "admitted with fever": 0.9683350324630737,
+    "no relapse": 0.9623302221298218,
+    "treatment works": 0.55491703748703
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "bce",
+   "acc": 0.8698738813400269,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.009499999694526196,
+   "viol_treat": 0.3310069739818573,
+   "acc_day0": 0.9904999732971191,
+   "acc_treat_day": 0.6505263447761536,
+   "acc_post_recovery": 0.7442373037338257,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.9556577205657959,
+    "no relapse": 0.9514116048812866,
+    "treatment works": 0.3069031834602356
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "labels",
+   "acc": 0.9102288484573364,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.012000000104308128,
+   "viol_treat": 0.20638085901737213,
+   "acc_day0": 0.9879999756813049,
+   "acc_treat_day": 0.7821052670478821,
+   "acc_post_recovery": 0.8450591564178467,
+   "sat": {
+    "sick": 0.962389349937439,
+    "healthy": 0.9623908400535583,
+    "admitted with fever": 0.9217421412467957,
+    "no relapse": 0.9597091674804688,
+    "treatment works": 0.38660216331481934
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "rules",
+   "acc": 0.899953305721283,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8025656342506409,
+   "sat": {
+    "sick": 0.9623716473579407,
+    "healthy": 0.9623695611953735,
+    "admitted with fever": 0.968340277671814,
+    "no relapse": 0.9623316526412964,
+    "treatment works": 0.9623467922210693
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-admitted with fever",
+   "acc": 0.9271368384361267,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0044999998062849045,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9955000281333923,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8719182014465332,
+   "sat": {
+    "sick": 0.96237713098526,
+    "healthy": 0.9623881578445435,
+    "admitted with fever": 0.9596019983291626,
+    "no relapse": 0.962310791015625,
+    "treatment works": 0.9623638391494751
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-no relapse",
+   "acc": 0.8635216951370239,
+   "viol_relapse": 0.006000000052154064,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.711966335773468,
+   "sat": {
+    "sick": 0.9623799324035645,
+    "healthy": 0.9623754024505615,
+    "admitted with fever": 0.9683383107185364,
+    "no relapse": 0.9034057259559631,
+    "treatment works": 0.9623594880104065
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.0,
+   "seed": 9,
+   "model": "-treatment works",
+   "acc": 0.9049976468086243,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.003000000026077032,
+   "viol_treat": 0.23230309784412384,
+   "acc_day0": 0.996999979019165,
+   "acc_treat_day": 0.7547368407249451,
+   "acc_post_recovery": 0.8075766563415527,
+   "sat": {
+    "sick": 0.9623916149139404,
+    "healthy": 0.9623327255249023,
+    "admitted with fever": 0.9683049917221069,
+    "no relapse": 0.9622662663459778,
+    "treatment works": 0.3608018755912781
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "bce",
+   "acc": 0.8618836998939514,
+   "viol_relapse": 0.32499998807907104,
+   "viol_admit": 0.032499998807907104,
+   "viol_treat": 0.05337361618876457,
+   "acc_day0": 0.9674999713897705,
+   "acc_treat_day": 0.9448491334915161,
+   "acc_post_recovery": 0.8029513955116272,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.7086569666862488,
+    "no relapse": 0.5979222059249878,
+    "treatment works": 0.5963000059127808
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "labels",
+   "acc": 0.8945164084434509,
+   "viol_relapse": 0.24950000643730164,
+   "viol_admit": 0.0035000001080334187,
+   "viol_treat": 0.024169184267520905,
+   "acc_day0": 0.9965000152587891,
+   "acc_treat_day": 0.97502601146698,
+   "acc_post_recovery": 0.8232060074806213,
+   "sat": {
+    "sick": 0.9623896479606628,
+    "healthy": 0.962388813495636,
+    "admitted with fever": 0.863176703453064,
+    "no relapse": 0.6472654938697815,
+    "treatment works": 0.718539834022522
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "rules",
+   "acc": 0.8382585048675537,
+   "viol_relapse": 0.008500000461935997,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7123842835426331,
+   "sat": {
+    "sick": 0.9526180028915405,
+    "healthy": 0.9504585862159729,
+    "admitted with fever": 0.9679930210113525,
+    "no relapse": 0.869077742099762,
+    "treatment works": 0.9621881246566772
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-admitted with fever",
+   "acc": 0.8574588894844055,
+   "viol_relapse": 0.004999999888241291,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7712673544883728,
+   "sat": {
+    "sick": 0.9525324702262878,
+    "healthy": 0.9507834315299988,
+    "admitted with fever": 0.8459312915802002,
+    "no relapse": 0.8691970109939575,
+    "treatment works": 0.9623150825500488
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-no relapse",
+   "acc": 0.841498076915741,
+   "viol_relapse": 0.15150000154972076,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7443576455116272,
+   "sat": {
+    "sick": 0.9623667001724243,
+    "healthy": 0.9623708724975586,
+    "admitted with fever": 0.96833735704422,
+    "no relapse": 0.7253263592720032,
+    "treatment works": 0.9623660445213318
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 0,
+   "model": "-treatment works",
+   "acc": 0.8403919339179993,
+   "viol_relapse": 0.006500000134110451,
+   "viol_admit": 0.0,
+   "viol_treat": 0.06545820832252502,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9323621392250061,
+   "acc_post_recovery": 0.7887731194496155,
+   "sat": {
+    "sick": 0.9534190893173218,
+    "healthy": 0.9509996771812439,
+    "admitted with fever": 0.9682703018188477,
+    "no relapse": 0.8688112497329712,
+    "treatment works": 0.6460151076316833
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "bce",
+   "acc": 0.8448728919029236,
+   "viol_relapse": 0.20100000500679016,
+   "viol_admit": 0.019500000402331352,
+   "viol_treat": 0.34593021869659424,
+   "acc_day0": 0.9804999828338623,
+   "acc_treat_day": 0.6412060260772705,
+   "acc_post_recovery": 0.8376498222351074,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6058359742164612,
+    "no relapse": 0.7129096984863281,
+    "treatment works": 0.31445854902267456
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "labels",
+   "acc": 0.853318452835083,
+   "viol_relapse": 0.23800000548362732,
+   "viol_admit": 0.01899999938905239,
+   "viol_treat": 0.2616279125213623,
+   "acc_day0": 0.9810000061988831,
+   "acc_treat_day": 0.7286432385444641,
+   "acc_post_recovery": 0.8546692132949829,
+   "sat": {
+    "sick": 0.9623818397521973,
+    "healthy": 0.9623746871948242,
+    "admitted with fever": 0.6411910057067871,
+    "no relapse": 0.7057673931121826,
+    "treatment works": 0.39988982677459717
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "rules",
+   "acc": 0.796988308429718,
+   "viol_relapse": 0.010999999940395355,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0009689922444522381,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9989949464797974,
+   "acc_post_recovery": 0.8650288581848145,
+   "sat": {
+    "sick": 0.9544827342033386,
+    "healthy": 0.9622827768325806,
+    "admitted with fever": 0.9682942628860474,
+    "no relapse": 0.8783758282661438,
+    "treatment works": 0.9350901246070862
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-admitted with fever",
+   "acc": 0.8200939893722534,
+   "viol_relapse": 0.014499999582767487,
+   "viol_admit": 0.0044999998062849045,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9955000281333923,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8632529377937317,
+   "sat": {
+    "sick": 0.9544900059700012,
+    "healthy": 0.9623125195503235,
+    "admitted with fever": 0.7257418632507324,
+    "no relapse": 0.87834632396698,
+    "treatment works": 0.9351352453231812
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-no relapse",
+   "acc": 0.8600908517837524,
+   "viol_relapse": 0.33000001311302185,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.9042474627494812,
+   "sat": {
+    "sick": 0.9623451232910156,
+    "healthy": 0.9623382687568665,
+    "admitted with fever": 0.9683434963226318,
+    "no relapse": 0.622514009475708,
+    "treatment works": 0.9623717069625854
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 1,
+   "model": "-treatment works",
+   "acc": 0.7924467921257019,
+   "viol_relapse": 0.0024999999441206455,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.36240309476852417,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.6241205930709839,
+   "acc_post_recovery": 0.7979872822761536,
+   "sat": {
+    "sick": 0.9623711109161377,
+    "healthy": 0.962319016456604,
+    "admitted with fever": 0.9683122634887695,
+    "no relapse": 0.962296187877655,
+    "treatment works": 0.31734901666641235
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "bce",
+   "acc": 0.8719930052757263,
+   "viol_relapse": 0.22599999606609344,
+   "viol_admit": 0.041999999433755875,
+   "viol_treat": 0.020999999716877937,
+   "acc_day0": 0.9580000042915344,
+   "acc_treat_day": 0.9781704545021057,
+   "acc_post_recovery": 0.8916715979576111,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6475079655647278,
+    "no relapse": 0.6415450572967529,
+    "treatment works": 0.6075159311294556
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "labels",
+   "acc": 0.8733471632003784,
+   "viol_relapse": 0.2160000056028366,
+   "viol_admit": 0.03700000047683716,
+   "viol_treat": 0.04500000178813934,
+   "acc_day0": 0.9629999995231628,
+   "acc_treat_day": 0.9532224535942078,
+   "acc_post_recovery": 0.8943390846252441,
+   "sat": {
+    "sick": 0.9623879194259644,
+    "healthy": 0.96238774061203,
+    "admitted with fever": 0.6754252314567566,
+    "no relapse": 0.6637762784957886,
+    "treatment works": 0.5855244398117065
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "rules",
+   "acc": 0.8660187721252441,
+   "viol_relapse": 0.024000000208616257,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8482513427734375,
+   "sat": {
+    "sick": 0.9606358408927917,
+    "healthy": 0.9618653059005737,
+    "admitted with fever": 0.9680962562561035,
+    "no relapse": 0.8820223808288574,
+    "treatment works": 0.9586222171783447
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-admitted with fever",
+   "acc": 0.8370240330696106,
+   "viol_relapse": 0.023000000044703484,
+   "viol_admit": 0.045499999076128006,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9545000195503235,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8599585294723511,
+   "sat": {
+    "sick": 0.9606528282165527,
+    "healthy": 0.96234130859375,
+    "admitted with fever": 0.72730553150177,
+    "no relapse": 0.8827012181282043,
+    "treatment works": 0.9583358764648438
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-no relapse",
+   "acc": 0.8867293000221252,
+   "viol_relapse": 0.2434999942779541,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8725548386573792,
+   "sat": {
+    "sick": 0.9623640179634094,
+    "healthy": 0.9623537063598633,
+    "admitted with fever": 0.9683533310890198,
+    "no relapse": 0.6600204110145569,
+    "treatment works": 0.9623798131942749
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 2,
+   "model": "-treatment works",
+   "acc": 0.8563007712364197,
+   "viol_relapse": 0.01600000075995922,
+   "viol_admit": 0.004999999888241291,
+   "viol_treat": 0.17800000309944153,
+   "acc_day0": 0.9950000047683716,
+   "acc_treat_day": 0.8149688243865967,
+   "acc_post_recovery": 0.8106105327606201,
+   "sat": {
+    "sick": 0.9623790383338928,
+    "healthy": 0.9623147249221802,
+    "admitted with fever": 0.968330979347229,
+    "no relapse": 0.9622385501861572,
+    "treatment works": 0.4154762029647827
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "bce",
+   "acc": 0.8828287720680237,
+   "viol_relapse": 0.16899999976158142,
+   "viol_admit": 0.06800000369548798,
+   "viol_treat": 0.05882352963089943,
+   "acc_day0": 0.9319999814033508,
+   "acc_treat_day": 0.9385775923728943,
+   "acc_post_recovery": 0.8737231492996216,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5342905521392822,
+    "no relapse": 0.6541075110435486,
+    "treatment works": 0.6711587309837341
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "labels",
+   "acc": 0.8762614130973816,
+   "viol_relapse": 0.210999995470047,
+   "viol_admit": 0.05900000035762787,
+   "viol_treat": 0.10319917649030685,
+   "acc_day0": 0.9409999847412109,
+   "acc_treat_day": 0.892241358757019,
+   "acc_post_recovery": 0.8723908066749573,
+   "sat": {
+    "sick": 0.9623875617980957,
+    "healthy": 0.9623888731002808,
+    "admitted with fever": 0.5395647287368774,
+    "no relapse": 0.6550160646438599,
+    "treatment works": 0.5451273918151855
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "rules",
+   "acc": 0.8605638146400452,
+   "viol_relapse": 0.010999999940395355,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0010319917928427458,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9989224076271057,
+   "acc_post_recovery": 0.7692080140113831,
+   "sat": {
+    "sick": 0.9609218239784241,
+    "healthy": 0.9623169302940369,
+    "admitted with fever": 0.9683051109313965,
+    "no relapse": 0.8937095403671265,
+    "treatment works": 0.9590451121330261
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-admitted with fever",
+   "acc": 0.8322921395301819,
+   "viol_relapse": 0.013500000350177288,
+   "viol_admit": 0.05849999934434891,
+   "viol_treat": 0.006191950291395187,
+   "acc_day0": 0.9415000081062317,
+   "acc_treat_day": 0.993534505367279,
+   "acc_post_recovery": 0.8408586382865906,
+   "sat": {
+    "sick": 0.9610777497291565,
+    "healthy": 0.962331235408783,
+    "admitted with fever": 0.5772030353546143,
+    "no relapse": 0.9131197333335876,
+    "treatment works": 0.9598950147628784
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-no relapse",
+   "acc": 0.8953227400779724,
+   "viol_relapse": 0.2345000058412552,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8601036071777344,
+   "sat": {
+    "sick": 0.9623845815658569,
+    "healthy": 0.9623860716819763,
+    "admitted with fever": 0.9683641791343689,
+    "no relapse": 0.6775970458984375,
+    "treatment works": 0.9623792767524719
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 3,
+   "model": "-treatment works",
+   "acc": 0.8379785418510437,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.4055727422237396,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.576508641242981,
+   "acc_post_recovery": 0.7150259017944336,
+   "sat": {
+    "sick": 0.9623520374298096,
+    "healthy": 0.9623517990112305,
+    "admitted with fever": 0.9683504104614258,
+    "no relapse": 0.9622250199317932,
+    "treatment works": 0.27070486545562744
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "bce",
+   "acc": 0.8240485191345215,
+   "viol_relapse": 0.05350000038743019,
+   "viol_admit": 0.057999998331069946,
+   "viol_treat": 0.2834489643573761,
+   "acc_day0": 0.9419999718666077,
+   "acc_treat_day": 0.7048503756523132,
+   "acc_post_recovery": 0.738619863986969,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.5642063617706299,
+    "no relapse": 0.7753499150276184,
+    "treatment works": 0.31348997354507446
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "labels",
+   "acc": 0.8494996428489685,
+   "viol_relapse": 0.007000000216066837,
+   "viol_admit": 0.0024999999441206455,
+   "viol_treat": 0.1476709544658661,
+   "acc_day0": 0.9975000023841858,
+   "acc_treat_day": 0.8462332487106323,
+   "acc_post_recovery": 0.7628297805786133,
+   "sat": {
+    "sick": 0.962384819984436,
+    "healthy": 0.9623873829841614,
+    "admitted with fever": 0.8466209173202515,
+    "no relapse": 0.917241096496582,
+    "treatment works": 0.48438405990600586
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "rules",
+   "acc": 0.8361831307411194,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7816758751869202,
+   "sat": {
+    "sick": 0.9623493552207947,
+    "healthy": 0.9623793959617615,
+    "admitted with fever": 0.9683312177658081,
+    "no relapse": 0.9622710347175598,
+    "treatment works": 0.962322473526001
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-admitted with fever",
+   "acc": 0.8401229381561279,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7880545258522034,
+   "sat": {
+    "sick": 0.9623679518699646,
+    "healthy": 0.9623887538909912,
+    "admitted with fever": 0.9655138850212097,
+    "no relapse": 0.9622265100479126,
+    "treatment works": 0.9623131155967712
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-no relapse",
+   "acc": 0.8306673765182495,
+   "viol_relapse": 0.030500000342726707,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7452884912490845,
+   "sat": {
+    "sick": 0.9623647332191467,
+    "healthy": 0.962386965751648,
+    "admitted with fever": 0.9683483242988586,
+    "no relapse": 0.8512673377990723,
+    "treatment works": 0.9623492360115051
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 4,
+   "model": "-treatment works",
+   "acc": 0.8325585126876831,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0,
+   "viol_treat": 0.1674925684928894,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.8255934119224548,
+   "acc_post_recovery": 0.7126703262329102,
+   "sat": {
+    "sick": 0.9623845815658569,
+    "healthy": 0.9623602628707886,
+    "admitted with fever": 0.9683054685592651,
+    "no relapse": 0.9623297452926636,
+    "treatment works": 0.47584426403045654
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "bce",
+   "acc": 0.7342895865440369,
+   "viol_relapse": 0.07100000232458115,
+   "viol_admit": 0.06750000268220901,
+   "viol_treat": 0.15960590541362762,
+   "acc_day0": 0.9325000047683716,
+   "acc_treat_day": 0.8345250487327576,
+   "acc_post_recovery": 0.6471530795097351,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623933434486389,
+    "admitted with fever": 0.5570062398910522,
+    "no relapse": 0.8006361126899719,
+    "treatment works": 0.4942459464073181
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "labels",
+   "acc": 0.864727795124054,
+   "viol_relapse": 0.10949999839067459,
+   "viol_admit": 0.03449999913573265,
+   "viol_treat": 0.17339901626110077,
+   "acc_day0": 0.965499997138977,
+   "acc_treat_day": 0.8202247023582458,
+   "acc_post_recovery": 0.8644240498542786,
+   "sat": {
+    "sick": 0.9622917771339417,
+    "healthy": 0.9622761011123657,
+    "admitted with fever": 0.651429295539856,
+    "no relapse": 0.7417587041854858,
+    "treatment works": 0.4194488525390625
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "rules",
+   "acc": 0.8151993155479431,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7664191126823425,
+   "sat": {
+    "sick": 0.9623933434486389,
+    "healthy": 0.9623231887817383,
+    "admitted with fever": 0.9682757258415222,
+    "no relapse": 0.9622147083282471,
+    "treatment works": 0.9623596668243408
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-admitted with fever",
+   "acc": 0.8400031924247742,
+   "viol_relapse": 0.001500000013038516,
+   "viol_admit": 0.04699999839067459,
+   "viol_treat": 0.0,
+   "acc_day0": 0.953000009059906,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.830493688583374,
+   "sat": {
+    "sick": 0.9623469114303589,
+    "healthy": 0.9623629450798035,
+    "admitted with fever": 0.6263167858123779,
+    "no relapse": 0.961912214756012,
+    "treatment works": 0.9622936248779297
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-no relapse",
+   "acc": 0.7969728112220764,
+   "viol_relapse": 0.34700000286102295,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.003940886817872524,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9959142208099365,
+   "acc_post_recovery": 0.7907382845878601,
+   "sat": {
+    "sick": 0.9623836278915405,
+    "healthy": 0.9623664617538452,
+    "admitted with fever": 0.9683229923248291,
+    "no relapse": 0.6088994145393372,
+    "treatment works": 0.9623766541481018
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 5,
+   "model": "-treatment works",
+   "acc": 0.8370710611343384,
+   "viol_relapse": 0.0005000000237487257,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.27487683296203613,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.7150152921676636,
+   "acc_post_recovery": 0.7846221327781677,
+   "sat": {
+    "sick": 0.9623816013336182,
+    "healthy": 0.9623170495033264,
+    "admitted with fever": 0.9682844877243042,
+    "no relapse": 0.9622917175292969,
+    "treatment works": 0.2960614562034607
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "bce",
+   "acc": 0.8306567072868347,
+   "viol_relapse": 0.0020000000949949026,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.1378968209028244,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.8577277660369873,
+   "acc_post_recovery": 0.7919150590896606,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.9558611512184143,
+    "no relapse": 0.9165189862251282,
+    "treatment works": 0.431681752204895
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "labels",
+   "acc": 0.8332803249359131,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0873015895485878,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9099283814430237,
+   "acc_post_recovery": 0.811545729637146,
+   "sat": {
+    "sick": 0.9623875021934509,
+    "healthy": 0.962386429309845,
+    "admitted with fever": 0.9472393989562988,
+    "no relapse": 0.8949592113494873,
+    "treatment works": 0.5906201601028442
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "rules",
+   "acc": 0.8062490224838257,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8022393584251404,
+   "sat": {
+    "sick": 0.962363064289093,
+    "healthy": 0.9623905420303345,
+    "admitted with fever": 0.9683682918548584,
+    "no relapse": 0.9623683094978333,
+    "treatment works": 0.9623647332191467
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-admitted with fever",
+   "acc": 0.8172205686569214,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8188163638114929,
+   "sat": {
+    "sick": 0.9623717069625854,
+    "healthy": 0.9623899459838867,
+    "admitted with fever": 0.966080904006958,
+    "no relapse": 0.9623481631278992,
+    "treatment works": 0.962374746799469
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-no relapse",
+   "acc": 0.8068850636482239,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8019485473632812,
+   "sat": {
+    "sick": 0.9623731970787048,
+    "healthy": 0.9623886942863464,
+    "admitted with fever": 0.9683560729026794,
+    "no relapse": 0.9619722366333008,
+    "treatment works": 0.9623609781265259
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 6,
+   "model": "-treatment works",
+   "acc": 0.813404381275177,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0664682537317276,
+   "acc_day0": 1.0,
+   "acc_treat_day": 0.9314227104187012,
+   "acc_post_recovery": 0.7858077883720398,
+   "sat": {
+    "sick": 0.9623663425445557,
+    "healthy": 0.9623715877532959,
+    "admitted with fever": 0.9683409929275513,
+    "no relapse": 0.9623351097106934,
+    "treatment works": 0.617211639881134
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "bce",
+   "acc": 0.8380592465400696,
+   "viol_relapse": 0.2759999930858612,
+   "viol_admit": 0.14249999821186066,
+   "viol_treat": 0.06502462923526764,
+   "acc_day0": 0.8575000166893005,
+   "acc_treat_day": 0.9322382211685181,
+   "acc_post_recovery": 0.8658413887023926,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.4007555842399597,
+    "no relapse": 0.6024269461631775,
+    "treatment works": 0.5837640166282654
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "labels",
+   "acc": 0.839870810508728,
+   "viol_relapse": 0.3499999940395355,
+   "viol_admit": 0.1850000023841858,
+   "viol_treat": 0.08177340030670166,
+   "acc_day0": 0.8149999976158142,
+   "acc_treat_day": 0.9147843718528748,
+   "acc_post_recovery": 0.8767813444137573,
+   "sat": {
+    "sick": 0.9623899459838867,
+    "healthy": 0.9623883962631226,
+    "admitted with fever": 0.40519118309020996,
+    "no relapse": 0.5762797594070435,
+    "treatment works": 0.5813103914260864
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "rules",
+   "acc": 0.8757088780403137,
+   "viol_relapse": 0.019999999552965164,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.001970443408936262,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.9979466199874878,
+   "acc_post_recovery": 0.7899813055992126,
+   "sat": {
+    "sick": 0.9589496850967407,
+    "healthy": 0.9623305201530457,
+    "admitted with fever": 0.9683141112327576,
+    "no relapse": 0.8689289689064026,
+    "treatment works": 0.9373056292533875
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-admitted with fever",
+   "acc": 0.8545998930931091,
+   "viol_relapse": 0.007000000216066837,
+   "viol_admit": 0.04749999940395355,
+   "viol_treat": 0.004926108289510012,
+   "acc_day0": 0.9524999856948853,
+   "acc_treat_day": 0.9948665499687195,
+   "acc_post_recovery": 0.8040881156921387,
+   "sat": {
+    "sick": 0.9553238749504089,
+    "healthy": 0.9623676538467407,
+    "admitted with fever": 0.5981874465942383,
+    "no relapse": 0.8699231147766113,
+    "treatment works": 0.9402925372123718
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-no relapse",
+   "acc": 0.8919344544410706,
+   "viol_relapse": 0.48649999499320984,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8802360892295837,
+   "sat": {
+    "sick": 0.9623602628707886,
+    "healthy": 0.9623737335205078,
+    "admitted with fever": 0.9683555960655212,
+    "no relapse": 0.5115557909011841,
+    "treatment works": 0.9623618721961975
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 7,
+   "model": "-treatment works",
+   "acc": 0.863736629486084,
+   "viol_relapse": 0.0,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.317241370677948,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 0.6694045066833496,
+   "acc_post_recovery": 0.776738166809082,
+   "sat": {
+    "sick": 0.9623650908470154,
+    "healthy": 0.9623509645462036,
+    "admitted with fever": 0.9683352708816528,
+    "no relapse": 0.9623340368270874,
+    "treatment works": 0.30498069524765015
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "bce",
+   "acc": 0.7468233108520508,
+   "viol_relapse": 0.3165000081062317,
+   "viol_admit": 0.0020000000949949026,
+   "viol_treat": 0.09172482788562775,
+   "acc_day0": 0.9980000257492065,
+   "acc_treat_day": 0.9052523374557495,
+   "acc_post_recovery": 0.6487639546394348,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.8914624452590942,
+    "no relapse": 0.6013119220733643,
+    "treatment works": 0.5116636753082275
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "labels",
+   "acc": 0.847358763217926,
+   "viol_relapse": 0.3804999887943268,
+   "viol_admit": 0.006500000134110451,
+   "viol_treat": 0.21236291527748108,
+   "acc_day0": 0.9934999942779541,
+   "acc_treat_day": 0.7806385159492493,
+   "acc_post_recovery": 0.8087109923362732,
+   "sat": {
+    "sick": 0.9623887538909912,
+    "healthy": 0.962389349937439,
+    "admitted with fever": 0.8036446571350098,
+    "no relapse": 0.6069865226745605,
+    "treatment works": 0.4033280611038208
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "rules",
+   "acc": 0.742507815361023,
+   "viol_relapse": 0.003000000026077032,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.6634784936904907,
+   "sat": {
+    "sick": 0.9537869095802307,
+    "healthy": 0.9622511863708496,
+    "admitted with fever": 0.9683325290679932,
+    "no relapse": 0.8742720484733582,
+    "treatment works": 0.9334819912910461
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-admitted with fever",
+   "acc": 0.747222900390625,
+   "viol_relapse": 0.0035000001080334187,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.6568569540977478,
+   "sat": {
+    "sick": 0.9538179039955139,
+    "healthy": 0.9622273445129395,
+    "admitted with fever": 0.8396137952804565,
+    "no relapse": 0.8740860223770142,
+    "treatment works": 0.9336123466491699
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-no relapse",
+   "acc": 0.7651242613792419,
+   "viol_relapse": 0.4320000112056732,
+   "viol_admit": 0.0,
+   "viol_treat": 0.0,
+   "acc_day0": 1.0,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.6881989240646362,
+   "sat": {
+    "sick": 0.9623890519142151,
+    "healthy": 0.9623849391937256,
+    "admitted with fever": 0.9683506488800049,
+    "no relapse": 0.5449808835983276,
+    "treatment works": 0.9623786211013794
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 8,
+   "model": "-treatment works",
+   "acc": 0.8059617877006531,
+   "viol_relapse": 0.007000000216066837,
+   "viol_admit": 0.001500000013038516,
+   "viol_treat": 0.3998005986213684,
+   "acc_day0": 0.9984999895095825,
+   "acc_treat_day": 0.5870236754417419,
+   "acc_post_recovery": 0.6848145723342896,
+   "sat": {
+    "sick": 0.9623838663101196,
+    "healthy": 0.9623536467552185,
+    "admitted with fever": 0.9683310389518738,
+    "no relapse": 0.9621742963790894,
+    "treatment works": 0.2405170202255249
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "bce",
+   "acc": 0.8914117217063904,
+   "viol_relapse": 0.1574999988079071,
+   "viol_admit": 0.011500000022351742,
+   "viol_treat": 0.16151545941829681,
+   "acc_day0": 0.9884999990463257,
+   "acc_treat_day": 0.8326446413993835,
+   "acc_post_recovery": 0.8227033615112305,
+   "sat": {
+    "sick": 0.9623934030532837,
+    "healthy": 0.9623934030532837,
+    "admitted with fever": 0.6674844622612,
+    "no relapse": 0.6815427541732788,
+    "treatment works": 0.5083927512168884
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "labels",
+   "acc": 0.8952358365058899,
+   "viol_relapse": 0.1679999977350235,
+   "viol_admit": 0.013000000268220901,
+   "viol_treat": 0.24227318167686462,
+   "acc_day0": 0.9869999885559082,
+   "acc_treat_day": 0.7489669322967529,
+   "acc_post_recovery": 0.8382094502449036,
+   "sat": {
+    "sick": 0.9623897671699524,
+    "healthy": 0.9623900055885315,
+    "admitted with fever": 0.6812016367912292,
+    "no relapse": 0.6926522254943848,
+    "treatment works": 0.4321162700653076
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "rules",
+   "acc": 0.8350063562393188,
+   "viol_relapse": 0.014499999582767487,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.7052369713783264,
+   "sat": {
+    "sick": 0.9512913227081299,
+    "healthy": 0.9623845815658569,
+    "admitted with fever": 0.9683425426483154,
+    "no relapse": 0.8607134222984314,
+    "treatment works": 0.9325724244117737
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-admitted with fever",
+   "acc": 0.8382728099822998,
+   "viol_relapse": 0.008999999612569809,
+   "viol_admit": 0.0020000000949949026,
+   "viol_treat": 0.0009970089886337519,
+   "acc_day0": 0.9980000257492065,
+   "acc_treat_day": 0.9989669322967529,
+   "acc_post_recovery": 0.7151843309402466,
+   "sat": {
+    "sick": 0.9513019919395447,
+    "healthy": 0.9623834490776062,
+    "admitted with fever": 0.9648100137710571,
+    "no relapse": 0.8606472611427307,
+    "treatment works": 0.9327188730239868
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-no relapse",
+   "acc": 0.8842415809631348,
+   "viol_relapse": 0.25699999928474426,
+   "viol_admit": 0.0005000000237487257,
+   "viol_treat": 0.0,
+   "acc_day0": 0.9994999766349792,
+   "acc_treat_day": 1.0,
+   "acc_post_recovery": 0.8184610605239868,
+   "sat": {
+    "sick": 0.962376594543457,
+    "healthy": 0.9623844027519226,
+    "admitted with fever": 0.9683526158332825,
+    "no relapse": 0.6513400077819824,
+    "treatment works": 0.9623644351959229
+   }
+  },
+  {
+   "frac": 0.02,
+   "relapse": 0.3,
+   "seed": 9,
+   "model": "-treatment works",
+   "acc": 0.8447259664535522,
+   "viol_relapse": 0.0010000000474974513,
+   "viol_admit": 0.0010000000474974513,
+   "viol_treat": 0.41974076628685,
+   "acc_day0": 0.9990000128746033,
+   "acc_treat_day": 0.5650826692581177,
+   "acc_post_recovery": 0.728057324886322,
+   "sat": {
+    "sick": 0.9623857736587524,
+    "healthy": 0.9623666405677795,
+    "admitted with fever": 0.9683068990707397,
+    "no relapse": 0.9621248245239258,
+    "treatment works": 0.24168533086776733
+   }
+  }
+ ]
+}
