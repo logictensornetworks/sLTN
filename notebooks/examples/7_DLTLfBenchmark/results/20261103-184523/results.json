@@ -1,0 +1,234 @@
+{
+ "meta": {
+  "config": {
+   "sets": [
+    "set1",
+    "set2"
+   ],
+   "classes": [
+    8
+   ],
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "epochs": 50
+  },
+  "sltn": {
+   "commit": "124c1f89015b7931bbfd71efc13a98169e2ee1f5",
+   "branch": "bug-fixes-temp",
+   "dirty": false
+  },
+  "device": "cpu"
+ },
+ "rows": [
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 0,
+   "img_acc": 45.75952764358561,
+   "seq_acc": 89.0,
+   "positive_rate": 0.20999999344348907,
+   "steps": 1050,
+   "seconds": 504.3
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 1,
+   "img_acc": 93.78252533552451,
+   "seq_acc": 93.5,
+   "positive_rate": 0.20874999463558197,
+   "steps": 1050,
+   "seconds": 531.4
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 2,
+   "img_acc": 96.04377104377105,
+   "seq_acc": 97.5,
+   "positive_rate": 0.21375000476837158,
+   "steps": 1050,
+   "seconds": 547.1
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 3,
+   "img_acc": 80.62354312354313,
+   "seq_acc": 93.5,
+   "positive_rate": 0.2199999988079071,
+   "steps": 1050,
+   "seconds": 745.7
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 4,
+   "img_acc": 91.89113355780023,
+   "seq_acc": 94.0,
+   "positive_rate": 0.19750000536441803,
+   "steps": 1050,
+   "seconds": 1052.5
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 5,
+   "img_acc": 95.1022760011524,
+   "seq_acc": 96.0,
+   "positive_rate": 0.20499999821186066,
+   "steps": 1050,
+   "seconds": 1552.9
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 6,
+   "img_acc": 49.585672280139,
+   "seq_acc": 86.0,
+   "positive_rate": 0.1887499988079071,
+   "steps": 1050,
+   "seconds": 1588.9
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 7,
+   "img_acc": 69.02754356379988,
+   "seq_acc": 92.0,
+   "positive_rate": 0.20000000298023224,
+   "steps": 1050,
+   "seconds": 970.1
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 8,
+   "img_acc": 34.817927170868344,
+   "seq_acc": 83.5,
+   "positive_rate": 0.18000000715255737,
+   "steps": 1050,
+   "seconds": 627.5
+  },
+  {
+   "set": "set1",
+   "classes": 8,
+   "seed": 9,
+   "img_acc": 93.40448823207444,
+   "seq_acc": 95.0,
+   "positive_rate": 0.20250000059604645,
+   "steps": 1050,
+   "seconds": 668.6
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 0,
+   "img_acc": 95.276435856146,
+   "seq_acc": 99.0,
+   "positive_rate": 0.15125000476837158,
+   "steps": 1050,
+   "seconds": 749.0
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 1,
+   "img_acc": 93.20734045466995,
+   "seq_acc": 97.0,
+   "positive_rate": 0.1574999988079071,
+   "steps": 1050,
+   "seconds": 747.2
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 2,
+   "img_acc": 93.88327721661055,
+   "seq_acc": 97.5,
+   "positive_rate": 0.16249999403953552,
+   "steps": 1050,
+   "seconds": 759.4
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 3,
+   "img_acc": 95.36713286713287,
+   "seq_acc": 98.0,
+   "positive_rate": 0.14624999463558197,
+   "steps": 1050,
+   "seconds": 970.7
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 4,
+   "img_acc": 90.62850729517396,
+   "seq_acc": 94.5,
+   "positive_rate": 0.14875000715255737,
+   "steps": 1050,
+   "seconds": 987.4
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 5,
+   "img_acc": 68.56813598386633,
+   "seq_acc": 90.5,
+   "positive_rate": 0.14249999821186066,
+   "steps": 1050,
+   "seconds": 967.0
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 6,
+   "img_acc": 92.64902432504678,
+   "seq_acc": 98.0,
+   "positive_rate": 0.12999999523162842,
+   "steps": 1050,
+   "seconds": 992.7
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 7,
+   "img_acc": 92.07419898819562,
+   "seq_acc": 93.0,
+   "positive_rate": 0.15000000596046448,
+   "steps": 1050,
+   "seconds": 572.8
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 8,
+   "img_acc": 84.78991596638656,
+   "seq_acc": 93.0,
+   "positive_rate": 0.14499999582767487,
+   "steps": 1050,
+   "seconds": 565.5
+  },
+  {
+   "set": "set2",
+   "classes": 8,
+   "seed": 9,
+   "img_acc": 94.00656814449918,
+   "seq_acc": 98.5,
+   "positive_rate": 0.16625000536441803,
+   "steps": 1050,
+   "seconds": 553.1
+  }
+ ]
+}

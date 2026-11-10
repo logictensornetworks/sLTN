@@ -1,0 +1,11 @@
+{"fset": "set2_exact", "K": 4, "dataset_seed": 470, "positive_rate": 0.144, "mean_length": 5.974, "first_digits": [[5, 2, 2], [1, 6, 6]]}
+{"fset": "set2_exact", "K": 4, "run": 1, "seed": 470, "img_acc": 92.89256198347107, "seq_acc": 98.0, "seconds": 187.6}
+{"fset": "set2_exact", "K": 4, "run": 2, "seed": 480, "img_acc": 91.82229767968307, "seq_acc": 97.0, "seconds": 177.3}
+{"fset": "set2_exact", "K": 4, "run": 3, "seed": 490, "img_acc": 92.91296146591215, "seq_acc": 98.0, "seconds": 186.6}
+{"fset": "set2_exact", "K": 4, "run": 4, "seed": 500, "img_acc": 92.84716401229393, "seq_acc": 98.0, "seconds": 177.8}
+{"fset": "set2_exact", "K": 4, "run": 5, "seed": 510, "img_acc": 91.98278181329029, "seq_acc": 96.0, "seconds": 186.8}
+{"fset": "set2_exact", "K": 4, "run": 6, "seed": 520, "img_acc": 92.57398101619206, "seq_acc": 96.0, "seconds": 177.9}
+{"fset": "set2_exact", "K": 4, "run": 7, "seed": 530, "img_acc": 93.59683794466403, "seq_acc": 97.0, "seconds": 186.6}
+{"fset": "set2_exact", "K": 4, "run": 8, "seed": 540, "img_acc": 93.05789769533446, "seq_acc": 98.5, "seconds": 177.7}
+{"fset": "set2_exact", "K": 4, "run": 9, "seed": 550, "img_acc": 90.78768056691196, "seq_acc": 96.0, "seconds": 186.5}
+{"fset": "set2_exact", "K": 4, "run": 10, "seed": 560, "img_acc": 91.90353143841516, "seq_acc": 98.5, "seconds": 177.9}

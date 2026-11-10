@@ -1,0 +1,11 @@
+{"fset": "set2", "K": 4, "dataset_seed": 470, "positive_rate": 0.144, "mean_length": 5.974, "first_digits": [[5, 2, 2], [1, 6, 6]]}
+{"fset": "set2", "K": 4, "run": 1, "seed": 470, "img_acc": 91.95592286501378, "seq_acc": 98.0, "seconds": 74.6}
+{"fset": "set2", "K": 4, "run": 2, "seed": 480, "img_acc": 91.73740803621958, "seq_acc": 96.5, "seconds": 73.2}
+{"fset": "set2", "K": 4, "run": 3, "seed": 490, "img_acc": 93.31716518458636, "seq_acc": 97.0, "seconds": 73.4}
+{"fset": "set2", "K": 4, "run": 4, "seed": 500, "img_acc": 93.1265716680637, "seq_acc": 99.0, "seconds": 73.7}
+{"fset": "set2", "K": 4, "run": 5, "seed": 510, "img_acc": 91.4716168953457, "seq_acc": 96.0, "seconds": 75.7}
+{"fset": "set2", "K": 4, "run": 6, "seed": 520, "img_acc": 92.57398101619206, "seq_acc": 96.0, "seconds": 89.0}
+{"fset": "set2", "K": 4, "run": 7, "seed": 530, "img_acc": 92.77997364953886, "seq_acc": 96.5, "seconds": 56.5}
+{"fset": "set2", "K": 4, "run": 8, "seed": 540, "img_acc": 92.58010118043845, "seq_acc": 99.5, "seconds": 56.6}
+{"fset": "set2", "K": 4, "run": 9, "seed": 550, "img_acc": 91.79612973562278, "seq_acc": 97.5, "seconds": 56.9}
+{"fset": "set2", "K": 4, "run": 10, "seed": 560, "img_acc": 91.09962675854149, "seq_acc": 97.5, "seconds": 53.5}
