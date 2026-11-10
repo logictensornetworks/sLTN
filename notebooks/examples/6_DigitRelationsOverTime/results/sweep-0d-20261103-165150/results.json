@@ -1,0 +1,47 @@
+{
+ "meta": {
+  "config": {
+   "n_train": 800,
+   "n_test": 1000,
+   "steps": 2000,
+   "batch": 32,
+   "lr": 0.001,
+   "relation": "sum"
+  },
+  "sltn": {
+   "commit": "124c1f89015b7931bbfd71efc13a98169e2ee1f5",
+   "branch": "bug-fixes-temp",
+   "dirty": false
+  },
+  "device": "Tesla T4"
+ },
+ "rows": [
+  {
+   "seed": 0,
+   "model": "sltn-prod",
+   "seq_acc": 0.658,
+   "seq_acc_long": 0.645,
+   "img_acc": 0.10623260990539789,
+   "probe_acc": 0.7195325542570952,
+   "seconds": 68.9
+  },
+  {
+   "seed": 0,
+   "model": "sltn-godel",
+   "seq_acc": 0.534,
+   "seq_acc_long": 0.509,
+   "img_acc": 0.06176961602671119,
+   "probe_acc": 0.7375069560378409,
+   "seconds": 66.1
+  },
+  {
+   "seed": 0,
+   "model": "gru",
+   "seq_acc": 0.597,
+   "seq_acc_long": 0.567,
+   "img_acc": null,
+   "probe_acc": 0.6745687256538676,
+   "seconds": 27.3
+  }
+ ]
+}

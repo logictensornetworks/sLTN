@@ -1,0 +1,80 @@
+[
+ {
+  "name": "sum seed 0, \u2203 over steps = probsum",
+  "train_seq": 0.995,
+  "seq": 0.925,
+  "seq_long": 0.921,
+  "probe": 0.9608792431830829,
+  "img": 0.9428492188453674,
+  "seconds": 225.75546401645988,
+  "relation": "sum",
+  "seed": 0,
+  "exists_t": "probsum",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregProbSum()\n  )"
+ },
+ {
+  "name": "sum seed 0, \u2203 over steps = max",
+  "train_seq": 0.99875,
+  "seq": 0.945,
+  "seq_long": 0.947,
+  "probe": 0.9593767390094602,
+  "img": 0.9592097997665405,
+  "seconds": 222.98799506109208,
+  "relation": "sum",
+  "seed": 0,
+  "exists_t": "max",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregMax(top_k=1)\n  )"
+ },
+ {
+  "name": "sum seed 1, \u2203 over steps = probsum",
+  "train_seq": 0.9975,
+  "seq": 0.958,
+  "seq_long": 0.94,
+  "probe": 0.9590995389205316,
+  "img": 0.9624627232551575,
+  "seconds": 225.7911112336442,
+  "relation": "sum",
+  "seed": 1,
+  "exists_t": "probsum",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregProbSum()\n  )"
+ },
+ {
+  "name": "sum seed 1, \u2203 over steps = max",
+  "train_seq": 0.99875,
+  "seq": 0.947,
+  "seq_long": 0.939,
+  "probe": 0.9535123406563601,
+  "img": 0.9513425827026367,
+  "seconds": 225.00641333218664,
+  "relation": "sum",
+  "seed": 1,
+  "exists_t": "max",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregMax(top_k=1)\n  )"
+ },
+ {
+  "name": "sum seed 2, \u2203 over steps = probsum",
+  "train_seq": 0.99625,
+  "seq": 0.955,
+  "seq_long": 0.958,
+  "probe": 0.9685555742391122,
+  "img": 0.9695084095001221,
+  "seconds": 219.72437741607428,
+  "relation": "sum",
+  "seed": 2,
+  "exists_t": "probsum",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregProbSum()\n  )"
+ },
+ {
+  "name": "sum seed 2, \u2203 over steps = max",
+  "train_seq": 0.995,
+  "seq": 0.949,
+  "seq_long": 0.955,
+  "probe": 0.9608205818059525,
+  "img": 0.9681631922721863,
+  "seconds": 203.97465021163225,
+  "relation": "sum",
+  "seed": 2,
+  "exists_t": "max",
+  "logic": "Logic(\n    \u2227: AndProd(stable=True, eps=1e-06)\n    \u2228: OrProbSum(stable=True, eps=1e-06)\n    \u00ac: NotStandard()\n    \u2192: ImpliesReichenbach(stable=True, eps=1e-06)\n    \u2194: Equiv(and_op=AndProd(stable=True, eps=1e-06), implies_op=ImpliesReichenbach(stable=True, eps=1e-06))\n    \u2200: AggregPMeanError(p=2, stable=True)\n    \u2203: AggregProbSum()\n    SatAgg: AggregPMeanError(p=2, stable=True)\n    (\u2200, t) : AggregProd()\n    (\u2203, t) : AggregMax(top_k=1)\n  )"
+ }
+]

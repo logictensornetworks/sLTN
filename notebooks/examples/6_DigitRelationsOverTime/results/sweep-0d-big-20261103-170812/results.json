@@ -1,0 +1,80 @@
+{
+ "meta": {
+  "config": {
+   "n_train": 800,
+   "n_test": 1000,
+   "steps": 2000,
+   "batch": 32,
+   "lr": 0.001,
+   "relation": "sum"
+  },
+  "sltn": {
+   "commit": "124c1f89015b7931bbfd71efc13a98169e2ee1f5",
+   "branch": "bug-fixes-temp",
+   "dirty": false
+  },
+  "device": "Tesla T4"
+ },
+ "rows": [
+  {
+   "seed": 0,
+   "model": "sltn-prod",
+   "relation": "less",
+   "steps": 4000,
+   "lr": 0.001,
+   "seq_acc": 0.834,
+   "seq_acc_long": 0.837,
+   "img_acc": 0.09658899020601149,
+   "probe_acc": 0.9354947652819994,
+   "seconds": 106.2
+  },
+  {
+   "seed": 0,
+   "model": "sltn-godel",
+   "relation": "less",
+   "steps": 4000,
+   "lr": 0.001,
+   "seq_acc": 0.817,
+   "seq_acc_long": 0.793,
+   "img_acc": 0.2925813351345266,
+   "probe_acc": 0.8592817741753912,
+   "seconds": 104.4
+  },
+  {
+   "seed": 0,
+   "model": "gru",
+   "relation": "less",
+   "steps": 4000,
+   "lr": 0.001,
+   "seq_acc": 0.493,
+   "seq_acc_long": 0.5,
+   "img_acc": null,
+   "probe_acc": 0.09456264775413711,
+   "seconds": 48.4
+  },
+  {
+   "seed": 0,
+   "model": "sltn-prod",
+   "relation": "sum",
+   "steps": 8000,
+   "lr": 0.001,
+   "seq_acc": 0.71,
+   "seq_acc_long": 0.707,
+   "img_acc": 0.11680578742348359,
+   "probe_acc": 0.8721758486366166,
+   "seconds": 248.6
+  },
+  {
+   "seed": 0,
+   "model": "sltn-godel",
+   "relation": "sum",
+   "steps": 8000,
+   "lr": 0.001,
+   "seq_acc": 0.69,
+   "seq_acc_long": 0.686,
+   "img_acc": 0.20656649972175847,
+   "probe_acc": 0.8407345575959934,
+   "seconds": 247.8
+  }
+ ]
+}
