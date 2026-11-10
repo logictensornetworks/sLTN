@@ -1,0 +1,25 @@
+train: 70000 scenes, 471489 in-scope questions (68s)
+val: 15000 scenes, 101028 in-scope questions (84s)
+sltn ae8335e | {'steps': 4500, 'fams_per_step': 8, 'batch': 80, 'lr': 0.001, 'seed': 0, 'n_train_q': None, 'eval_every': 250, 'eval_scenes': 2000, 'n_train_inscope': 471489, 'crop': 48, 'crop_k': 500, 'device': 'cuda'}
+step   250 loss 0.2587 | concept acc (val, 2000 scenes): color 0.969, size 1.000, material 0.996, shape 0.974 | 682 ms/step
+step   500 loss 0.0728 | concept acc (val, 2000 scenes): color 0.996, size 1.000, material 0.999, shape 0.996 | 682 ms/step
+step   750 loss 0.0438 | concept acc (val, 2000 scenes): color 0.997, size 1.000, material 0.997, shape 0.997 | 681 ms/step
+step  1000 loss 0.0324 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.998, shape 0.996 | 727 ms/step
+step  1250 loss 0.0280 | concept acc (val, 2000 scenes): color 0.988, size 1.000, material 0.999, shape 0.998 | 730 ms/step
+step  1500 loss 0.0217 | concept acc (val, 2000 scenes): color 0.993, size 1.000, material 0.999, shape 0.998 | 721 ms/step
+step  1750 loss 0.0189 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.998 | 715 ms/step
+step  2000 loss 0.0171 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999 | 711 ms/step
+step  2250 loss 0.0165 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.998 | 708 ms/step
+step  2500 loss 0.0137 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998 | 705 ms/step
+step  2750 loss 0.0131 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999 | 702 ms/step
+step  3000 loss 0.0106 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998 | 701 ms/step
+step  3250 loss 0.0114 | concept acc (val, 2000 scenes): color 1.000, size 1.000, material 0.999, shape 0.999 | 699 ms/step
+step  3500 loss 0.0115 | concept acc (val, 2000 scenes): color 0.997, size 1.000, material 0.999, shape 0.997 | 698 ms/step
+step  3750 loss 0.0111 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.999 | 697 ms/step
+step  4000 loss 0.0106 | concept acc (val, 2000 scenes): color 0.997, size 1.000, material 1.000, shape 0.999 | 696 ms/step
+step  4250 loss 0.0083 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999 | 695 ms/step
+step  4500 loss 0.0101 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999 | 694 ms/step
+
+final concept acc (all val objects): color 0.9991, size 1.0000, material 0.9993, shape 0.9994
+final QA acc (val, in scope): 0.9988 | exist 0.9987, query 0.9994, compare 0.9977
+saved results/e1/20261109-165653; total 3248s

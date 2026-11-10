@@ -1,0 +1,636 @@
+{
+ "config": {
+  "split": "val",
+  "limit": null
+ },
+ "sltn": {
+  "commit": "ae8335e9ae6e4eac7303f12a969f2ffc60fe7b8f",
+  "branch": "bug-fixes-temp",
+  "dirty": true
+ },
+ "agreement": 1.0,
+ "n": 101028,
+ "rows": [
+  {
+   "key": "exist(F(same_size(unique(F(scene())))))",
+   "families": [
+    36,
+    44
+   ],
+   "kind": "yesno",
+   "n": 3422,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "exist(F(same_shape(unique(F(scene())))))",
+   "families": [
+    39,
+    47
+   ],
+   "kind": "yesno",
+   "n": 3374,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "exist(F(same_color(unique(F(scene())))))",
+   "families": [
+    37,
+    45
+   ],
+   "kind": "yesno",
+   "n": 3341,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "exist(F(same_material(unique(F(scene())))))",
+   "families": [
+    38,
+    46
+   ],
+   "kind": "yesno",
+   "n": 3325,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_material(query_material(unique(F(relate(unique(F(scene())))))),query_material(unique(F(scene()))))",
+   "families": [
+    19
+   ],
+   "kind": "yesno",
+   "n": 1782,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_size(unique(F(intersect(F(relate(unique(F(scene())))),F(relate(unique(F(scene()))))))))",
+   "families": [
+    32
+   ],
+   "kind": "size",
+   "n": 1768,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_material(unique(F(same_color(unique(F(scene()))))))",
+   "families": [
+    56
+   ],
+   "kind": "material",
+   "n": 1750,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "exist(F(relate(unique(F(relate(unique(F(relate(unique(F(scene())))))))))))",
+   "families": [
+    26
+   ],
+   "kind": "yesno",
+   "n": 1748,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_shape(query_shape(unique(F(relate(unique(F(scene())))))),query_shape(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    24
+   ],
+   "kind": "yesno",
+   "n": 1743,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_material(query_material(unique(F(scene()))),query_material(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    20
+   ],
+   "kind": "yesno",
+   "n": 1737,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_material(unique(F(relate(unique(F(relate(unique(F(scene())))))))))",
+   "families": [
+    82
+   ],
+   "kind": "material",
+   "n": 1725,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "equal_color(query_color(unique(F(relate(unique(F(scene())))))),query_color(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    18
+   ],
+   "kind": "yesno",
+   "n": 1724,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_shape(query_shape(unique(F(scene()))),query_shape(unique(F(scene()))))",
+   "families": [
+    12
+   ],
+   "kind": "yesno",
+   "n": 1722,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9990000128746033
+  },
+  {
+   "key": "query_color(unique(F(relate(unique(F(scene()))))))",
+   "families": [
+    75
+   ],
+   "kind": "color",
+   "n": 1721,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "query_color(unique(F(relate(unique(F(relate(unique(F(scene())))))))))",
+   "families": [
+    81
+   ],
+   "kind": "color",
+   "n": 1718,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_size(unique(F(relate(unique(F(relate(unique(F(relate(unique(F(scene()))))))))))))",
+   "families": [
+    27
+   ],
+   "kind": "size",
+   "n": 1713,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "equal_size(query_size(unique(F(scene()))),query_size(unique(F(scene()))))",
+   "families": [
+    9
+   ],
+   "kind": "yesno",
+   "n": 1712,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_shape(unique(F(intersect(F(relate(unique(F(scene())))),F(relate(unique(F(scene()))))))))",
+   "families": [
+    35
+   ],
+   "kind": "shape",
+   "n": 1711,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "equal_shape(query_shape(unique(F(scene()))),query_shape(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    23
+   ],
+   "kind": "yesno",
+   "n": 1709,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_size(unique(F(scene())))",
+   "families": [
+    89
+   ],
+   "kind": "size",
+   "n": 1709,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "query_color(unique(F(same_material(unique(F(scene()))))))",
+   "families": [
+    59
+   ],
+   "kind": "color",
+   "n": 1708,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "query_material(unique(F(relate(unique(F(scene()))))))",
+   "families": [
+    76
+   ],
+   "kind": "material",
+   "n": 1705,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "exist(F(relate(unique(F(relate(unique(F(scene()))))))))",
+   "families": [
+    79
+   ],
+   "kind": "yesno",
+   "n": 1705,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_size(query_size(unique(F(relate(unique(F(scene())))))),query_size(unique(F(scene()))))",
+   "families": [
+    13
+   ],
+   "kind": "yesno",
+   "n": 1701,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_material(query_material(unique(F(relate(unique(F(scene())))))),query_material(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    21
+   ],
+   "kind": "yesno",
+   "n": 1701,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_shape(unique(F(same_material(unique(F(scene()))))))",
+   "families": [
+    60
+   ],
+   "kind": "shape",
+   "n": 1701,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "query_size(unique(F(relate(unique(F(relate(unique(F(scene())))))))))",
+   "families": [
+    80
+   ],
+   "kind": "size",
+   "n": 1701,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_color(unique(F(intersect(F(relate(unique(F(scene())))),F(relate(unique(F(scene()))))))))",
+   "families": [
+    33
+   ],
+   "kind": "color",
+   "n": 1694,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_color(unique(F(scene())))",
+   "families": [
+    88
+   ],
+   "kind": "color",
+   "n": 1682,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_shape(unique(F(same_size(unique(F(scene()))))))",
+   "families": [
+    54
+   ],
+   "kind": "shape",
+   "n": 1679,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "equal_material(query_material(unique(F(scene()))),query_material(unique(F(scene()))))",
+   "families": [
+    11
+   ],
+   "kind": "yesno",
+   "n": 1678,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9990000128746033
+  },
+  {
+   "key": "query_size(unique(F(same_shape(unique(F(scene()))))))",
+   "families": [
+    61
+   ],
+   "kind": "size",
+   "n": 1675,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_color(unique(F(same_shape(unique(F(scene()))))))",
+   "families": [
+    62
+   ],
+   "kind": "color",
+   "n": 1674,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_size(unique(F(same_material(unique(F(scene()))))))",
+   "families": [
+    58
+   ],
+   "kind": "size",
+   "n": 1674,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "query_color(unique(F(relate(unique(F(relate(unique(F(relate(unique(F(scene()))))))))))))",
+   "families": [
+    29
+   ],
+   "kind": "color",
+   "n": 1674,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_color(unique(F(same_size(unique(F(scene()))))))",
+   "families": [
+    52
+   ],
+   "kind": "color",
+   "n": 1673,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "equal_color(query_color(unique(F(scene()))),query_color(unique(F(scene()))))",
+   "families": [
+    10
+   ],
+   "kind": "yesno",
+   "n": 1668,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_shape(unique(F(scene())))",
+   "families": [
+    86
+   ],
+   "kind": "shape",
+   "n": 1668,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "equal_size(query_size(unique(F(scene()))),query_size(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    14
+   ],
+   "kind": "yesno",
+   "n": 1668,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_material(unique(F(scene())))",
+   "families": [
+    87
+   ],
+   "kind": "material",
+   "n": 1662,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9985851049423218
+  },
+  {
+   "key": "equal_size(query_size(unique(F(relate(unique(F(scene())))))),query_size(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    15
+   ],
+   "kind": "yesno",
+   "n": 1661,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "exist(F(relate(unique(F(scene())))))",
+   "families": [
+    73
+   ],
+   "kind": "yesno",
+   "n": 1650,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_material(unique(F(same_size(unique(F(scene()))))))",
+   "families": [
+    53
+   ],
+   "kind": "material",
+   "n": 1644,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_material(unique(F(intersect(F(relate(unique(F(scene())))),F(relate(unique(F(scene()))))))))",
+   "families": [
+    34
+   ],
+   "kind": "material",
+   "n": 1642,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_material(unique(F(relate(unique(F(relate(unique(F(relate(unique(F(scene()))))))))))))",
+   "families": [
+    30
+   ],
+   "kind": "material",
+   "n": 1641,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "equal_color(query_color(unique(F(scene()))),query_color(unique(F(relate(unique(F(scene())))))))",
+   "families": [
+    17
+   ],
+   "kind": "yesno",
+   "n": 1638,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "equal_color(query_color(unique(F(relate(unique(F(scene())))))),query_color(unique(F(scene()))))",
+   "families": [
+    16
+   ],
+   "kind": "yesno",
+   "n": 1637,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  },
+  {
+   "key": "query_size(unique(F(same_color(unique(F(scene()))))))",
+   "families": [
+    55
+   ],
+   "kind": "size",
+   "n": 1637,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_size(unique(F(relate(unique(F(scene()))))))",
+   "families": [
+    74
+   ],
+   "kind": "size",
+   "n": 1636,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_material(unique(F(same_shape(unique(F(scene()))))))",
+   "families": [
+    63
+   ],
+   "kind": "material",
+   "n": 1635,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_shape(unique(F(relate(unique(F(scene()))))))",
+   "families": [
+    77
+   ],
+   "kind": "shape",
+   "n": 1632,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "exist(F(scene()))",
+   "families": [
+    85
+   ],
+   "kind": "yesno",
+   "n": 1631,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9990000128746033
+  },
+  {
+   "key": "query_shape(unique(F(relate(unique(F(relate(unique(F(scene())))))))))",
+   "families": [
+    83
+   ],
+   "kind": "shape",
+   "n": 1631,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_shape(unique(F(relate(unique(F(relate(unique(F(relate(unique(F(scene()))))))))))))",
+   "families": [
+    28
+   ],
+   "kind": "shape",
+   "n": 1631,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "query_shape(unique(F(same_color(unique(F(scene()))))))",
+   "families": [
+    57
+   ],
+   "kind": "shape",
+   "n": 1620,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.998585045337677
+  },
+  {
+   "key": "equal_shape(query_shape(unique(F(relate(unique(F(scene())))))),query_shape(unique(F(scene()))))",
+   "families": [
+    22
+   ],
+   "kind": "yesno",
+   "n": 1617,
+   "acc": 1.0,
+   "crisp": 1.0,
+   "sat": 0.9989999532699585
+  }
+ ],
+ "wrong": []
+}

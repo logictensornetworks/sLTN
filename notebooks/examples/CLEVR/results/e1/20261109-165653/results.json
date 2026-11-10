@@ -1,0 +1,29 @@
+{
+ "config": {
+  "steps": 4500,
+  "fams_per_step": 8,
+  "batch": 80,
+  "lr": 0.001,
+  "seed": 0,
+  "n_train_q": null,
+  "eval_every": 250,
+  "eval_scenes": 2000,
+  "n_train_inscope": 471489,
+  "crop": 48,
+  "crop_k": 500,
+  "device": "cuda"
+ },
+ "sltn": {
+  "commit": "ae8335e9ae6e4eac7303f12a969f2ffc60fe7b8f",
+  "branch": "bug-fixes-temp",
+  "dirty": true
+ },
+ "concept_acc/color": 0.999096119476571,
+ "concept_acc/size": 0.9999897286304156,
+ "concept_acc/material": 0.9993015468682594,
+ "concept_acc/shape": 0.9994350746728569,
+ "qa_acc": 0.9988122104763036,
+ "qa_acc/exist": 0.9986631016042781,
+ "qa_acc/query": 0.9994044738899021,
+ "qa_acc/compare": 0.9977489113587719
+}
