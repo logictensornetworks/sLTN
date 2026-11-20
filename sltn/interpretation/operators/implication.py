@@ -2,7 +2,7 @@ import torch
 from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
 from .negation import NotStandard
 from .conjunction import AndProd, AndMin, AndLuk
-from .utils import DEFAULT_EPS, pi_0
+from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0
 
 
 class ImpliesDual(BinaryConnectiveOperator):
@@ -36,7 +36,7 @@ class ImpliesReichenbach(ImpliesDual):
     """
     Reichenbach fuzzy implication operator: A -> B = 1 - A + A*B
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         super().__init__(and_op=AndProd(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
@@ -49,7 +49,7 @@ class ImpliesLuk(ImpliesDual):
     """
     Lukasiewicz fuzzy implication operator.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         super().__init__(and_op=AndLuk(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
@@ -73,7 +73,7 @@ class ImpliesGoguen(BinaryConnectiveOperator):
     """
     Goguen fuzzy implication operator: 1 if x <= y, else y / x.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         self.stable = stable
         self.eps = eps
 
@@ -113,7 +113,7 @@ class EquivSimilarity(BinaryConnectiveOperator):
     This operator has the benefit of non-vanishing gradients, which can
     be helpful during training.
     """
-    def __init__(self, p=1, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, p=1, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         self.p = p
         self.stable = stable
         self.eps = eps

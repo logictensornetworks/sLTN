@@ -5,7 +5,7 @@ __all__ = ["Logic"]
 from typing import Dict, List, Optional, TYPE_CHECKING
 from sltn.interpretation.operators.base import AggregationOperator, UnaryConnectiveOperator, BinaryConnectiveOperator
 from sltn.interpretation.operators import aggregator, conjunction, disjunction, implication, negation
-from sltn.interpretation.operators.utils import DEFAULT_EPS
+from sltn.interpretation.operators.utils import DEFAULT_EPS, DEFAULT_STABLE
 
 if TYPE_CHECKING:
     from sltn.signature.signature import Signature
@@ -89,6 +89,9 @@ class Logic:
         Exists:     Optional[AggregationOperator]                          = None,
         SatAgg:     Optional[AggregationOperator]                          = None,
         StructAgg:  Optional[Dict[str, Dict[str, AggregationOperator]]]    = None,
+        *,
+        stable:     bool                                                    = DEFAULT_STABLE,
+        eps:        float                                                   = DEFAULT_EPS,
     ) -> None:
         """Create a fuzzy logic operator bundle.
 
@@ -112,6 +115,9 @@ class Logic:
         StructAgg : dict, optional
             Per-axis structural aggregation operators, keyed as
             ``{axis_name: {"forall": op, "exists": op}}``.
+        stable, eps : optional
+            ``stable`` and ``eps`` of the operators that :meth:`with_defaults`
+            fills in.  Operators passed explicitly keep their own settings.
         """
         self.And       = And
         self.Or        = Or
@@ -122,6 +128,8 @@ class Logic:
         self.Exists    = Exists
         self.SatAgg    = SatAgg
         self.StructAgg = StructAgg
+        self.stable    = stable
+        self.eps       = eps
 
         # Optional back-reference to the owning Signature, set by Interpretation.
         # When present, it lets composite StructAgg keys ("∀,t" / "∀,T") resolve
@@ -131,8 +139,11 @@ class Logic:
         self._signature: Optional["Signature"] = None
 
 
-    def with_defaults(self, stable = True, eps = DEFAULT_EPS) -> Logic:
+    def with_defaults(self, stable: Optional[bool] = None, eps: Optional[float] = None) -> Logic:
         """Return a copy with any None field replaced by a sensible default.
+
+        Defaults are built with ``stable`` and ``eps`` if given, else with this
+        Logic's own; the copy records the values used.
 
         When both ``And`` and ``Not`` are set explicitly, any unset connectives
         among ``Or`` and ``Implies`` are derived from them via the classical
@@ -143,6 +154,8 @@ class Logic:
         Note: ``StructAgg`` has no built-in default.  Every structural axis
         used in a formula must be declared explicitly.
         """
+        stable = self.stable if stable is None else stable
+        eps = self.eps if eps is None else eps
         and_op = self.And or conjunction.AndProd(stable, eps)
         not_op = self.Not or negation.NotStandard()
         derive_connectives = self.And is not None and self.Not is not None
@@ -187,6 +200,8 @@ class Logic:
                 if self.StructAgg is not None
                 else None
             ),
+            stable=stable,
+            eps=eps,
         )
         result._signature = self._signature
         return result
@@ -322,4 +337,5 @@ class Logic:
                         lines.append(f"    ({q}, {ax}) : {op}")
             else:
                 lines.append(f"    {_DEFAULT_SYMBOLS_DICT[f]}: {val}")
+        lines.append(f"    stable={self.stable}, eps={self.eps}")
         return "Logic(\n" + "\n".join(lines) + "\n  )"

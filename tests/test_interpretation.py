@@ -528,3 +528,23 @@ def test_default_implication_is_reichenbach():
     interp["Q"] = lambda v: torch.full_like(v, 0.5)
     expected = torch.tensor([[1 - 0.9 + 0.9 * 0.5], [1 - 0.2 + 0.2 * 0.5]])
     assert torch.allclose(interp("P(x) -> Q(x)").value, expected, atol=1e-5)
+
+
+def test_logic_stable_and_eps_drive_defaults_and_survive_setter():
+    import sltn
+    from sltn.interpretation import Logic
+    interp = sltn.Interpretation(sltn.Signature("s"))
+    interp.logic = Logic(And=fuzzy_ops.AndMin(), stable=False, eps=1e-3)
+    lg = interp.logic
+    assert (lg.stable, lg.eps) == (False, 1e-3)
+    assert lg.Implies.stable is False and lg.Implies.eps == 1e-3
+    assert lg.Forall.stable is False and lg.SatAgg.stable is False
+    assert isinstance(lg.And, fuzzy_ops.AndMin)
+    assert interp.copy().logic.stable is False
+
+
+def test_logic_with_defaults_overrides_take_precedence():
+    from sltn.interpretation import Logic
+    lg = Logic(stable=True).with_defaults(stable=False)
+    assert lg.stable is False and lg.Or.stable is False
+    assert Logic().stable is fuzzy_ops.DEFAULT_STABLE

@@ -1,5 +1,5 @@
 from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
-from .utils import DEFAULT_EPS
+from .utils import DEFAULT_EPS, DEFAULT_STABLE
 import torch
 
 from .conjunction import AndProd, AndMin, AndLuk
@@ -37,7 +37,7 @@ class OrProbSum(OrDual):
     """
     Goguen fuzzy disjunction operator (probabilistic sum).
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         super().__init__(and_op=AndProd(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
@@ -50,7 +50,7 @@ class OrLuk(OrDual):
     """
     Lukasiewicz fuzzy disjunction operator.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS):
+    def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
         super().__init__(and_op=AndLuk(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
