@@ -22,7 +22,7 @@ def test_sort_declaration():
 def test_duplicate_sort_warns_and_replaces():
     sig = Signature("test")
     old = sig.sort("A")
-    with pytest.warns(UserWarning, match="redeclared"):
+    with pytest.warns(UserWarning, match=r"^Sort 'A' is already declared; replacing its declaration\.$"):
         new = sig.sort("A")
     assert new is not old and sig.get_sort("A") is new
 

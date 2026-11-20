@@ -131,8 +131,7 @@ class Signature:
     def _warn_if_redeclared(store: dict, name: str, kind: str) -> None:
         if name in store:
             warnings.warn(
-                f"{kind} '{name}' is redeclared: the new declaration replaces the old one. "
-                f"Formulas parsed before keep the old symbol.",
+                f"{kind} '{name}' is already declared; replacing its declaration.",
                 UserWarning, stacklevel=3,
             )
 
