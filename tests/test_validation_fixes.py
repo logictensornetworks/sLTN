@@ -288,3 +288,11 @@ def test_infix_symbol_needs_two_arguments(asig, declare):
     with pytest.raises(ValueError, match="must take exactly 2 arguments"):
         declare(asig)
     assert "<<" not in asig.predicates and "++" not in asig.functions and "+++" not in asig.definitions
+
+
+def test_definition_cannot_be_grounded(asig):
+    asig.define("NearToo", ["a"], "Near(a)")
+    with pytest.raises(KeyError, match="is a definition"):
+        Interpretation(asig)["NearToo"] = lambda v: v
+    with pytest.raises(KeyError, match="is a definition"):
+        Interpretation(asig, NearToo=lambda v: v)

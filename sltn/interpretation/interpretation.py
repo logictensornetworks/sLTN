@@ -352,6 +352,11 @@ class Interpretation(torch.nn.Module):
             Fluent: allows chaining, e.g. ``interp.ground(P, m).ground(x, t)``.
         """
         key = sym.name if isinstance(sym, Symbol) else sym
+        if key in self.signature.definitions:
+            raise KeyError(
+                f"Cannot ground '{key}': it is a definition (sig.define), replaced by "
+                f"its body when formulas are parsed. Ground the symbols in its body instead."
+            )
         try:
             self.signature.get(key)
         except KeyError:
