@@ -38,6 +38,9 @@ examples = [
     "python-sat==1.9.dev13",
     "torchmetrics==1.9.0",
 ]
+lightning = [
+    "lightning>=2.0",
+]
 test = [
     "pytest>=8.0.0",
 ]

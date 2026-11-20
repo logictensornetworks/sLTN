@@ -173,7 +173,9 @@ def kb_eval(
     interp: Interpretation,
     formulas: dict[str, Formula] | None = None,
 ) -> OrderedDict[str, float]:
-    """Evaluate KB clauses under ``torch.no_grad()`` and return sat values.
+    """Evaluate KB clauses in eval mode under ``torch.no_grad()`` and return sat values.
+
+    The interpretation is switched to ``eval()`` and its previous train/eval mode is restored afterwards.
 
     Parameters
     ----------
@@ -192,11 +194,16 @@ def kb_eval(
             "kb_eval() requires 'formulas' to be passed explicitly. "
             "Pass the dict returned by kb_describe()."
         )
-    with torch.no_grad():
-        return OrderedDict(
-            (name, interp(phi).value.item())
-            for name, phi in formulas.items()
-        )
+    was_training = interp.training
+    interp.eval()
+    try:
+        with torch.no_grad():
+            return OrderedDict(
+                (name, interp(phi).value.item())
+                for name, phi in formulas.items()
+            )
+    finally:
+        interp.train(was_training)
 
 
 
