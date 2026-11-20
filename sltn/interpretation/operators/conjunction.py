@@ -1,6 +1,6 @@
 import torch
 from .base import BinaryConnectiveOperator
-from .utils import DEFAULT_EPS,DEFAULT_BETA, pi_0, pi_1, smooth_clamp
+from .utils import DEFAULT_EPS, pi_0, pi_1
 
 
 class AndMin(BinaryConnectiveOperator):
@@ -85,30 +85,17 @@ class AndLuk(BinaryConnectiveOperator):
     Lukasiewicz fuzzy conjunction operator.
     """
 
-    def __init__(self, stable=True, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
-        
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
         self.stable = stable
         self.eps = eps
 
-        if self.stable:
-            self.smoothing_method = smoothing_method
-            self.beta = beta
-        else:
-            self.smoothing_method = None
-            self.beta = None
-
     def __repr__(self) -> str:
-        return f"AndLuk(stable={self.stable}, eps={self.eps}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return f"AndLuk(stable={self.stable}, eps={self.eps})"
 
     def __call__(self, x, y, stable=None) -> torch.Tensor:
         stable = self.stable if stable is None else stable
 
         if stable:
-            beta = self.beta if self.beta is not None else DEFAULT_BETA
-            smoothing_method = self.smoothing_method or "squareplus"
             x, y = pi_0(x, self.eps), pi_0(y, self.eps)
-            res = smooth_clamp(x + y - 1., min=0., beta=beta, smoothing_method=smoothing_method)
-            return torch.clamp(res, max=1.)
-        else:
-            return torch.clamp(x + y - 1., min=0.)
+        return torch.clamp(x + y - 1., min=0., max=1.)
 

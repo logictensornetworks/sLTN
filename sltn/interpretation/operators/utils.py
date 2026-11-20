@@ -2,6 +2,7 @@ import torch
 
 # Default epsilon for numerical stability (used to clamp truth values away from 0 or 1).
 DEFAULT_EPS: float = 1e-6
+# Experimental, not used by any operator: smooth clamping helpers kept for future work.
 DEFAULT_BETA: float = 10.
 
 def pi_0(x, eps=DEFAULT_EPS):

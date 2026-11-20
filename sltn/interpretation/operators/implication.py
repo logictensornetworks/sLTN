@@ -2,7 +2,7 @@ import torch
 from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
 from .negation import NotStandard
 from .conjunction import AndProd, AndMin, AndLuk
-from .utils import DEFAULT_EPS, DEFAULT_BETA, pi_0, smooth_clamp
+from .utils import DEFAULT_EPS, pi_0
 
 
 class ImpliesDual(BinaryConnectiveOperator):
@@ -49,94 +49,44 @@ class ImpliesLuk(ImpliesDual):
     """
     Lukasiewicz fuzzy implication operator.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
-        super().__init__(and_op=AndLuk(stable=stable, eps=eps, beta=beta, smoothing_method=smoothing_method), neg_op=NotStandard())
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
+        super().__init__(and_op=AndLuk(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
-        self.beta = beta
-        self.smoothing_method = smoothing_method
 
     def __repr__(self) -> str:
-        return f"ImpliesLuk(stable={self.stable}, eps={self.eps}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return f"ImpliesLuk(stable={self.stable}, eps={self.eps})"
 
 
 class ImpliesGodel(BinaryConnectiveOperator):
     """
-    Godel fuzzy implication operand.
-    
-    Use smooth conditional logic to maintain non-zero gradients everywhere.
+    Godel fuzzy implication operator: 1 if x <= y, else y.
     """
-    def __init__(self, smooth=False, beta=DEFAULT_BETA, smoothing_method="softplus"):
-        """
-        Args:
-            smooth: If True, use smooth conditional (non-zero gradients everywhere).
-                   If False, use hard torch.where (standard behavior, zero gradients at boundary).
-            beta: Controls how steeply the smooth condition transitions (higher = closer to hard).
-            smoothing_method: Method used for smoothing ("softplus" or "squareplus").
-        """
-        self.smooth = smooth
-        self.beta = beta
-        self.smoothing_method = smoothing_method
-
     def __repr__(self) -> str:
-        return f"ImpliesGodel(smooth={self.smooth}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return "ImpliesGodel()"
 
     def __call__(self, x, y) -> torch.Tensor:
-        if self.smooth:
-            res = y + (1.0 - y) * smooth_clamp(0.5 + self.beta * (y - x), 
-                                                max=1.0, min=0.0,
-                                                beta=self.beta, 
-                                                smoothing_method=self.smoothing_method)
-            return torch.clamp(res, 0.0, 1.0)
-        else:
-            return torch.where(torch.le(x, y), torch.ones_like(x), y)
+        return torch.where(torch.le(x, y), torch.ones_like(x), y)
 
 
 class ImpliesGoguen(BinaryConnectiveOperator):
     """
-    Goguen fuzzy implication operator.
+    Goguen fuzzy implication operator: 1 if x <= y, else y / x.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS, 
-                 smooth=False, beta=10., smoothing_method="softplus"):
-        """
-        Args:
-            stable: If True with smooth=False, uses pi_0 for x before division.
-            eps: Epsilon for pi_0 boundary shift.
-            smooth: If True, use smooth conditional (non-zero gradients everywhere).
-                   If False, use hard torch.where (standard behavior, zero gradients at boundary).
-            beta: Controls how steeply the smooth condition transitions.
-        """
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
         self.stable = stable
         self.eps = eps
-        self.smooth = smooth
-        self.beta = beta
-        self.smoothing_method = smoothing_method
 
     def __repr__(self) -> str:
-        return f"ImpliesGoguen(stable={self.stable}, eps={self.eps}, smooth={self.smooth}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return f"ImpliesGoguen(stable={self.stable}, eps={self.eps})"
 
     def __call__(self, x, y, stable=None) -> torch.Tensor:
         stable = self.stable if stable is None else stable
         x_raw = x
-
-        # Smooth mode always needs a safe (non-zero) denominator; hard mode
-        # only clamps when explicitly requested via `stable`.
-        if stable or self.smooth:
+        if stable:
             x = pi_0(x, self.eps)
-
-        if self.smooth:
-            clamped_ratio = smooth_clamp(torch.div(y, x), 
-                                         beta=self.beta, 
-                                         max=1.0, min=0.0,
-                                         smoothing_method=self.smoothing_method)
-            gate = smooth_clamp(0.5 + self.beta * (y - x),
-                                max=1.0, min=0.0,
-                                beta=self.beta, 
-                                smoothing_method=self.smoothing_method)
-            return clamped_ratio + (1.0 - clamped_ratio) * gate
-        else:
-            # The clamp keeps the unselected branch finite, so x = 0 gives no NaN value or gradient.
-            return torch.where(torch.le(x_raw, y), torch.ones_like(y), y / x.clamp_min(self.eps))
+        # The clamp keeps the unselected branch finite, so x = 0 gives no NaN value or gradient.
+        return torch.where(torch.le(x_raw, y), torch.ones_like(y), y / x.clamp_min(self.eps))
 
 
 # Equivalence operators

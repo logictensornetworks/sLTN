@@ -1,5 +1,5 @@
 from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
-from .utils import DEFAULT_EPS, DEFAULT_BETA
+from .utils import DEFAULT_EPS
 import torch
 
 from .conjunction import AndProd, AndMin, AndLuk
@@ -50,15 +50,13 @@ class OrLuk(OrDual):
     """
     Lukasiewicz fuzzy disjunction operator.
     """
-    def __init__(self, stable=True, eps=DEFAULT_EPS, beta=DEFAULT_BETA, smoothing_method="squareplus"):
-        super().__init__(and_op=AndLuk(stable=stable, eps=eps, beta=beta, smoothing_method=smoothing_method), neg_op=NotStandard())
+    def __init__(self, stable=True, eps=DEFAULT_EPS):
+        super().__init__(and_op=AndLuk(stable=stable, eps=eps), neg_op=NotStandard())
         self.stable = stable
         self.eps = eps
-        self.beta = beta
-        self.smoothing_method = smoothing_method
 
     def __repr__(self) -> str:
-        return f"OrLuk(stable={self.stable}, eps={self.eps}, beta={self.beta}, smoothing_method={self.smoothing_method})"
+        return f"OrLuk(stable={self.stable}, eps={self.eps})"
 
 
 class XOrClassical(BinaryConnectiveOperator):

@@ -111,9 +111,10 @@ def test_andluk_call_stable_override() -> None:
     y = torch.tensor([0.0])
 
     hard = op(x, y)
-    smooth = op(x, y, stable=True)
+    stable = op(x, y, stable=True)
     assert torch.allclose(hard, torch.zeros_like(x))
-    assert smooth.item() != hard.item() or smooth.item() >= 0.0
+    assert torch.allclose(stable, torch.zeros_like(x))
+    assert op(torch.tensor([1.0]), torch.tensor([1.0]), stable=True).item() == 1.0
 
 
 # ---------------------------------------------------------------------------

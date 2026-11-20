@@ -23,7 +23,7 @@ from .base import (
     BinaryConnectiveOperator,
     AggregationOperator,
 )
-from .utils import DEFAULT_EPS, smooth_clamp, pi_0, pi_1
+from .utils import DEFAULT_EPS, pi_0, pi_1
 from .conjunction import (
     AndMin,
     AndProd,
@@ -62,7 +62,6 @@ from .aggregator import (
 
 __all__ = [
     "DEFAULT_EPS",
-    "smooth_clamp",
     "pi_0",
     "pi_1",
     "ConnectiveOperator",
