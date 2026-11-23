@@ -320,13 +320,13 @@ class _BoundFormula(Formula, ABC):
 
 
 class Forall(_BoundFormula):
-    """∀ x1, …, (xi, xj), …, xn [axis, …] | guard: φ"""
+    """Universal quantifier ``∀ v1, …, (vi, vj), … | guard: φ`` over individual or structural variables."""
     quantifier = "forall"
     symbol     = "∀"
 
 
 class Exists(_BoundFormula):
-    """∃ x1, …, (xi, xj), …, xn [axis, …] | guard: φ"""
+    """Existential quantifier ``∃ v1, …, (vi, vj), … | guard: φ`` over individual or structural variables."""
     quantifier = "exists"
     symbol     = "∃"
 

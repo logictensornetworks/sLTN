@@ -1,5 +1,5 @@
 """
-sltn.core.tensor — Tensor wrapper.
+sltn.interpretation.core.tensor — Annotated tensor wrapper.
 """
 from __future__ import annotations
 

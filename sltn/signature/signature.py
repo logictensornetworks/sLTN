@@ -37,14 +37,18 @@ _GRAMMAR_CHARS = frozenset("()[]{},:|")
 
 class Signature:
     """
-    A signature Σ = (S, D, F, P, C, X) consisting of declared:
+    A signature Σ = (S, D, C, X, U, F, P, R) consisting of declared:
 
       - **S** — sorts (``Sort``)
       - **D** — structural dimensions (``Dimension``)
       - **C** — constants (``ConstantSymbol``)
-      - **X** — variables (``VariableSymbol``)
+      - **X** — individual variables (``VariableSymbol``)
+      - **U** — structural variables (``StructuralVariableSymbol``)
       - **F** — function symbols (``FunctionSymbol``)
       - **P** — predicate symbols (``PredicateSymbol``)
+      - **R** — structural relations (``StructuralRelationSymbol``)
+
+    Syntactic abbreviations (macros) may also be registered via :meth:`define`.
 
     The Signature defines the *vocabulary* of the logic.  To assign concrete
     values (tensors, nn.Modules), ground them through an

@@ -1,8 +1,8 @@
 """
 sltn.interpretation.core.axis — Named, role-tagged axis descriptor.
 
-An :class:`Axis` labels one dimension of an :class:`~sltn.interpretation.core.tensor.Tensor`
-tensor with a name and a semantic role (``'variable'``, ``'structural'``, or ``'domain'``).
+An :class:`Axis` labels one dimension of a :class:`~sltn.interpretation.core.tensor.Tensor`
+with a name and a semantic role (``'variable'``, ``'structural'``, or ``'domain'``).
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Axis:
-    """A named, role-tagged axis of a tensor inside a Tensor.
+    """A named, role-tagged axis of a :class:`~sltn.interpretation.core.tensor.Tensor`.
 
     Roles:
       - ``'variable'``   — a batch axis over individuals (one per bound FOL variable)

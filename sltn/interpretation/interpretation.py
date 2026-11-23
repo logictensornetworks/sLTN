@@ -53,7 +53,7 @@ from sltn.interpretation.logic import Logic, _lookup_kind
 Assignment = Dict[str, Tensor]
 
 # ---------------------------------------------------------------------------
-# Symbol → sltn.Tensor wrapping helpers (formerly ground() on each symbol class)
+# Symbol → sltn.Tensor wrapping helpers
 # ---------------------------------------------------------------------------
 
 def _ground_constant(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
@@ -110,7 +110,7 @@ def _resolve_sort_type(sort, interp) -> Optional[Type]:
     return {"Bool": Bool, "Real": Real}.get(sort.name)
 
 
-def _value_to_expression(val: torch.Tensor | Tensor, name: str, interp: "Interpretation") -> Tensor:
+def _value_to_tensor(val: torch.Tensor | Tensor, name: str, interp: "Interpretation") -> Tensor:
     """Convert a Tensor binding into a properly annotated sltn.Tensor."""
     if isinstance(val, Tensor):
         return val
@@ -587,7 +587,7 @@ class Interpretation(torch.nn.Module):
 
         *target* may be a string formula, a :class:`~sltn.fol.formula.Formula`,
         a :class:`~sltn.fol.term.Term`, a :class:`~sltn.signature.symbols.Symbol`,
-        or an :class:`~sltn.interpretation.core.tensor.Tensor` (pass-through).
+        or a :class:`~sltn.interpretation.core.tensor.Tensor` (pass-through).
 
         *at* is an optional dict ``{axis_name: index}`` applied after
         evaluation: each entry calls ``result.select(axis_name, index)``.
@@ -722,10 +722,11 @@ class Interpretation(torch.nn.Module):
         sym : str | Symbol
             The symbol name or object.
         structural_axes_override : list[str] | None
-            When given (from ``AtomicFormula.structural_axes``), these axis names
-            replace the predicate's declared ``output_dims`` names for this call.
-            An empty list means "produce no structural output axis".
-            ``None`` means "use the predicate's declared output_dims".
+            Explicit output structural-variable names for this call (e.g. from
+            ``AtomicFormula.structural_axes`` or ``FunctionApplication.output_axes``),
+            matching the symbol's declared ``output_dims`` one-for-one.
+            When ``None`` (for direct Python calls or manually constructed AST nodes),
+            defaults to the symbol's declared ``output_dims`` names.
         """
         name = sym.name if isinstance(sym, Symbol) else sym
         override_val = self._get_grounding(name)
@@ -782,12 +783,12 @@ class Interpretation(torch.nn.Module):
                     )
                 if isinstance(val, Tensor):
                     return val.rename_axes({base_name: name})
-                return _value_to_expression(val, name, self)
+                return _value_to_tensor(val, name, self)
             raise RuntimeError(
                 f"VariableSymbol '{name}' has no grounding in this Interpretation. "
                 f"Use 'interp[{name}] = tensor' to ground it."
             )
-        return _value_to_expression(val, name, self)
+        return _value_to_tensor(val, name, self)
 
     # ------------------------------------------------------------------
     # Binding management

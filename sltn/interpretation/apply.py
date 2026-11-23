@@ -144,24 +144,24 @@ def apply_sat_agg(agg_op: AggregationOperator, *formulas: Tensor) -> Tensor:
 
 class TensorCallable:
     """Wrap a callable so it receives aligned :class:`sltn.Tensor` objects rather
-    than raw tensors.  The wrapped function must return a Tensor.
+    than raw ``torch.Tensor`` batches, and returns a :class:`sltn.Tensor` directly.
 
-    The resulting Tensor is used directly — no further axis bookkeeping
-    is applied by the framework. This is intended as a shortcut, but does not
-    fully comply with sLTN principles.
+    Intended as a low-level escape hatch: the returned :class:`sltn.Tensor` is
+    used as-is, bypassing signature-driven ``input_dims``/``output_dims``
+    bookkeeping and sort-shape validation.
     """
 
     def __init__(self, fn: Any) -> None:
         self.fn = fn
 
-    def __call__(self, *expressions: Tensor) -> Tensor:
-        return self.fn(*expressions)
+    def __call__(self, *tensors: Tensor) -> Tensor:
+        return self.fn(*tensors)
 
     def __repr__(self) -> str:
         return f"TensorCallable({self.fn!r})"
 
 
-def _apply_expression_callable(func: "TensorCallable", inputs: list, name: str) -> Tensor:
+def _apply_tensor_callable(func: "TensorCallable", inputs: list, name: str) -> Tensor:
     aligned = Tensor.align(*inputs) if inputs else []
     result = func(*aligned)
     if not isinstance(result, Tensor):
@@ -320,7 +320,7 @@ def _apply_callable(
 ) -> Tensor:
     """Dispatch to the appropriate execution path based on *func* type."""
     if isinstance(func, TensorCallable):
-        return _apply_expression_callable(func, inputs, name)
+        return _apply_tensor_callable(func, inputs, name)
     return _apply_batch_callable(
         func, inputs, preserved_axis_names, output_axis_names, output_type,
         name,

@@ -416,27 +416,25 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
 # ---------------------------------------------------------------------------
 
 def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) -> set[str]:
-    """Recursively annotate every AST node with its structural-axis set.
+    """Recursively annotate every AST node with its free structural-variable set.
 
     Stores the result as ``node._free_structural_variables`` and returns it.
     Called by :meth:`Signature.parse` after symbol resolution.
 
-    Rules (structural domain calculus, alias-name edition):
+    Rules (structural axis calculus under explicit structural-variable naming):
 
-    - d(StructuralVariableSymbol sv)                = {sv.name}
-    - d(VariableSymbol x) / d(ConstantSymbol c), with annotations a₁…aₖ over dims D₁…Dₙ
-                                     = {a₁, …, a_min(k,n)} ∪ {D_k+1, …, Dₙ}
-      (the evaluator renames positionally; a repeated D is named D0, D1, …)
-    - d(Call/FunctionCall f)         = (∪ d(tᵢ) − consumed(f)) ∪ out_names(f)
-    - d(AtomicFormula p)             = (∪ d(tᵢ) − consumed(p)) ∪ out_names(p)
-      (the dimension of each axis comes from the symbols in the tree, see
+    - d(StructuralVariable sv)                      = {sv.symbol.name}
+    - d(Variable x[a₁,…,aₙ]) / d(Constant c[a₁,…,aₙ]) = {a₁, …, aₙ}
+    - d(FunctionApplication f(t₁,…,tₖ)[o₁,…,oₘ])     = (∪ d(tᵢ) − consumed(f)) ∪ {o₁, …, oₘ}
+    - d(AtomicFormula P(t₁,…,tₖ)[o₁,…,oₘ])           = (∪ d(tᵢ) − consumed(P)) ∪ {o₁, …, oₘ}
+      (the dimension of each axis comes from the symbols in the tree; see
       :func:`~sltn.fol.term._call_axis_dims`)
-    - d(∘(φ, ψ))                     = d(φ) ∪ d(ψ)
-    - d(¬φ)                          = d(φ)
-    - d(∀x.φ) / d(∃x.φ)  [x symbol ref]  = d(φ)
-    - d(∀α.φ) / d(∃α.φ)  [α SVar]    = d(φ) − {α.name}
-    - d(StructAgg(axis, φ))          = d(φ) − {axis}
-    - d(KB)                          = ∪ d(clause)
+    - d(StructuralRelation R(α₁,…,αₖ))              = {α₁, …, αₖ}
+    - d(e[α=idx])                                    = d(e) − {α}
+    - d(∘(φ, ψ))                                     = d(φ) ∪ d(ψ)
+    - d(¬φ)                                          = d(φ)
+    - d(Q v₁,…,vₖ | γ : φ)                           = (d(φ) ∪ d(γ)) − {vᵢ | vᵢ ∈ sig.structural_variables}
+    - d(KB({φ₁, …, φₖ}))                             = ∪ d(φᵢ)
     """
     dims: set[str]
 

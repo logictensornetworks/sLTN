@@ -10,7 +10,7 @@ Terms are:
                                       :class:`FunctionApplication` or :class:`~sltn.fol.formula.AtomicFormula`
                                       during symbol resolution.
   - :class:`FunctionApplication` — a resolved function application (post-resolution only)
-  - :class:`AxisSelect` — a term projected onto a single structural index (``t[axis=k]``)
+  - :class:`TermAxisSelect` — a term projected onto a single structural index (``t[axis=k]``)
 
 String parsing for terms lives in :mod:`sltn.parse.parser`.
 """
@@ -304,10 +304,11 @@ class FunctionApplication(Term):
     ``symbol`` is always a :class:`~sltn.signature.symbols.FunctionSymbol` object (set
     during symbol resolution — see :func:`~sltn.parse.pipeline._resolve_symbols`).
 
-    ``output_axes`` — optional list of explicit output structural axis names from
-    the ``f(args)[t, s]`` annotation syntax.  ``None`` means use the declared
-    ``output_dims`` from the signature; an explicit list (possibly empty)
-    overrides them.
+    ``output_axes`` — optional list of explicit output structural-variable names
+    from the ``f(args)[t, s]`` annotation syntax, matching the symbol's declared
+    ``output_dims`` one-for-one. Parsed formulas always populate this when
+    ``output_dims`` is non-empty; ``None`` falls back to the declared
+    ``output_dims`` names when AST nodes are constructed directly in Python.
     """
 
     def __init__(
