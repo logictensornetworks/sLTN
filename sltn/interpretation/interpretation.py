@@ -47,7 +47,7 @@ from sltn.interpretation.apply import (
 )
 
 from sltn.interpretation.operators.base import AggregationOperator
-from sltn.interpretation.logic import Logic, _lookup_kind
+from sltn.interpretation.logic import Logic, _parse_kind
 
 # Variable values fixed by enclosing quantifiers (e.g. diagonalised groups) during evaluation.
 Assignment = Dict[str, Tensor]
@@ -200,11 +200,11 @@ class Interpretation(torch.nn.Module):
     overrides : dict, optional
         Initial groundings: ``{name_or_symbol: value}``.  Keys can be strings
         or Symbol objects.
+    logic : Logic, optional
+        Initial logic operator bundle (filled with defaults via
+        :meth:`Logic.with_defaults`).
     **kwargs
         Short-hand initial grounding entries (name → value).
-
-    The logic operators are set via the :attr:`logic` property after
-    construction.
     """
 
     def __init__(
@@ -220,8 +220,7 @@ class Interpretation(torch.nn.Module):
         self._overrides: Dict[str, Any] = {}   # non-torch groundings
         self._grounded = torch.nn.Module()     # modules, parameters, tensors (buffers)
 
-        self._logic: Logic = (logic.with_defaults() if logic is not None else Logic().with_defaults())
-        self._logic._signature = self.signature
+        self.logic = logic if logic is not None else Logic()
 
         # Per-call sub-formula cache and variable groundings; set only during forward().
         self._eval_cache: dict | None = None
@@ -233,11 +232,6 @@ class Interpretation(torch.nn.Module):
         # Toggle memoisation on/off (default: on).
         self.use_cache: bool = True
 
-        # Classical-mode state: threshold flag and saved fuzzy logic for restore.
-        self._classical: bool = False
-        self.classical_threshold: float = 0.5
-        self._pre_classical_logic: Optional[Logic] = None
-
         self._ground_all({**(overrides or {}), **kwargs})
 
     def _ground_all(self, items: Dict[str | Symbol, Any]) -> None:
@@ -247,19 +241,19 @@ class Interpretation(torch.nn.Module):
         for k, v in sorted(items.items(), key=lambda kv: not is_sort(kv[0])):
             self.ground(k, v)
 
-    def _derive(self, overrides: Dict[str, Any]) -> "Interpretation":
-        """New interpretation grounded with *overrides*, with logic, classical mode,
-        device and train/eval mode copied from self. The Logic is copied, not shared."""
+    def _derive(
+        self,
+        overrides: Dict[str | Symbol, Any],
+        *,
+        logic: Optional[Logic] = None,
+    ) -> "Interpretation":
+        """New interpretation grounded with *overrides*, with logic, device and
+        train/eval mode copied from self (unless *logic* is given). The Logic is copied, not shared."""
         source = self
         new = Interpretation(self.signature)
         new.training = source.training
         new._device = source._device
-        new.logic = source._logic
-        new._classical = source._classical
-        new.classical_threshold = source.classical_threshold
-        if source._pre_classical_logic is not None:
-            new._pre_classical_logic = source._pre_classical_logic.with_defaults()
-            new._pre_classical_logic._signature = self.signature
+        new.logic = source._logic if logic is None else logic
         new._ground_all(overrides)
         return new
 
@@ -278,39 +272,10 @@ class Interpretation(torch.nn.Module):
 
     @logic.setter
     def logic(self, value: Logic) -> None:
-        if self._classical:
-            # Keep classical semantics active; *value* is used once classical mode is off.
-            self._pre_classical_logic = value.with_defaults()
-            self._pre_classical_logic._signature = self.signature
-            struct_axes = list(value.StructAgg) if value.StructAgg else None
-            self._logic = Logic.classical(struct_agg_axes=struct_axes)
-        else:
-            self._logic = value.with_defaults()
-        self._logic._signature = self.signature
-
-
-    # ------------------------------------------------------------------
-    # Classical mode
-    # ------------------------------------------------------------------
-
-    @property
-    def classical(self) -> bool:
-        """When ``True``, the interpretation uses strictly Boolean semantics.
-        Setting it back to ``False`` restores the previously saved logic.
-        """
-        return self._classical
-
-    @classical.setter
-    def classical(self, value: bool) -> None:
-        if value and not self._classical:
-            self._pre_classical_logic = self._logic
-            struct_axes = list(self._logic.StructAgg) if self._logic.StructAgg else None
-            self._logic = Logic.classical(struct_agg_axes=struct_axes)
-            self._logic._signature = self.signature
-        elif not value and self._classical and self._pre_classical_logic is not None:
-            self._logic = self._pre_classical_logic
-            self._pre_classical_logic = None
-        self._classical = value
+        resolved = value.with_defaults()
+        resolved._signature = self.signature
+        resolved._populate_structural_quantifiers()
+        self._logic = resolved
 
     # ------------------------------------------------------------------
     # Binding interface
@@ -516,17 +481,18 @@ class Interpretation(torch.nn.Module):
                 return fn(*evaluated)
             case TermAxisSelect():
                 return self._eval(node.base_term, asgn).select(node.axis, node.index)
+            # Classical mode: binarise truth values where they enter the logic.
             case TermFormula():
-                return self._eval(node.term, asgn)
+                return self._apply_threshold(self._eval(node.term, asgn))
             case FormulaAxisSelect():
                 return self._eval(node.base_formula, asgn).select(node.axis, node.index)
             case StructuralRelation():
                 rel = self.get_structural_relation(node.pred_name)
                 current = rel.axis_names
                 renames = {old: new for old, new in zip(current, node.var_names) if old != new}
-                return rel.rename_axes(renames) if renames else rel
+                return self._apply_threshold(rel.rename_axes(renames) if renames else rel)
             case AtomicFormula():
-                return self._eval_atomic(node, asgn)
+                return self._apply_threshold(self._eval_atomic(node, asgn))
             case Not():
                 return apply_connective(self.logic.Not, self._eval(node.operand, asgn),
                                         exact=self._in_guard)
@@ -546,6 +512,22 @@ class Interpretation(torch.nn.Module):
                 raise TypeError(
                     f"Interpretation._eval received an unknown node type: {type(node).__name__}"
                 )
+
+    def _apply_threshold(self, tensor: Tensor) -> Tensor:
+        """Binarise a Bool-typed grounding output when the Logic has a classical threshold.
+
+        Applied in :meth:`_eval_node` where truth values enter the logic: atomic
+        formulas, structural relations and Bool terms used as formulas.  Terms
+        passed as arguments to functions are data and are left unchanged.
+        """
+        thr = self._logic._threshold
+        if thr is None or tensor.domain_type != Bool:
+            return tensor
+        return Tensor(
+            value=(tensor.value >= thr).float(),
+            axes=tensor.axes,
+            domain_type=tensor.domain_type,
+        )
 
     def _eval_atomic(self, node: Any, asgn: Assignment) -> Tensor:
         fn = self.resolve(node.symbol, structural_axes_override=node.structural_axes)
@@ -691,20 +673,19 @@ class Interpretation(torch.nn.Module):
 
         Operators are set per dimension, so every structural variable over it shares them.
         """
+        canonical_kind = _parse_kind(kind, kind)
         canonical = self.signature.resolve_structural_axis(axis)
         entry = self.logic._struct_entry(axis)
-        if entry is None:
-            raise ValueError(
-                f"No structural aggregation operator registered for axis '{axis}'. "
-                f"Set Logic(StructAgg={{'{canonical}': {{'{kind}': <AggregOp>, ...}}}})"
-            )
-        value = _lookup_kind(entry, kind)
-        if value is None:
-            raise ValueError(
-                f"Missing '{kind}' key in Logic.StructAgg['{canonical}']. "
-                f"Add: Logic(StructAgg={{'{canonical}': {{'{kind}': <AggregOp>}}}})"
-            )
-        return value
+        if entry is not None:
+            value = entry.get(canonical_kind)
+            if value is not None:
+                return value
+        if canonical in self.signature.dimensions:
+            return self.logic.Forall if canonical_kind == "forall" else self.logic.Exists
+        raise ValueError(
+            f"No structural aggregation operator registered for axis '{axis}'. "
+            f"Set Logic(StructAgg={{'{canonical}': {{'{canonical_kind}': <AggregOp>, ...}}}})"
+        )
 
     def get_structural_relation(self, name: str) -> Tensor:
         """Return the annotated sltn.Tensor for a **structural relation** by name.
@@ -818,9 +799,17 @@ class Interpretation(torch.nn.Module):
     # ------------------------------------------------------------------
     # Binding management
     # ------------------------------------------------------------------
-    def with_updates(self, **overrides) -> Interpretation:
-        """Return a shallow copy with additional/overridden groundings."""
-        return self._derive({**self._groundings(), **overrides})
+    def with_updates(
+        self,
+        overrides: Optional[Dict[str | Symbol, Any]] = None,
+        logic: Optional[Logic] = None,
+        **kwargs: Any,
+    ) -> Interpretation:
+        """Return a shallow copy with additional/overridden groundings and/or a new Logic."""
+        return self._derive(
+            {**self._groundings(), **(overrides or {}), **kwargs},
+            logic=logic,
+        )
 
     def copy(self) -> Interpretation:
         """Return a shallow copy sharing all tensor and module references."""
@@ -866,7 +855,7 @@ class Interpretation(torch.nn.Module):
 
     @classmethod
     def merge(cls, a: Interpretation, b: Interpretation) -> Interpretation:
-        """Merge two interpretations; *b* overrides *a*. Logic, classical mode and
+        """Merge two interpretations; *b* overrides *a*. Logic and
         device come from *b* (device falls back to *a*'s)."""
         merged = b._derive({**a._groundings(), **b._groundings()})
         if merged._device is None and a._device is not None:
@@ -954,28 +943,17 @@ class _SymbolProxy:
 
     def _call_symbol(self, inputs, preserved, ax_names) -> Tensor:
         if self._is_pred:
-            result = _apply_callable(
-                func=self._fn, inputs=inputs, preserved_axis_names=preserved,
-                output_axis_names=ax_names, output_type=Bool,
-                name=self._sym.name,
-            )
-            if self._interp.classical:
-                thr = self._interp.classical_threshold
-                result = Tensor(
-                    value=(result.value >= thr).float(),
-                    axes=result.axes, domain_type=Bool,
+            output_type = Bool
+        else:
+            # FunctionSymbol: resolve output type from sort grounding.
+            osort = self._sym.output_sort
+            output_type = _resolve_sort_type(osort, self._interp) if osort is not None else None
+            if output_type is None:
+                sname = osort.name if osort is not None else "?"
+                raise ValueError(
+                    f"FunctionSymbol '{self._sym.name}' has no output type. "
+                    f"Ground sort '{sname}' to a Type via interp[sort] = Type."
                 )
-            return result
-
-        # FunctionSymbol: resolve output type from sort grounding.
-        osort = self._sym.output_sort
-        output_type = _resolve_sort_type(osort, self._interp) if osort is not None else None
-        if output_type is None:
-            sname = osort.name if osort is not None else "?"
-            raise ValueError(
-                f"FunctionSymbol '{self._sym.name}' has no output type. "
-                f"Ground sort '{sname}' to a Type via interp[sort] = Type."
-            )
         return _apply_callable(
             func=self._fn, inputs=inputs, preserved_axis_names=preserved,
             output_axis_names=ax_names, output_type=output_type,

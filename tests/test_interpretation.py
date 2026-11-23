@@ -250,6 +250,28 @@ def test_with_updates_overrides_grounding(simple_sig, simple_interp):
     assert isinstance(val, torch.Tensor) and val.shape[0] == 3
 
 
+def test_with_updates_accepts_overrides_dict_and_logic(simple_sig, simple_interp):
+    from sltn.interpretation import Logic
+    sig = simple_sig
+    simple_interp[sig.get_predicate("P")] = lambda v: torch.full((v.shape[0], 1), 0.6)
+    new_x = torch.ones(3, 1)
+
+    crisp = simple_interp.with_updates({sig.get_variable("x"): new_x}, logic=Logic.classical())
+    assert crisp.logic._threshold == fuzzy_ops.DEFAULT_CLASSICAL_THRESHOLD
+    assert crisp("forall x: P(x)").value.item() == 1.0
+
+    strict_crisp = simple_interp.with_updates(logic=Logic.classical(threshold=0.75))
+    assert strict_crisp("forall x: P(x)").value.item() == 0.0
+
+    fuzzy_godel = simple_interp.with_updates(logic=Logic.classical(threshold=None))
+    assert fuzzy_godel("forall x: P(x)").value.item() == pytest.approx(0.6)
+
+    # Original interpretation is unchanged.
+    assert simple_interp.logic._threshold is None
+    assert not hasattr(simple_interp, "classical")
+    assert not hasattr(simple_interp, "classical_threshold")
+
+
 # ---------------------------------------------------------------------------
 # merge
 # ---------------------------------------------------------------------------
@@ -471,9 +493,10 @@ def test_logic_reused_across_interpretations_does_not_share_struct_agg():
     assert isinstance(i1.logic["forall,T"], fuzzy_ops.AggregMin)
     assert isinstance(i2.logic["forall,T"], fuzzy_ops.AggregPMeanError)
     assert isinstance(L.StructAgg["T"]["forall"], fuzzy_ops.AggregPMeanError)
-    # an axis added on one interpretation does not appear on the other
+    # an operator changed on one interpretation does not affect the other or L
     i1.logic["exists,T"] = fuzzy_ops.AggregMax()
-    assert "exists" not in i2.logic.StructAgg["T"]
+    assert isinstance(i2.logic["exists,T"], fuzzy_ops.AggregPMean)
+    assert "exists" not in L.StructAgg["T"]
 
 
 def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
@@ -482,6 +505,16 @@ def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
     r = repr(L)
     assert "(∀, T) : AggregMin" in r
     assert "(∃, T) : AggregMax" in r
+
+
+def test_logic_keys_accept_every_parser_spelling():
+    L = Logic().with_defaults()
+    assert L["⇒"] is L["->"] is L.Implies
+    assert L["⇔"] is L["iff"] is L.Equiv
+    L2 = Logic(StructAgg={"T": {"∀": fuzzy_ops.AggregMin()}})
+    assert L2.StructAgg == {"T": {"forall": L2["forall,T"]}}
+    with pytest.raises(ValueError, match="twice"):
+        Logic(StructAgg={"T": {"∀": fuzzy_ops.AggregMin(), "forall": fuzzy_ops.AggregMax()}})
 
 
 def test_equiv_default_uses_user_set_implies():

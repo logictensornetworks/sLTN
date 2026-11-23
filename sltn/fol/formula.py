@@ -212,7 +212,7 @@ class StructuralRelation(Formula):
 # Connectives
 # ---------------------------------------------------------------------------
 
-def _binary_connective(class_name: str, op_attr: str, repr_fmt: str, doc: str = "") -> type:
+def _binary_connective(class_name: str, op_attr: str, symbol: str, doc: str = "") -> type:
     """Return a concrete binary Formula class for a given connective."""
     def __init__(self, left: Formula, right: Formula) -> None:
         self.left  = left
@@ -227,11 +227,12 @@ def _binary_connective(class_name: str, op_attr: str, repr_fmt: str, doc: str = 
     def __repr__(self) -> str:
         def _fmt(f):
             return f"({f})" if isinstance(f, _BoundFormula) else str(f)
-        return repr_fmt.format(_fmt(self.left), _fmt(self.right))
+        return f"({_fmt(self.left)} {symbol} {_fmt(self.right)})"
 
     cls = type(class_name, (Formula,), {
         "__doc__":                             doc,
         "op_attr":                            op_attr,
+        "symbol":                             symbol,
         "__init__":                           __init__,
         "_compute_free_variables":            _compute_free_variables,
         "_compute_free_structural_variables": _compute_free_structural_variables,
@@ -241,24 +242,26 @@ def _binary_connective(class_name: str, op_attr: str, repr_fmt: str, doc: str = 
 
 
 And = _binary_connective(
-    "And", "And", "({} & {})",
+    "And", "And", "∧",
     doc="Conjunction (A ∧ B) of two formulas.",
 )
 Or = _binary_connective(
-    "Or", "Or", "({} ∨ {})",
+    "Or", "Or", "∨",
     doc="Disjunction (A ∨ B) of two formulas.",
 )
 Implies = _binary_connective(
-    "Implies", "Implies", "({} → {})",
+    "Implies", "Implies", "→",
     doc="Implication (A → B) of two formulas.",
 )
 Equivalent = _binary_connective(
-    "Equivalent", "Equiv", "({} ↔ {})",
+    "Equivalent", "Equiv", "↔",
     doc="Equivalence (A ↔ B) of two formulas.",
 )
 
 
 class Not(Formula):
+    symbol = "¬"
+
     def __init__(self, operand: Formula) -> None:
         self.operand = operand
 
@@ -269,7 +272,7 @@ class Not(Formula):
         return self.operand.free_structural_variables
 
     def __repr__(self) -> str:
-        return f"¬{self.operand}"
+        return f"{self.symbol}{self.operand}"
 
 
 # ---------------------------------------------------------------------------

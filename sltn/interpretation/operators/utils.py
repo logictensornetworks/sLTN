@@ -4,6 +4,8 @@ import torch
 DEFAULT_EPS: float = 1e-6
 # Default for the `stable` flag of every connective and aggregator.
 DEFAULT_STABLE: bool = True
+# Default threshold used by Logic.classical() to binarise atomic truth values.
+DEFAULT_CLASSICAL_THRESHOLD: float = 0.5
 # Experimental, not used by any operator: smooth clamping helpers kept for future work.
 DEFAULT_BETA: float = 10.
 
@@ -13,6 +15,7 @@ def pi_0(x, eps=DEFAULT_EPS):
     to zero, in such a way to avoid gradient problems. It maps the interval [0, 1] in the interval ]eps, 1].
     """
     return (1 - eps) * x + eps
+
 
 def pi_1(x, eps=DEFAULT_EPS):
     """
@@ -34,8 +37,10 @@ def safe_div(numerator, denominator):
 def squareplus(x, beta = DEFAULT_BETA):
     return 0.5*(x+torch.sqrt(x**2+1/beta))
 
+
 def softplus(x: torch.Tensor, beta: float = DEFAULT_BETA) -> torch.Tensor:
     return torch.nn.Softplus(beta)(x)
+
 
 def smooth_clamp(x, min=None, max=None, beta = DEFAULT_BETA, smoothing_method="softplus"):
     """

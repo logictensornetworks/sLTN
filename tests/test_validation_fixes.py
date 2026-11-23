@@ -1,10 +1,11 @@
+import sltn
 """Tests for signature validation, axis-name checks, quantifiers, and Interpretation groundings."""
 import pytest
 import torch
 
 from sltn import Signature, Interpretation, Real
 from sltn.interpretation import Logic
-from sltn.interpretation.operators import AggregMin, AggregPMeanError
+from sltn.interpretation.operators import AggregMax, AggregMin, AggregPMean, AggregPMeanError
 
 
 # ---------------------------------------------------------------------------
@@ -182,13 +183,35 @@ def test_structural_relation_accepts_tensors_and_parameters(tsig):
     assert i("next(t, t1)").value.shape == (5, 5, 1)
 
 
-def test_logic_set_in_classical_mode_is_kept(tsig):
+def test_with_updates_accepts_logic_and_auto_fills_classical_struct_agg(tsig):
+    # A fresh Interpretation already populates smooth pMean defaults for declared dimensions.
+    fresh = Interpretation(tsig)
+    assert isinstance(fresh.logic["forall,T"], AggregPMeanError)
+    assert isinstance(fresh.logic["exists,T"], AggregPMean)
+
     i = _interp(tsig)
-    i.classical = True
-    L = Logic(StructAgg={"T": {"forall": AggregMin(), "exists": AggregMin()}})
-    i.logic = L
-    i.classical = False
-    assert isinstance(i.logic.StructAgg["T"]["forall"], AggregMin)
+    i["C"] = lambda z: torch.full((z.shape[0], 1), 0.7)
+    crisp = i.with_updates(logic=Logic.classical())
+    assert isinstance(crisp.logic["forall,T"], AggregMin)
+    assert isinstance(crisp.logic["exists,T"], AggregMax)
+    assert crisp("forall x: forall t: C(x[t])").value.item() == 1.0
+    low = i.with_updates(logic=Logic.classical(threshold=0.8))
+    assert low("forall x: forall t: C(x[t])").value.item() == 0.0
+    godel = i.with_updates(logic=Logic.classical(threshold=None))
+    assert godel("forall x: forall t: C(x[t])").value.item() == pytest.approx(0.7)
+    # Original interpretation keeps its fuzzy logic untouched.
+    assert i.logic._threshold is None
+    assert 0.0 < i("forall x: forall t: C(x[t])").value.item() < 1.0
+
+
+def test_classical_threshold_binarises_structural_relations(tsig):
+    i = _interp(tsig)
+    i["next"] = torch.full((5, 5), 0.7)
+    assert torch.all(i("next(t, t1)").value == 0.7)
+    crisp = i.with_updates(logic=Logic.classical())
+    assert torch.all(crisp("next(t, t1)").value == 1.0)
+    strict = i.with_updates(logic=Logic.classical(threshold=0.8))
+    assert torch.all(strict("next(t, t1)").value == 0.0)
 
 
 def test_copies_do_not_share_logic(tsig):
@@ -295,3 +318,32 @@ def test_definition_cannot_be_grounded(asig):
         Interpretation(asig)["NearToo"] = lambda v: v
     with pytest.raises(KeyError, match="is a definition"):
         Interpretation(asig, NearToo=lambda v: v)
+
+
+def test_classical_threshold_binarises_bool_variables_and_constants():
+    sig = Signature("b")
+    sig.sort("B")
+    sig.variable("v", "B")
+    sig.constant("c", "B")
+    i = Interpretation(sig)
+    i["B"] = sltn.Bool
+    i["v"] = torch.tensor([[0.7], [0.9]])
+    i["c"] = torch.tensor([0.6])
+    assert i("forall v: v").value.item() < 1.0
+    crisp = i.with_updates(logic=Logic.classical())
+    assert crisp("forall v: v").value.item() == 1.0
+    assert crisp("c & c").value.item() == 1.0
+
+
+def test_classical_threshold_leaves_function_arguments_unchanged():
+    sig = Signature("b")
+    sig.sort("B")
+    sig.variable("v", "B")
+    sig.function("f", ["B"], "B")
+    seen = []
+    i = Interpretation(sig)
+    i["B"] = sltn.Bool
+    i["v"] = torch.tensor([[0.7]])
+    i["f"] = lambda z: (seen.append(z.clone()), z)[1]
+    i.with_updates(logic=Logic.classical())("forall v: f(v)")
+    assert torch.allclose(seen[-1], torch.tensor([[0.7]]))

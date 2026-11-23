@@ -210,7 +210,7 @@ def test_crispness_scheduler_raises_not_implemented():
 @pytest.mark.parametrize("make_logic", [
     lambda: Logic(SatAgg=fuzzy_ops.AggregMin()),
     lambda: Logic(SatAgg=fuzzy_ops.AggregMax()),
-    lambda: Logic.classical(struct_agg_axes=["T"]),
+    lambda: Logic.classical(threshold=None),
 ], ids=["AggregMin", "AggregMax", "classical"])
 def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
     # AggregMin and AggregMax reduce multi-clause KBs to a scalar loss when dim=None.
@@ -229,8 +229,6 @@ def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
     interp["x"] = torch.rand(3, 5, 2)
     interp["C"] = nn.Sequential(mlp, nn.Sigmoid())
     interp.logic = make_logic()
-    if interp.logic.StructAgg is None:
-        interp.logic["forall,t"] = fuzzy_ops.AggregPMeanError(p=2)
 
     stats = kb_backward(torch.optim.SGD(mlp.parameters(), lr=0.1), interp, kb)
     assert 0.0 <= stats["agg_loss"] <= 1.0

@@ -2,77 +2,79 @@ from __future__ import annotations
 
 __all__ = ["Logic"]
 
+import copy
 from typing import Dict, List, Optional, TYPE_CHECKING
 from sltn.interpretation.operators.base import AggregationOperator, UnaryConnectiveOperator, BinaryConnectiveOperator
 from sltn.interpretation.operators import aggregator, conjunction, disjunction, implication, negation
-from sltn.interpretation.operators.utils import DEFAULT_EPS, DEFAULT_STABLE
+from sltn.interpretation.operators.utils import (
+    DEFAULT_CLASSICAL_THRESHOLD,
+    DEFAULT_EPS,
+    DEFAULT_STABLE,
+)
+from sltn.fol import formula
+from sltn.parse.tokenizer import BUILTIN_TOKENS
 
 if TYPE_CHECKING:
     from sltn.signature.signature import Signature
-
-# Alternate spellings accepted for the inner ``{"forall": op, "exists": op}``
-# StructAgg entry keys, so both keyword and symbol forms work interchangeably.
-_KIND_ALIASES: Dict[str, tuple] = {
-    "forall": ("forall", "∀"),
-    "exists": ("exists", "∃"),
-}
-
-
-def _lookup_kind(entry: Dict[str, AggregationOperator], kind: str):
-    """Return entry[kind], tolerating the '∀'/'∃' symbol spellings too."""
-    for alt in _KIND_ALIASES.get(kind, (kind,)):
-        if alt in entry:
-            return entry[alt]
-    return None
-
-
-def _parse_kind(q_sym: str, key: str) -> str:
-    """Map the quantifier part of a ``"∀,t"`` key to ``"forall"``/``"exists"``."""
-    q_sym = q_sym.strip()
-    for kind, spellings in _KIND_ALIASES.items():
-        if q_sym in spellings:
-            return kind
-    raise KeyError(
-        f"Unknown quantifier {q_sym!r} in logic key {key!r}. "
-        f"Use one of 'forall', '∀', 'exists', '∃'."
-    )
 
 # ---------------------------------------------------------------------------
 # Symbol → Logic field mapping
 # ---------------------------------------------------------------------------
 _LOGIC_OP_FIELDS = ("And", "Or", "Not", "Implies", "Equiv", "Forall", "Exists", "SatAgg", "StructAgg")
 
+# Printed symbol of each Logic field, taken from the formula classes so that
+# print(logic) and printed formulas agree.
 _DEFAULT_SYMBOLS_DICT = {
-    "And": "∧",
-    "Or": "∨",
-    "Not": "¬",
-    "Implies": "→",
-    "Equiv": "↔",
-    "Forall": "∀",
-    "Exists": "∃",
+    **{cls.op_attr: cls.symbol for cls in (formula.And, formula.Or, formula.Implies, formula.Equivalent)},
+    "Not": formula.Not.symbol,
+    "Forall": formula.Forall.symbol,
+    "Exists": formula.Exists.symbol,
     "SatAgg": "SatAgg",
 }
 
-# All textual aliases that map to a Logic attribute name.
-# Used by Logic.__getitem__ / __setitem__.
-_SYMBOL_TO_FIELD: dict[str, str] = {
-    # Conjunction
-    "∧": "And", "&": "And", "and": "And",
-    # Disjunction
-    "∨": "Or", "or": "Or",
-    # Negation
-    "¬": "Not", "~": "Not", "not": "Not",
-    # Implication
-    "→": "Implies", "->": "Implies", "=>": "Implies", "implies": "Implies",
-    # Equivalence
-    "↔": "Equiv", "<->": "Equiv", "<=>": "Equiv", "iff": "Equiv",
-    # Universal quantifier
-    "∀": "Forall", "forall": "Forall",
-    # Existential quantifier
-    "∃": "Exists", "exists": "Exists",
-    # KB-level satisfaction aggregation
-    "SatAgg": "SatAgg",
+# Every spelling the parser accepts for a connective or quantifier (e.g. "∧", "&",
+# "and") maps to the Logic attribute that interprets it. Derived from the lexer
+# table so that Logic keys and formula syntax cannot drift apart.
+_TOKEN_KIND_TO_FIELD = {
+    "and": "And", "or": "Or", "not": "Not", "implies": "Implies", "iff": "Equiv",
+    "forall": "Forall", "exists": "Exists",
 }
+_SYMBOL_TO_FIELD: dict[str, str] = {
+    spelling: _TOKEN_KIND_TO_FIELD[kind]
+    for spelling, kind in BUILTIN_TOKENS.items()
+    if kind in _TOKEN_KIND_TO_FIELD
+}
+_SYMBOL_TO_FIELD["SatAgg"] = "SatAgg"
+
+
+def _parse_kind(q_sym: str, key: str) -> str:
+    """Map a quantifier spelling (``"∀"``, ``"forall"``, ``"∃"``, …) to ``"forall"``/``"exists"``."""
+    field = _SYMBOL_TO_FIELD.get(q_sym.strip())
+    if field not in ("Forall", "Exists"):
+        raise KeyError(
+            f"Unknown quantifier {q_sym.strip()!r} in logic key {key!r}. "
+            f"Use one of 'forall', '∀', 'exists', '∃'."
+        )
+    return field.lower()
+
+
+def _normalize_struct_agg(
+    struct_agg: Optional[Dict[str, Dict[str, AggregationOperator]]],
+) -> Optional[Dict[str, Dict[str, AggregationOperator]]]:
+    """Copy *struct_agg* two levels deep, with quantifier keys spelled ``"forall"``/``"exists"``."""
+    if struct_agg is None:
+        return None
+    result: Dict[str, Dict[str, AggregationOperator]] = {}
+    for axis, ops in struct_agg.items():
+        entry: Dict[str, AggregationOperator] = {}
+        for q_sym, op in ops.items():
+            kind = _parse_kind(q_sym, f"StructAgg[{axis!r}][{q_sym!r}]")
+            if kind in entry:
+                raise ValueError(f"StructAgg[{axis!r}] sets '{kind}' twice.")
+            entry[kind] = op
+        result[axis] = entry
+    return result
+
 
 class Logic:
     """Bundle of fuzzy logic operators for an Interpretation.
@@ -130,6 +132,8 @@ class Logic:
         self.StructAgg = StructAgg
         self.stable    = stable
         self.eps       = eps
+        # Binarisation threshold for atomic truth values; set only by classical().
+        self._threshold: Optional[float] = None
 
         # Optional back-reference to the owning Signature, set by Interpretation.
         # When present, it lets composite StructAgg keys ("∀,t" / "∀,T") resolve
@@ -137,6 +141,19 @@ class Logic:
         # the canonical Dimension it ranges over. Logic remains usable
         # standalone (e.g. Logic.classical(...)) when no signature is attached.
         self._signature: Optional["Signature"] = None
+
+    @property
+    def StructAgg(self) -> Optional[Dict[str, Dict[str, AggregationOperator]]]:
+        """Per-dimension structural aggregators, ``{dim: {"forall": op, "exists": op}}``.
+
+        Assigning a dict stores a copy whose quantifier keys are normalised, so
+        ``"∀"``/``"∃"`` and ``"forall"``/``"exists"`` are interchangeable.
+        """
+        return self._struct_agg
+
+    @StructAgg.setter
+    def StructAgg(self, value: Optional[Dict[str, Dict[str, AggregationOperator]]]) -> None:
+        self._struct_agg = _normalize_struct_agg(value)
 
 
     def with_defaults(self, stable: Optional[bool] = None, eps: Optional[float] = None) -> Logic:
@@ -151,8 +168,10 @@ class Logic:
         fields keep their independent defaults.  An unset ``Equiv`` is always
         ``Equiv(And, Implies)``, built from the final ``And`` and ``Implies``.
 
-        Note: ``StructAgg`` has no built-in default.  Every structural axis
-        used in a formula must be declared explicitly.
+        When attached to a :class:`~sltn.signature.Signature` (via an
+        :class:`~sltn.interpretation.Interpretation`), any declared structural
+        dimension missing a ``forall`` or ``exists`` entry in ``StructAgg``
+        receives its own copy of ``Forall`` / ``Exists``.
         """
         stable = self.stable if stable is None else stable
         eps = self.eps if eps is None else eps
@@ -193,39 +212,83 @@ class Logic:
             Forall=self.Forall or aggregator.AggregPMeanError(stable=stable, eps=eps),
             Exists=self.Exists or aggregator.AggregPMean(stable=stable, eps=eps),
             SatAgg=self.SatAgg or aggregator.AggregPMeanError(stable=stable, eps=eps),
-            # Copy two levels deep, so that setting a structural aggregator on the
-            # result does not change this Logic or other Logics built from it.
-            StructAgg=(
-                {axis: dict(ops) for axis, ops in self.StructAgg.items()}
-                if self.StructAgg is not None
-                else None
-            ),
+            # The StructAgg setter copies two levels deep, so setting a structural
+            # aggregator on the result does not change this Logic.
+            StructAgg=self.StructAgg,
             stable=stable,
             eps=eps,
         )
+        result._threshold = self._threshold
         result._signature = self._signature
+        result._populate_structural_quantifiers()
         return result
 
+    def _default_struct_forall(self) -> AggregationOperator:
+        """Default universal structural aggregator for a declared dimension."""
+        if self.Forall is not None:
+            return copy.deepcopy(self.Forall)
+        return aggregator.AggregPMeanError(stable=self.stable, eps=self.eps)
+
+    def _default_struct_exists(self) -> AggregationOperator:
+        """Default existential structural aggregator for a declared dimension."""
+        if self.Exists is not None:
+            return copy.deepcopy(self.Exists)
+        return aggregator.AggregPMean(stable=self.stable, eps=self.eps)
+
+    def _populate_structural_quantifiers(self) -> None:
+        """Ensure every dimension declared in the attached Signature has forall/exists entries."""
+        if self._signature is None or not self._signature.dimensions:
+            return
+        if self.StructAgg is None:
+            self.StructAgg = {}
+        for dim_name in self._signature.dimensions:
+            entry = self._struct_entry(dim_name)
+            if entry is None:
+                self.StructAgg[dim_name] = {
+                    "forall": self._default_struct_forall(),
+                    "exists": self._default_struct_exists(),
+                }
+            else:
+                if "forall" not in entry:
+                    entry["forall"] = self._default_struct_forall()
+                if "exists" not in entry:
+                    entry["exists"] = self._default_struct_exists()
+
     @classmethod
-    def classical(cls, struct_agg_axes: Optional[List[str]] = None) -> Logic:
-        """Return a hard Boolean logic bundle.
+    def classical(
+        cls,
+        struct_agg_axes: Optional[List[str]] = None,
+        *,
+        threshold: Optional[float] = DEFAULT_CLASSICAL_THRESHOLD,
+    ) -> Logic:
+        """Return a classical Boolean logic bundle.
 
         All operators are closed over ``{0, 1}``: conjunction is min,
         disjunction is max, negation is ``1 - x``, implication is Gödel
-        (``1 if x ≤ y else y``), quantifiers and aggregation use min/max.
+        (``1 if x ≤ y else y``), quantifiers and aggregation use min/max
+        (including every structural dimension declared in the signature).
+        By default, atomic truth values are binarised at ``threshold``
+        (``DEFAULT_CLASSICAL_THRESHOLD = 0.5``); pass ``threshold=None`` for
+        unthresholded Zadeh/Gödel operators over ``[0, 1]``.
 
         Parameters
         ----------
         struct_agg_axes : list of str, optional
+            Optional structural dimensions/axes to pre-populate when using
+            ``Logic.classical()`` standalone without an ``Interpretation``.
+        threshold : float or None, optional
+            Truth values are binarised where they enter the logic (atomic
+            formulas, structural relations and Bool terms used as formulas) via
+            ``(x >= threshold).float()`` before connectives and quantifiers are
+            applied (default ``0.5``).  Pass ``None`` to skip thresholding.
         """
-        
         struct_agg = None
         if struct_agg_axes:
             struct_agg = {
                 ax: {"forall": aggregator.AggregMin(), "exists": aggregator.AggregMax()}
                 for ax in struct_agg_axes
             }
-        return cls(
+        logic = cls(
             And=conjunction.AndMin(),
             Or=disjunction.OrMax(),
             Not=negation.NotStandard(),
@@ -236,6 +299,8 @@ class Logic:
             SatAgg=aggregator.AggregMin(),
             StructAgg=struct_agg,
         )
+        logic._threshold = threshold
+        return logic
 
     def _canonical_axis(self, axis: str) -> str:
         """Resolve *axis* to its canonical Dimension name, if a signature is attached."""
@@ -285,7 +350,7 @@ class Logic:
             entry = self._struct_entry(axis)
             if entry is None:
                 raise KeyError(f"No structural aggregation operators registered for axis '{axis.strip()}'.")
-            value = _lookup_kind(entry, q)
+            value = entry.get(q)
             if value is None:
                 raise KeyError(f"No structural '{q}' operator for axis '{axis.strip()}'.")
             return value
@@ -330,12 +395,10 @@ class Logic:
             if f == 'StructAgg':
                 for ax, ops in val.items():
                     for q, op in ops.items():
-                        if q in _KIND_ALIASES["forall"]:
-                            q = "∀"
-                        elif q in _KIND_ALIASES["exists"]:
-                            q = "∃"
-                        lines.append(f"    ({q}, {ax}) : {op}")
+                        lines.append(f"    ({_DEFAULT_SYMBOLS_DICT[q.capitalize()]}, {ax}) : {op}")
             else:
                 lines.append(f"    {_DEFAULT_SYMBOLS_DICT[f]}: {val}")
         lines.append(f"    stable={self.stable}, eps={self.eps}")
+        if self._threshold is not None:
+            lines.append(f"    threshold={self._threshold}")
         return "Logic(\n" + "\n".join(lines) + "\n  )"
