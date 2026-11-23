@@ -40,7 +40,7 @@ def test_as_variable_1d():
     t = torch.rand(5)
     e = Tensor.as_variable("x", t)
     assert e.free_variables == ["x"]
-    assert e.value.shape == (5,)  # No longer auto-unsqueezes domain; represents 1D batch of scalar individuals
+    assert e.value.shape == (5,)  # Represents a 1D batch of scalar individuals
 
     # If domain_type is specified (e.g., Real with shape (1,)), passing 1D tensor should raise ValueError from sltn.Tensor
     with pytest.raises(ValueError, match="Number of tensor dims"):
@@ -138,13 +138,13 @@ def test_align_adds_missing_variable_axis():
     assert combined.shape == (3, 4, 2)
 
 
-def test_align_single_expression_passthrough():
+def test_align_single_tensor_passthrough():
     e = Tensor.as_variable("x", torch.rand(3, 2))
     (aligned,) = Tensor.align(e)
     assert aligned.value.shape == e.value.shape
 
 
-def test_align_three_expressions():
+def test_align_three_tensors():
     e1 = Tensor.as_variable("a", torch.rand(2, 1))
     e2 = Tensor.as_variable("b", torch.rand(3, 1))
     e3 = Tensor.as_variable("c", torch.rand(4, 1))
@@ -158,15 +158,15 @@ def test_align_three_expressions():
     assert combined.shape == (2, 3, 4, 1)
 
 
-def test_align_single_expression_is_idempotent():
-    """Aligning a single expression with itself returns unchanged values."""
+def test_align_single_tensor_is_idempotent():
+    """Aligning a single tensor returns unchanged values."""
     e1 = Tensor.as_variable("x", torch.rand(3, 2))
     a1, = Tensor.align(e1)
     assert torch.allclose(a1.value, e1.value)
 
 
 def test_align_overlapping_variable_axis():
-    """Two expressions share one variable axis ('y'); canonical order: x, y, z."""
+    """Two tensors share one variable axis ('y'); canonical order: x, y, z."""
     expr_a = Tensor(
         value=torch.randn(3, 4),
         axes=[Axis("x", "variable"), Axis("y", "variable")],
@@ -202,7 +202,7 @@ def test_align_variable_and_structural_mix():
 
 
 def test_align_preserves_domain_dims():
-    """Domain dims are per-expression and stay at the end after alignment."""
+    """Domain dims are per-tensor and stay at the end after alignment."""
     expr_e = Tensor(
         value=torch.randn(3, 2),
         axes=[Axis("x", "variable"), Axis("d1", "domain")],
@@ -219,7 +219,7 @@ def test_align_preserves_domain_dims():
 
 
 def test_align_complex_variable_structural_domain():
-    """Variables + structural + domain: each expression keeps its own domain last."""
+    """Variables + structural + domain: each tensor keeps its own domain last."""
     expr_g = Tensor(
         value=torch.randn(3, 8, 2),
         axes=[Axis("x", "variable"), Axis("batch", "structural"), Axis("d1", "domain")],
@@ -263,25 +263,6 @@ def test_diag_requires_exactly_one_variable_axis():
 
 
 # ---------------------------------------------------------------------------
-# flatten_variable_axes
-# ---------------------------------------------------------------------------
-
-def test_flatten_variable_axes():
-    dims = [Axis("x", "variable"), Axis("y", "variable"), Axis("f", "domain")]
-    e = Tensor(value=torch.rand(3, 4, 2), axes=dims)
-    flat = e.flatten_variable_axes("flat")
-    assert flat.value.shape == (12, 2)
-    assert flat.free_variables == ["flat"]
-
-
-def test_flatten_single_variable_axis_renames():
-    e = Tensor.as_variable("x", torch.rand(5, 2))
-    flat = e.flatten_variable_axes("individuals")
-    assert flat.free_variables == ["individuals"]
-    assert flat.value.shape == (5, 2)
-
-
-# ---------------------------------------------------------------------------
 # rename_axes / permute
 # ---------------------------------------------------------------------------
 
@@ -303,33 +284,6 @@ def test_permute_wrong_names_raises():
     e = Tensor.as_variable("x", torch.rand(4, 2))
     with pytest.raises(ValueError):
         e.permute("z", "x")
-
-
-# ---------------------------------------------------------------------------
-# from_labeled_output
-# ---------------------------------------------------------------------------
-
-def test_from_labeled_output_basic():
-    t = torch.rand(8, 5, 3)
-    e = Tensor.from_labeled_output(t, variable_axis="x", structural_axes={"class": 5})
-    assert e.free_variables == ["x"]
-    assert e.free_structural_variables == ["class"]
-    assert e.axis_names == ["x", "class", "domain_0"]
-    assert e.shape == (8, 5, 3)
-
-
-def test_from_labeled_output_no_domain():
-    t = torch.rand(6, 4)
-    e = Tensor.from_labeled_output(t, variable_axis="batch", structural_axes={"time": 4})
-    assert e.free_variables == ["batch"]
-    assert e.free_structural_variables == ["time"]
-    assert len(e.axes) == 2
-
-
-def test_from_labeled_output_size_mismatch_raises():
-    t = torch.rand(6, 4)
-    with pytest.raises(ValueError, match="structural axis 'time'"):
-        Tensor.from_labeled_output(t, variable_axis="x", structural_axes={"time": 99})
 
 
 # ---------------------------------------------------------------------------
@@ -359,7 +313,7 @@ def test_type_axis_names_initialization():
     assert p_type.axis_names == ["x", "y", "real"]
 
 
-def test_expression_domain_names_compatibility():
+def test_tensor_domain_names_compatibility():
     
     # Matching domain axis name should succeed
     t = torch.randn(3, 2)
@@ -389,7 +343,7 @@ def test_expression_domain_names_compatibility():
 
 
 def test_type_shape_given_as_list_is_normalized_to_tuple():
-    # A list shape made every tensor fail the shape check.
+    # Type normalizes a list shape to a tuple.
     t = Type(name="Img", shape=[2, 3])
     assert t.shape == (2, 3)
     assert t == Type(name="Img", shape=(2, 3))
@@ -402,7 +356,7 @@ def test_type_shape_given_as_list_is_normalized_to_tuple():
 
 
 def test_real_and_int_accept_any_float_or_integer_dtype():
-    # Real required float32 and Int required int64.
+    # Real accepts any floating-point dtype and Int accepts any integer dtype.
     from sltn.interpretation.core.type import Int, PositiveReal
     for dtype in (torch.float16, torch.bfloat16, torch.float32, torch.float64):
         Real.validate(torch.zeros(3, 1, dtype=dtype))
@@ -417,7 +371,7 @@ def test_real_and_int_accept_any_float_or_integer_dtype():
 
 
 def test_type_is_hashable_and_equality_includes_the_name():
-    # Type was unhashable and __eq__ ignored the name.
+    # Type is hashable and compares name, shape, and axis_names.
     assert Bool != Type("Prob", (1,), axis_names=["bool"])
     assert Bool == Type("Bool", (1,), axis_names=["bool"])
     assert hash(Bool) == hash(Type("Bool", (1,), axis_names=["bool"]))

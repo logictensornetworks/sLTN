@@ -1,4 +1,4 @@
-"""Regression tests for signature validation, axis-name checks, quantifiers and Interpretation fixes."""
+"""Tests for signature validation, axis-name checks, quantifiers, and Interpretation groundings."""
 import pytest
 import torch
 
@@ -165,8 +165,7 @@ def test_alias_lookup_returns_base_grounding(tsig):
     torch.nn.Linear(5, 5),
 ], ids=["function", "list", "module"])
 def test_structural_relation_must_be_grounded_with_a_tensor(tsig, value):
-    # A relation grounded with anything but a tensor was accepted, and evaluation
-    # then failed with "AttributeError: 'function' object has no attribute 'axis_names'".
+    # Structural relations accept only tensors (or Parameters) and reject callables, lists, or modules at grounding time.
     i = _interp(tsig)
     i["next"] = torch.eye(5)
     with pytest.raises(TypeError, match=r"Structural relation 'next' must be grounded with a tensor .*\(T x T\), got \w+"):

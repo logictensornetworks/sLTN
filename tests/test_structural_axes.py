@@ -1,6 +1,6 @@
-"""Regressions for empty batches, negative p-means, axis roles and output axes,
-removed symbol options, alias-aware fsv, repeated dims, domain-axis names and
-the axis-naming rules."""
+"""Tests for empty batches, negative p-means, axis roles, output annotations,
+alias-aware free structural variables, repeated dimensions, domain-axis names,
+and structural axis-naming rules."""
 import pytest
 import torch
 import torch.nn as nn
@@ -119,7 +119,7 @@ def test_vacuous_structural_quantifier_rejected(gen_sig):
         sig.parse("forall t1: Gen(x[t])[t]")
 
 
-def test_removed_symbol_options():
+def test_unknown_predicate_keyword_rejected():
     sig = Signature("r")
     sig.sort("S")
     with pytest.raises(TypeError):

@@ -441,7 +441,7 @@ def test_cache_distinguishes_diagonal_from_product():
     assert torch.allclose(interp(phi).value, expected)
 
 def test_float64_data_through_a_real_sorted_function():
-    # float64 data failed every Real-sorted term.
+    # Real-sorted functions preserve float64 tensor dtypes.
     sig = Signature("f64")
     sig.sort("Img"); sig.sort("Scalar")
     sig.variable("x", "Img")
@@ -459,7 +459,7 @@ def test_float64_data_through_a_real_sorted_function():
 
 
 def test_logic_reused_across_interpretations_does_not_share_struct_agg():
-    # with_defaults passed the StructAgg dict through, so it was shared.
+    # Each Interpretation receives an independent copy of StructAgg.
     sig = Signature("shared_logic")
     sig.dimension("T")
     sig.structural_variable("t", "T")
@@ -477,7 +477,7 @@ def test_logic_reused_across_interpretations_does_not_share_struct_agg():
 
 
 def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
-    # Every kind other than "forall" was printed as ∃.
+    # Logic.__repr__ renders both Unicode and keyword quantifier keys accurately.
     L = Logic(StructAgg={"T": {"∀": fuzzy_ops.AggregMin(), "exists": fuzzy_ops.AggregMax()}})
     r = repr(L)
     assert "(∀, T) : AggregMin" in r
@@ -485,7 +485,7 @@ def test_logic_repr_prints_symbol_struct_agg_keys_correctly():
 
 
 def test_equiv_default_uses_user_set_implies():
-    # Logic(Implies=...) left <-> on Goguen.
+    # Default Equiv derives its implication from a user-supplied Logic.Implies.
     L = Logic(Implies=fuzzy_ops.ImpliesReichenbach()).with_defaults()
     assert isinstance(L.Equiv.implies_op, fuzzy_ops.ImpliesReichenbach)
     a, b = torch.tensor([0.9, 0.2, 0.6]), torch.tensor([0.3, 0.8, 0.6])
@@ -497,9 +497,8 @@ def test_equiv_default_uses_user_set_implies():
 
 
 def test_default_implication_is_reichenbach():
-    # The default -> was Goguen (1 if a <= b, else b / a): a -> 0 was 0 for every
-    # a > 0, with no gradient, so P(x) <-> y could not learn from labels y = 0.
-    # The default is now LTN's Reichenbach, 1 - a + a*b.
+    # The default implication is Reichenbach (1 - a + a*b), which provides
+    # non-zero gradients in `a` even when the consequent `b` is 0.
     L = Logic().with_defaults()
     assert isinstance(L.Implies, fuzzy_ops.ImpliesReichenbach)
     assert L.Implies.stable

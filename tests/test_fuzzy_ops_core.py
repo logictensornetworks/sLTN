@@ -289,7 +289,7 @@ def test_agreggeometricmean_masked_excludes_zero_weight_entries() -> None:
 
 
 def test_default_logic_uses_default_eps():
-    # Logic.with_defaults hardcoded eps=1e-12, a no-op in float32.
+    # Default Logic operators all inherit DEFAULT_EPS.
     from sltn.interpretation import Logic
     from sltn.interpretation.operators import DEFAULT_EPS
     L = Logic().with_defaults()
@@ -306,7 +306,7 @@ def test_and_cos_stable_gradient_is_finite_at_one():
 
 @pytest.mark.parametrize("op", [fuzzy_ops.AggregPMean(), fuzzy_ops.AggregGeometricMean()])
 def test_masked_mean_is_exact_and_empty_guard_is_finite(op):
-    # The masked means divided by (sum of weights + 1e-6), so a full guard over ones gave < 1.
+    # Masked means return exact 1.0 over all-ones inputs and remain finite on an all-false mask.
     xs = torch.ones(5)
     assert op(xs, dim=0, mask=torch.ones(5, dtype=torch.bool)) == 1.0
     assert torch.isfinite(op(xs, dim=0, mask=torch.zeros(5, dtype=torch.bool)))

@@ -1,4 +1,4 @@
-"""Regression tests for definition (macro) expansion: capture, aliases, selections, output axes."""
+"""Tests for definition (macro) expansion: capture avoidance, aliases, selections, output axes."""
 import pytest
 import torch
 

@@ -1,4 +1,4 @@
-"""Regression + feature tests for structural sLTN features."""
+"""Tests for structural sLTN features."""
 import torch
 import pytest
 import sltn

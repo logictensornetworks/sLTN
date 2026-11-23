@@ -1,4 +1,4 @@
-"""Regression tests: infix predicates/functions following a `[axis=idx]` select.
+"""Tests for infix predicates and functions following an `[axis=idx]` selection.
 
 Verifies that ``name(args)[out_axes]`` followed by one or more
 ``[axis=idx]`` selects and *then* an infix predicate (e.g.

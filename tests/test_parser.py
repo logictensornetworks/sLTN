@@ -1,4 +1,4 @@
-"""Regression tests for the Pratt parser / lexer rewrite."""
+"""Tests for the sLTN lexer and parser."""
 import warnings
 
 import pytest

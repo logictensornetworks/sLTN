@@ -113,7 +113,7 @@ def test_deepcopy_keeps_sharing(sig):
 
 
 def test_multiobjective_shared_module_does_not_crash(sig):
-    # A module bound to two symbols crashed jac_to_grad.
+    # A single module shared across multiple symbols has its parameters deduplicated for multi-objective backward.
     pytest.importorskip("torchjd")
     i = _interp(sig)
     net = _net()
@@ -126,7 +126,7 @@ def test_multiobjective_shared_module_does_not_crash(sig):
 
 
 def test_multiobjective_uses_optimizer_parameters(sig):
-    # Parameters came from interp.parameters(), not from the optimizer.
+    # Multi-objective backward computes gradients only for the parameters managed by the optimizer.
     pytest.importorskip("torchjd")
     i = _interp(sig)
     i["A"] = _net()

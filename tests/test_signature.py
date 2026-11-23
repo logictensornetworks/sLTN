@@ -323,10 +323,8 @@ def test_define_rewrites_template_output_axes_when_parameter_uses_struct_axis_al
 
 
 def test_define_distinct_param_axis_indices_duplicate_subtree():
-    """When a body uses ``X[s, …]`` and ``X[s1, …]``, each occurrence must get the right axes.
-
-    Regression: naive substitution reused the same AST for both, so the second
-    slot kept ``s`` instead of ``s1`` (broken ``nn.Module`` batching / attention).
+    """When a body uses ``X[s, …]`` and ``X[s1, …]``, each occurrence receives
+    an independent AST copy with its own axis annotations.
     """
     from sltn.fol.formula import AtomicFormula, Forall, Or
     from sltn.fol.term import FunctionApplication
@@ -634,8 +632,7 @@ def test_typed_struct_var_validates_trailing_feature_shape():
 
 
 def test_axis_annotation_must_match_the_dimension_it_renames():
-    # x[u] with x over T and u over U was accepted, and the
-    # T axis was then aggregated with U's operator.
+    # Each structural annotation on a variable or constant must range over the declared dimension.
     sig = Signature("ann_dims")
     I = sig.sort("Img")
     T, U = sig.dimension("T"), sig.dimension("U")
@@ -663,8 +660,7 @@ def test_axis_annotation_must_match_the_dimension_it_renames():
 
 
 def test_quantifier_rejects_duplicate_and_unused_variables():
-    # Duplicate bound names and unused individual variables
-    # were accepted, while an unused structural variable raised.
+    # Quantifiers reject duplicate bound variables, unused variables, mixed kinds, and mixed structural dimensions.
     sig = Signature("bound_vars")
     I = sig.sort("Img")
     T = sig.dimension("T")
@@ -698,7 +694,7 @@ def test_quantifier_rejects_duplicate_and_unused_variables():
 
 
 def test_kb_built_in_python_is_validated():
-    # KB([...]) and `+` never checked their clauses.
+    # KB([...]) and `+` validate that all clauses are closed Formula instances.
     from sltn.fol.formula import KB
     sig = Signature("kb_python")
     I = sig.sort("Img")
@@ -737,8 +733,7 @@ def test_kb_built_in_python_is_validated():
     ("C(z[t1, u])", {"t1", "u"}),
 ])
 def test_fsv_of_annotated_variables_and_constants_matches_evaluation(text, expected):
-    # A constant's annotations were ignored, and a variable
-    # with fewer annotations than dims dropped the unannotated axes.
+    # Free structural variables of annotated variables and constants match the evaluated tensor's structural axes.
     from sltn import Type
     from sltn.fol.definitions import _child_nodes
     from sltn.interpretation.operators import AggregPMeanError

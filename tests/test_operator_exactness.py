@@ -120,7 +120,7 @@ def test_stable_lukasiewicz_gradient_is_finite():
 # ---------------------------------------------------------------------------
 
 def test_stable_lukasiewicz_operators_stay_in_unit_interval():
-    """AndLuk(stable=True)(1, 1) was 1.024, so OrLuk / ImpliesLuk went negative."""
+    """Stable Łukasiewicz operators remain strictly within [0, 1] across the unit grid."""
     from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk
     v = torch.tensor([0.0, 0.25, 0.5, 0.75, 1.0])
     x, y = torch.meshgrid(v, v, indexing="ij")
@@ -134,7 +134,7 @@ def test_stable_lukasiewicz_operators_stay_in_unit_interval():
 
 
 def test_stable_lukasiewicz_and_in_a_formula_with_crisp_values():
-    """A crisp A(x) & B(x) failed the Bool check."""
+    """Crisp {0, 1} predicate values evaluated under stable Łukasiewicz satisfy Bool constraints."""
     from sltn import Signature, Interpretation, Type
     from sltn.interpretation import Logic
     from sltn.interpretation.operators import AndLuk, OrLuk, ImpliesLuk

@@ -108,10 +108,8 @@ def test_apply_quantifier_guard_via_interpretation():
 # ---------------------------------------------------------------------------
 
 def test_apply_quantifier_does_not_mask_nan():
-    # The "NaN = missing data" branch and the fallback that
-    # replaced a non-finite result with the identity were removed. NaN now
-    # propagates and fails the Bool check of the result instead of silently
-    # becoming 1 (forall) or 0 (exists); missing data must be excluded with a guard.
+    # NaN values propagate and fail the Bool domain constraint; missing data
+    # must be excluded explicitly with a guard rather than encoded as NaN.
     formula = Tensor(
         value=torch.tensor([0.2, float("nan"), 0.8]).unsqueeze(-1),
         axes=[Axis("x", "variable"), Axis("bool", "domain")],

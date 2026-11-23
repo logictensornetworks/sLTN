@@ -1,5 +1,5 @@
-"""Regression: canonical axis order (batched vs preserved structural) is applied
-consistently whether the predicate grounding is an `nn.Module` or a plain callable.
+"""Tests for canonical axis ordering (batched vs preserved structural) across
+`nn.Module` and plain-callable predicate groundings.
 
 Lexicographic align order can place a *preserved* structural axis before a
 *batched* one; both apply paths must permute to [vars | batched | preserved |

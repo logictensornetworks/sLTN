@@ -213,8 +213,7 @@ def test_crispness_scheduler_raises_not_implemented():
     lambda: Logic.classical(struct_agg_axes=["T"]),
 ], ids=["AggregMin", "AggregMax", "classical"])
 def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
-    # AggregMin/AggregMax reduced nothing with dim=None, so the
-    # SatAgg loss of a multi-clause KB was a vector and .backward() failed.
+    # AggregMin and AggregMax reduce multi-clause KBs to a scalar loss when dim=None.
     sig = Signature("minmax_satagg")
     I = sig.sort("Img")
     T = sig.dimension("T")
@@ -239,12 +238,11 @@ def test_kb_backward_with_min_max_satagg_on_several_clauses(make_logic):
 
 
 # ---------------------------------------------------------------------------
-# Trainable parameters the optimizer does not update
+# Trainable parameters outside the optimizer
 # ---------------------------------------------------------------------------
-# A network used inside a lambda is not registered in the interpretation, so
-# an optimizer built from interp.parameters() never updated it: the scalarized
-# path gave it a gradient that no step applied, and the multi-objective path
-# skipped it. Training ran without any error.
+# A network captured inside a plain lambda is not registered on the
+# Interpretation, so kb_backward verifies that every trainable leaf receiving
+# gradients from the KB is either registered or explicitly managed by the optimizer.
 
 def _lambda_kb():
     sig = Signature("unregistered")
