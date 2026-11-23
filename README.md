@@ -114,8 +114,7 @@ When individuals carry internal structure—such as sequences of length `T`—de
 ```python
 import torch
 import sltn
-from sltn import Signature, Interpretation, Logic
-import sltn.interpretation.operators as ops
+from sltn import Signature, Interpretation
 
 sig = Signature("temporal")
 sig.sort("Frame")
@@ -141,11 +140,10 @@ interp["Active"] = torch.nn.Sequential(torch.nn.Linear(16, 1), torch.nn.Sigmoid(
 interp["Detect"] = lambda x: torch.sigmoid(x.mean(dim=-1, keepdim=True))
 interp["next"]   = torch.diag(torch.ones(T_len - 1), diagonal=1)
 
-interp.logic = Logic()
-interp.logic["forall,T"] = ops.AggregPMeanError(p=2.0)
-
 satisfaction = interp(phi)                                  # sltn.Tensor of shape (1,)
 ```
+
+Structural quantifiers over `T` use copies of the first-order `Forall`/`Exists` by default; override them per dimension with `interp.logic["forall,T"] = ...`.
 
 ---
 
