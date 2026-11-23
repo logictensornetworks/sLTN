@@ -18,7 +18,7 @@ import warnings
 from typing import Any, Literal, TYPE_CHECKING
 
 from sltn.signature.symbols import (
-    VariableSymbol, ConstantSymbol, StructuralVariableSymbol, FunctionSymbol, PredicateSymbol, Dimension
+    VariableSymbol, ConstantSymbol, StructuralVariableSymbol, PredicateSymbol
 )
 
 from sltn.fol.term import (
@@ -444,10 +444,6 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
 
         case Variable() | Constant():
             dims = set(node._axis_dimensions())
-
-        case _NameTerm():
-            # Unresolved _NameTerm — structural set unknown here.
-            dims = set()
 
         case TermAxisSelect():
             _annotate_free_structural_variables(node.base_term, sig)
