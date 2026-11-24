@@ -30,7 +30,8 @@ from sltn.interpretation.operators.aggregator import AggregMax, AggregPMeanError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from clevr_sltn import (ANS, ATTRS, DIRS, IS, KVAR, PARAM, SORT, VALUES, O, by_name, family_tensors,  # noqa: E402
-                        CROPS, DATA, RESULTS, load, make_signature, question_type, scene_arrays, sltn_version)
+                        CROPS, DATA, RESULTS, in_scope, load, make_signature, question_type, scene_arrays,
+                        sltn_version)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -205,6 +206,13 @@ def qa_acc(net, it, sig, fams, sd, relnet=None, chunk=256):
     return total, {k: h / n for k, (h, n) in res.items()}
 
 
+def subset(questions, n, seed):
+    """n in-scope questions drawn at random with the run's seed (10,000 + seed), kept in the file's order."""
+    pool = [q for q in questions if in_scope(q)]
+    idx = torch.randperm(len(pool), generator=torch.Generator().manual_seed(10_000 + seed))[:n]
+    return [pool[i] for i in sorted(idx.tolist())]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--steps", type=int, default=4000)
@@ -212,7 +220,7 @@ def main():
     ap.add_argument("--batch", type=int, default=80)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--n_train_q", type=int, default=None, help="only the first N training questions")
+    ap.add_argument("--n_train_q", type=int, default=None, help="train on N in-scope questions, a random subset drawn with --seed (default: all)")
     ap.add_argument("--eval_every", type=int, default=250)
     ap.add_argument("--eval_scenes", type=int, default=2000, help="val scenes for the periodic concept accuracy")
     ap.add_argument("--learn_relations", action="store_true", help="learn left/right/front/behind from positions")
@@ -226,7 +234,7 @@ def main():
     for split in ("train", "val"):
         scenes, questions = load(DATA, split)
         if split == "train" and a.n_train_q:
-            questions = questions[: a.n_train_q]
+            questions = subset(questions, a.n_train_q, a.seed)
         attr, present, rel = scene_arrays(scenes)
         crops = torch.from_numpy(np.load(CROPS / f"{split}_crops.npy"))
         sd[split] = dict(attr=attr.to(DEVICE), present=present.to(DEVICE), rel=rel.to(DEVICE), pos=positions(scenes).to(DEVICE),
@@ -245,7 +253,9 @@ def main():
     rules = {k: sig.parse(tr["fams"][k][0].rule) for k in keys}
     sizes = torch.tensor([len(tr["fams"][k][1]["scene"]) for k in keys], dtype=torch.float)
     config = dict(vars(a), n_train_inscope=int(sizes.sum()), crop=48, crop_k=500, device=str(DEVICE))
-    out = RESULTS / "e1" / datetime.now().strftime("%Y%m%d-%H%M%S")
+    tag = ("-relations" if a.learn_relations else "") + ("-relq" if a.only_relation_questions else "") \
+        + (f"-n{a.n_train_q}" if a.n_train_q else "") + f"-seed{a.seed}"
+    out = RESULTS / "e1" / (datetime.now().strftime("%Y%m%d-%H%M%S") + tag)
     out.mkdir(parents=True, exist_ok=True)
     print(f"sltn {sltn_version()['commit'][:7]} | {config}", flush=True)
 
