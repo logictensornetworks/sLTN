@@ -210,9 +210,9 @@ class Tensor:
         )
 
     def select(self, axis_name: str, index: int) -> Tensor:
-        """Select a single index along the named axis, removing that axis.
+        """Select a single index along the named structural axis, removing that axis.
 
-        Works on any axis role: structural, variable, or domain.
+        Only structural axes can be selected, as in the formula syntax ``e[t=0]``.
 
         Uses :func:`torch.select` which returns a **view** of the tensor —
         no data is copied and gradients flow unimpeded.
@@ -220,7 +220,7 @@ class Tensor:
         Parameters
         ----------
         axis_name : str
-            Name of the axis to select along.
+            Name of the structural axis to select along.
         index : int
             Index to select.  Supports negative indexing.
 
@@ -229,6 +229,11 @@ class Tensor:
         Tensor
             Same annotated tensor with *axis_name* removed and the value reduced
             to the selected slice.
+
+        Raises
+        ------
+        ValueError
+            If *axis_name* is not an axis of the tensor, or is a variable or domain axis.
         """
         if axis_name not in self._axis_map:
             available = list(self._axis_map)
@@ -236,6 +241,13 @@ class Tensor:
                 f"Axis '{axis_name}' not found. Available axes: {available}"
             )
         axis_pos  = self._axis_map[axis_name]
+        role = self.axes[axis_pos].role
+        if role != "structural":
+            hint = ("select individuals by indexing the variable's grounding"
+                    if role == "variable" else "domain axes belong to the sort's Type")
+            raise ValueError(
+                f"Axis '{axis_name}' is a {role} axis; only structural axes can be selected ({hint})."
+            )
         new_value = torch.select(self.value, dim=axis_pos, index=index)
         new_axes  = [d for d in self.axes if d.name != axis_name]
         return Tensor(

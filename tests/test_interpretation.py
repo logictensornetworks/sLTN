@@ -368,7 +368,7 @@ def test_function_call_without_output_type_raises_clear_error():
         interp("f(w)")
 
 
-def test_formula_axis_select_matches_interpretation_at_projection():
+def test_formula_axis_select_matches_tensor_select():
     sig = Signature("demo_axis_select")
     S = sig.sort("S")
     T = sig.dimension("T")
@@ -382,9 +382,9 @@ def test_formula_axis_select_matches_interpretation_at_projection():
     interp["P"] = lambda v: v
 
     selected_inline = interp("(P(x[t])[t] & P(x[t])[t])[t=0]")
-    selected_at = interp("P(x[t])[t] & P(x[t])[t]", at={"t": 0})
+    selected_after = interp("P(x[t])[t] & P(x[t])[t]").select("t", 0)
 
-    assert torch.allclose(selected_inline.value, selected_at.value)
+    assert torch.allclose(selected_inline.value, selected_after.value)
 
 
 def test_cache_skips_redundant_evaluations():

@@ -101,6 +101,14 @@ def test_select_invalid_axis_raises():
         e.select("nonexistent", 0)
 
 
+@pytest.mark.parametrize("axis, role", [("x", "variable"), ("f", "domain")])
+def test_select_rejects_non_structural_axes(axis, role):
+    dims = [Axis("x", "variable"), Axis("t", "structural"), Axis("f", "domain")]
+    e = Tensor(value=torch.rand(4, 5, 2), axes=dims)
+    with pytest.raises(ValueError, match=f"'{axis}' is a {role} axis; only structural axes"):
+        e.select(axis, 0)
+
+
 # ---------------------------------------------------------------------------
 # Alignment
 # ---------------------------------------------------------------------------

@@ -583,26 +583,20 @@ class Interpretation(torch.nn.Module):
             axes = _var_axis_names([assignment[v] for v in node.var_names if v in assignment])
         return apply_quantifier(agg_op, formula_result, axes, mask=guard_result, symbol=symbol)
 
-    def forward(
-        self,
-        target: Any,
-        *,
-        at: Optional[Dict[str, int]] = None,
-    ) -> Tensor | Any:
+    def forward(self, target: Any) -> Tensor | Any:
         """Evaluate *target* under this interpretation (called as ``interp(target)``).
 
         *target* may be a string formula, a :class:`~sltn.fol.formula.Formula`,
         a :class:`~sltn.fol.term.Term`, a :class:`~sltn.signature.symbols.Symbol`,
         or a :class:`~sltn.interpretation.core.tensor.Tensor` (pass-through).
-
-        *at* is an optional dict ``{axis_name: index}`` applied after
-        evaluation: each entry calls ``result.select(axis_name, index)``.
+        To evaluate at one position of a structural axis, select it in the
+        formula (``"(φ)[t=0]"``) or call ``.select("t", 0)`` on the result.
         """
 
         # String: parse via the signature, then re-enter.
         if isinstance(target, str):
             target = self.signature.parse(target)
-            return self(target, at=at)
+            return self(target)
 
         # annotated sltn.Tensor: pass-through.
         if isinstance(target, Tensor):
@@ -630,14 +624,9 @@ class Interpretation(torch.nn.Module):
         if self.use_cache:
             self._eval_cache, self._eval_vars = {}, {}
         try:
-            result = self._eval(target, {})
+            return self._eval(target, {})
         finally:
             self._eval_cache = self._eval_vars = None
-
-        if at:
-            for axis_name, index in at.items():
-                result = result.select(axis_name, index)
-        return result
 
     # ------------------------------------------------------------------
     # Device placement
