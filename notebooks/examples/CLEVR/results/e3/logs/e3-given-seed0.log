@@ -1,0 +1,34 @@
+[job] root /shared, tag 'given', args '--steps 4500 --seed 0'
+[deps] /usr/local/bin/python3 -m pip install --quiet --target /tmp/pydeps torch>=2.10 numpy
+[deps] exit 0
+[job] crops downloaded in 15s: ['train_crops.npy', 'val_crops.npy']
+[job] /usr/local/bin/python3 -u /shared/run_e3.py --steps 4500 --seed 0 --crops /tmp/datasets/CLEVR_crops --results /tmp/e3_out/results --no_wandb
+[run] torch 2.15.0+cu132, cuda True, NVIDIA A40
+[run] CLEVR files in /tmp/datasets/CLEVR_v1.0
+downloading https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0_no_images.zip (85 MB) to /tmp/datasets/CLEVR_v1.0_no_images.zip
+train: 70000 scenes, 471489 in-scope questions (73s)
+val: 15000 scenes, 101028 in-scope questions (91s)
+sltn 5c2bb0f | {'steps': 4500, 'fams_per_step': 8, 'batch': 80, 'lr': 0.001, 'seed': 0, 'n_train_q': None, 'eval_every': 250, 'eval_scenes': 2000, 'learn_relations': False, 'crops': '/tmp/datasets/CLEVR_crops', 'max_scenes': None, 'results': '/tmp/e3_out/results', 'no_wandb': True, 'n_train_inscope': 471489, 'crop': 48, 'crop_k': 500, 'device': 'cuda', 'formulas': 'e3'}
+step   250 loss 0.2879 | concept acc (val, 2000 scenes): color 0.995, size 0.999, material 0.997, shape 0.991 | 717 ms/step
+step   500 loss 0.0846 | concept acc (val, 2000 scenes): color 0.996, size 1.000, material 0.998, shape 0.994 | 711 ms/step
+step   750 loss 0.0511 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 0.999, shape 0.996 | 708 ms/step
+step  1000 loss 0.0394 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.998, shape 0.995 | 707 ms/step
+step  1250 loss 0.0309 | concept acc (val, 2000 scenes): color 0.981, size 1.000, material 0.999, shape 0.997 | 707 ms/step
+step  1500 loss 0.0250 | concept acc (val, 2000 scenes): color 0.996, size 1.000, material 0.998, shape 0.997 | 707 ms/step
+step  1750 loss 0.0235 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 0.998, shape 0.999 | 706 ms/step
+step  2000 loss 0.0179 | concept acc (val, 2000 scenes): color 0.995, size 1.000, material 1.000, shape 0.995 | 705 ms/step
+step  2250 loss 0.0172 | concept acc (val, 2000 scenes): color 0.996, size 1.000, material 1.000, shape 0.998 | 705 ms/step
+step  2500 loss 0.0144 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.996 | 703 ms/step
+step  2750 loss 0.0160 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 1.000, shape 0.996 | 701 ms/step
+step  3000 loss 0.0137 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998 | 700 ms/step
+step  3250 loss 0.0135 | concept acc (val, 2000 scenes): color 0.991, size 1.000, material 0.999, shape 0.996 | 699 ms/step
+step  3500 loss 0.0123 | concept acc (val, 2000 scenes): color 1.000, size 1.000, material 1.000, shape 0.999 | 699 ms/step
+step  3750 loss 0.0083 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999 | 699 ms/step
+step  4000 loss 0.0109 | concept acc (val, 2000 scenes): color 1.000, size 1.000, material 1.000, shape 0.999 | 699 ms/step
+step  4250 loss 0.0094 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998 | 699 ms/step
+step  4500 loss 0.0100 | concept acc (val, 2000 scenes): color 1.000, size 1.000, material 1.000, shape 0.998 | 699 ms/step
+
+final concept acc (all val objects): color 0.9996, size 1.0000, material 0.9996, shape 0.9989
+final QA acc (val, in scope): 0.9991 | exist 0.9992, query 0.9993, exist+relate 0.9998, compare 0.9990, query+relate 0.9996, compare+relate 0.9982
+saved /tmp/e3_out/results/20261112-225758-seed0; total 3277s
+[job] results uploaded

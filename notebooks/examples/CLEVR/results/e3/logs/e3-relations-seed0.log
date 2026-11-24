@@ -1,0 +1,35 @@
+[job] root /shared, tag 'learned', args '--steps 4500 --seed 0 --learn_relations'
+[deps] /usr/local/bin/python3 -m pip install --quiet --target /tmp/pydeps torch>=2.10 numpy
+[deps] exit 0
+[job] crops downloaded in 15s: ['train_crops.npy', 'val_crops.npy']
+[job] /usr/local/bin/python3 -u /shared/run_e3.py --steps 4500 --seed 0 --learn_relations --crops /tmp/datasets/CLEVR_crops --results /tmp/e3_out/results --no_wandb
+[run] torch 2.15.0+cu132, cuda True, NVIDIA A40
+[run] CLEVR files in /tmp/datasets/CLEVR_v1.0
+downloading https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0_no_images.zip (85 MB) to /tmp/datasets/CLEVR_v1.0_no_images.zip
+train: 70000 scenes, 471489 in-scope questions (69s)
+val: 15000 scenes, 101028 in-scope questions (85s)
+sltn 5c2bb0f | {'steps': 4500, 'fams_per_step': 8, 'batch': 80, 'lr': 0.001, 'seed': 0, 'n_train_q': None, 'eval_every': 250, 'eval_scenes': 2000, 'learn_relations': True, 'crops': '/tmp/datasets/CLEVR_crops', 'max_scenes': None, 'results': '/tmp/e3_out/results', 'no_wandb': True, 'n_train_inscope': 471489, 'crop': 48, 'crop_k': 500, 'device': 'cuda', 'formulas': 'e3'}
+step   250 loss 0.4679 | concept acc (val, 2000 scenes): color 0.960, size 0.995, material 0.995, shape 0.979, left 0.935, right 0.983, front 0.988, behind 0.998 | 707 ms/step
+step   500 loss 0.1167 | concept acc (val, 2000 scenes): color 0.977, size 1.000, material 0.998, shape 0.992, left 1.000, right 1.000, front 1.000, behind 1.000 | 702 ms/step
+step   750 loss 0.0671 | concept acc (val, 2000 scenes): color 0.996, size 1.000, material 0.997, shape 0.994, left 1.000, right 1.000, front 1.000, behind 1.000 | 702 ms/step
+step  1000 loss 0.0441 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 0.998, shape 0.997, left 1.000, right 1.000, front 1.000, behind 1.000 | 702 ms/step
+step  1250 loss 0.0385 | concept acc (val, 2000 scenes): color 0.978, size 1.000, material 0.997, shape 0.997, left 1.000, right 1.000, front 1.000, behind 1.000 | 702 ms/step
+step  1500 loss 0.0280 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 1.000, shape 0.995, left 1.000, right 1.000, front 1.000, behind 1.000 | 702 ms/step
+step  1750 loss 0.0264 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 701 ms/step
+step  2000 loss 0.0216 | concept acc (val, 2000 scenes): color 0.997, size 1.000, material 0.999, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 700 ms/step
+step  2250 loss 0.0197 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 700 ms/step
+step  2500 loss 0.0196 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.993, left 1.000, right 1.000, front 1.000, behind 1.000 | 699 ms/step
+step  2750 loss 0.0165 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 698 ms/step
+step  3000 loss 0.0124 | concept acc (val, 2000 scenes): color 0.997, size 1.000, material 0.999, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 697 ms/step
+step  3250 loss 0.0147 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 697 ms/step
+step  3500 loss 0.0169 | concept acc (val, 2000 scenes): color 0.998, size 1.000, material 0.999, shape 0.999, left 1.000, right 1.000, front 1.000, behind 1.000 | 697 ms/step
+step  3750 loss 0.0123 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 697 ms/step
+step  4000 loss 0.0129 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 1.000, shape 0.998, left 1.000, right 1.000, front 1.000, behind 1.000 | 698 ms/step
+step  4250 loss 0.0106 | concept acc (val, 2000 scenes): color 0.999, size 1.000, material 0.999, shape 0.999, left 1.000, right 1.000, front 1.000, behind 1.000 | 698 ms/step
+step  4500 loss 0.0088 | concept acc (val, 2000 scenes): color 1.000, size 1.000, material 1.000, shape 0.999, left 1.000, right 1.000, front 1.000, behind 1.000 | 698 ms/step
+
+final concept acc (all val objects): color 0.9996, size 1.0000, material 0.9997, shape 0.9991
+final relation acc (all val pairs): left 1.0000, right 1.0000, front 1.0000, behind 1.0000
+final QA acc (val, in scope): 0.9992 | exist 0.9990, query 0.9995, exist+relate 0.9998, compare 0.9985, query+relate 0.9998, compare+relate 0.9981
+saved /tmp/e3_out/results/20261112-225757-relations-seed0; total 3267s
+[job] results uploaded
