@@ -1,0 +1,38 @@
+{
+ "config": {
+  "steps": 4500,
+  "fams_per_step": 8,
+  "batch": 80,
+  "lr": 0.001,
+  "seed": 0,
+  "n_train_q": 100000,
+  "eval_every": 250,
+  "eval_scenes": 2000,
+  "learn_relations": true,
+  "only_relation_questions": false,
+  "n_train_inscope": 100000,
+  "crop": 48,
+  "crop_k": 500,
+  "device": "cuda"
+ },
+ "sltn": {
+  "commit": "5c2bb0f85a12db17d337294455f21c8163b94fcb",
+  "branch": "bug-fixes-temp",
+  "dirty": true
+ },
+ "concept_acc/color": 0.9990550339982334,
+ "concept_acc/size": 0.9999794572608312,
+ "concept_acc/material": 0.9994658887816101,
+ "concept_acc/shape": 0.9978532837568561,
+ "relation_acc/left": 0.9995747208595276,
+ "relation_acc/right": 0.9994802474975586,
+ "relation_acc/front": 0.9999673962593079,
+ "relation_acc/behind": 0.9999511241912842,
+ "qa_acc": 0.9979114700875005,
+ "qa_acc/exist": 0.9979460677135096,
+ "qa_acc/query": 0.9989175469374043,
+ "qa_acc/exist+relate": 0.9988242210464433,
+ "qa_acc/compare": 0.9969026548672566,
+ "qa_acc/query+relate": 0.999109230597929,
+ "qa_acc/compare+relate": 0.995078255733832
+}
