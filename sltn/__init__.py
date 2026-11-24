@@ -14,7 +14,7 @@ from sltn.interpretation.core.type import Type, Real, Bool, Int, PositiveReal, C
 from sltn.interpretation.core.tensor import Tensor, Axis
 from sltn.signature import (
     Symbol, Sort, Dimension, ConstantSymbol, VariableSymbol, FunctionSymbol, PredicateSymbol,
-    StructuralVariableSymbol, StructuralRelationSymbol, Signature,
+    StructuralVariableSymbol, StructuralRelationSymbol, Definition, Signature,
 )
 from sltn.fol.formula import (
     Formula, TermFormula, FormulaAxisSelect, AtomicFormula,
@@ -49,6 +49,7 @@ __all__ = [
     "PredicateSymbol",
     "StructuralVariableSymbol",
     "StructuralRelationSymbol",
+    "Definition",
     "Signature",
     # Interpretation
     "Interpretation",

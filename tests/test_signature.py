@@ -115,7 +115,7 @@ def test_variable_with_dim():
     S = sig.sort("S")
     T = sig.dimension("t")
     x = sig.variable("x", S, dims=[T])
-    assert len(x.structural_variables) == 1 and x.structural_variables[0] is T
+    assert len(x.dims) == 1 and x.dims[0] is T
 
 
 def test_structural_relation_declaration():

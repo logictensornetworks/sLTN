@@ -408,7 +408,7 @@ class Signature:
             return alias
         if base in self._variables:
             base_var = self._variables[base]
-            alias = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.structural_variables or None)
+            alias = VariableSymbol(name=name, sort=base_var.sort, dims=base_var.dims or None)
             self._variables[name] = alias
             self._variables_aliases[name] = self._variables_aliases.get(base, base)
             return alias

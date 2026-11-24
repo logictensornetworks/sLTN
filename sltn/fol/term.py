@@ -174,13 +174,13 @@ class Variable(Term):
         return {self.name}
 
     def _axis_dimensions(self) -> dict:
-        return _annotated_axis_dims(self.symbol.structural_variables, self.axis_annotations)
+        return _annotated_axis_dims(self.symbol.dims, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:
             return f"{self.symbol.name}[{', '.join(self.axis_annotations)}]"
-        if self.symbol.structural_variables:
-            dims_str = ", ".join(d.name for d in self.symbol.structural_variables)
+        if self.symbol.dims:
+            dims_str = ", ".join(d.name for d in self.symbol.dims)
             return f"{self.symbol.name}[{dims_str}]"
         return self.name
 
@@ -207,7 +207,7 @@ class Constant(Term):
         return set()
 
     def _axis_dimensions(self) -> dict:
-        return _annotated_axis_dims(self.symbol.structural_variables, self.axis_annotations)
+        return _annotated_axis_dims(self.symbol.dims, self.axis_annotations)
 
     def __repr__(self) -> str:
         if self.axis_annotations:

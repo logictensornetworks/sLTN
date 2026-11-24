@@ -128,3 +128,10 @@ def test_cache_benchmark_backward_without_grad_raises(kb_interp):
     sig, interp = kb_interp   # lambdas and data with no parameters
     with pytest.raises(ValueError, match="requires grad"):
         cache_benchmark(interp, "forall x: P(x)", n_runs=1, backward_compute=True)
+
+
+@pytest.mark.parametrize("kwargs", [{"n_runs": 0}, {"n_warmup": -1}])
+def test_cache_benchmark_rejects_invalid_run_counts(kb_interp, kwargs):
+    sig, interp = kb_interp
+    with pytest.raises(ValueError, match=next(iter(kwargs))):
+        cache_benchmark(interp, sig.parse("forall x: P(x)"), **kwargs)

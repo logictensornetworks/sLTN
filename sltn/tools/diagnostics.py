@@ -78,7 +78,16 @@ def cache_benchmark(
         ``"without_cache_ms_per_call"`` — average wall time (ms) without cache.
         ``"with_cache_ms_per_call"``    — average wall time (ms) with cache.
         ``"speedup"``                   — ratio; >1 means cache is faster.
+
+    Raises
+    ------
+    ValueError
+        If ``n_runs < 1`` or ``n_warmup < 0``.
     """
+    if n_runs < 1:
+        raise ValueError(f"n_runs must be at least 1, got {n_runs}.")
+    if n_warmup < 0:
+        raise ValueError(f"n_warmup must be non-negative, got {n_warmup}.")
     old_use_cache = interp.use_cache
     leaves: list | None = None
 

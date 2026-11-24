@@ -63,7 +63,7 @@ def _ground_constant(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
     """Wrap a tensor as an annotated sltn.Tensor for a ConstantSymbol symbol."""
     if sort_type is None:
         raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
-    struct_names = _deduplicate_axis_names(sym.structural_variables)
+    struct_names = _deduplicate_axis_names(sym.dims)
     axes: list[Axis] = [Axis(n, 'structural') for n in struct_names]
     axes += [Axis(n, 'domain') for n in sort_type.axis_names]
     return Tensor(value=val, axes=axes, domain_type=sort_type)
@@ -80,7 +80,7 @@ def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
             f"({sorted(reserved)}) of its sort '{sym.sort.name}' or of predicate outputs. "
             f"Rename the variable, or set the axis names with Type(..., axis_names=[...])."
         )
-    struct_names = _deduplicate_axis_names(sym.structural_variables)
+    struct_names = _deduplicate_axis_names(sym.dims)
     axes: list[Axis] = [Axis(sym.name, 'variable')]
     axes += [Axis(n, 'structural') for n in struct_names]
     axes += [Axis(n, 'domain') for n in sort_type.axis_names]
@@ -100,7 +100,7 @@ def _ground_structural_variable(sym, val: torch.Tensor, sort_type: Optional[Type
 
 def _ground_structural_relation(sym, relation: torch.Tensor) -> Tensor:
     """Wrap the relation tensor as an annotated sltn.Tensor for a StructuralRelationSymbol symbol."""
-    unique_names = _deduplicate_axis_names(sym.structural_variables)
+    unique_names = _deduplicate_axis_names(sym.dims)
     axes = [Axis(n, 'structural') for n in unique_names] + [Axis('bool', 'domain')]
     return Tensor(value=relation.unsqueeze(-1), axes=axes, domain_type=Bool)
 
@@ -342,7 +342,7 @@ class Interpretation(torch.nn.Module):
             )
         relation = self.signature.structural_relations.get(key)
         if relation is not None and not isinstance(value, (torch.Tensor, Tensor)):
-            dims = " x ".join(d.name for d in relation.structural_variables)
+            dims = " x ".join(d.name for d in relation.dims)
             raise TypeError(
                 f"Structural relation '{key}' must be grounded with a tensor with one axis "
                 f"per dimension ({dims}), got {type(value).__name__}."

@@ -312,3 +312,10 @@ def test_kb_backward_accepts_a_registered_module_left_out_of_the_optimizer(aggre
     interp["P"] = nn.Sequential(nn.Linear(2, 1), nn.Sigmoid())
     opt = torch.optim.SGD(interp["Q"].parameters(), lr=0.1)
     kb_backward(opt, interp, kb, aggregator=aggregator)
+
+
+def test_kb_backward_rejects_empty_kb(single_pred_kb_module):
+    interp, _ = single_pred_kb_module
+    optimizer = torch.optim.SGD(list(interp.parameters()), lr=0.01)
+    with pytest.raises(ValueError, match="KB is empty"):
+        kb_backward(optimizer, interp, {})

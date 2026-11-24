@@ -159,16 +159,16 @@ class ConstantSymbol(Symbol):
     ) -> None:
         super().__init__(name)
         self.sort = sort
-        self.structural_variables: list[Dimension] = list(dims or [])
+        self.dims: list[Dimension] = list(dims or [])
 
     def sig_line(self) -> str:
-        dims = f" [{', '.join(d.name for d in self.structural_variables)}]" if self.structural_variables else ""
+        dims = f" [{', '.join(d.name for d in self.dims)}]" if self.dims else ""
         return f"{self.name}: {self.sort.name}{dims}"
 
     def __repr__(self) -> str:
         dims_str = (
-            (", dims=[" + ", ".join(d.name for d in self.structural_variables) + "]")
-            if self.structural_variables else ""
+            (", dims=[" + ", ".join(d.name for d in self.dims) + "]")
+            if self.dims else ""
         )
         return f"ConstantSymbol({self.name!r}, sort={self.sort.name!r}{dims_str})"
 
@@ -193,16 +193,16 @@ class VariableSymbol(Symbol):
     ) -> None:
         super().__init__(name)
         self.sort = sort
-        self.structural_variables: list[Dimension] = list(dims or [])
+        self.dims: list[Dimension] = list(dims or [])
 
     def sig_line(self) -> str:
-        dims = f" [{', '.join(d.name for d in self.structural_variables)}]" if self.structural_variables else ""
+        dims = f" [{', '.join(d.name for d in self.dims)}]" if self.dims else ""
         return f"{self.name}: {self.sort.name}{dims}"
 
     def __repr__(self) -> str:
         dims_str = (
-            (", dims=[" + ", ".join(d.name for d in self.structural_variables) + "]")
-            if self.structural_variables else ""
+            (", dims=[" + ", ".join(d.name for d in self.dims) + "]")
+            if self.dims else ""
         )
         return f"VariableSymbol({self.name!r}, sort={self.sort.name!r}{dims_str})"
 
@@ -333,12 +333,12 @@ class StructuralRelationSymbol(Symbol):
 
     def __init__(self, name: str, dimensions: Sequence[Dimension]) -> None:
         super().__init__(name)
-        self.structural_variables: list[Dimension] = list(dimensions)
+        self.dims: list[Dimension] = list(dimensions)
 
     def sig_line(self) -> str:
-        lhs = " x ".join(d.name for d in self.structural_variables) or "ε"
+        lhs = " x ".join(d.name for d in self.dims) or "ε"
         return f"{self.name}: {lhs} ⟶ Bool"
 
     def __repr__(self) -> str:
-        dims_str = " x ".join(d.name for d in self.structural_variables)
+        dims_str = " x ".join(d.name for d in self.dims)
         return f"StructuralRelationSymbol({self.name!r}: {dims_str})"

@@ -473,7 +473,7 @@ def _axis_names(term: Any, sig: Any) -> set[str]:
                 return set(term.axis_annotations)
             sym = term.symbol if isinstance(term, (Variable, Constant)) else (
                 sig.variables.get(term.name) or sig.constants.get(term.name))
-            return {d.name for d in sym.structural_variables} if sym is not None else set()
+            return {d.name for d in sym.dims} if sym is not None else set()
     return set().union(*(_axis_names(c, sig) for c in _child_nodes(term)))
 
 

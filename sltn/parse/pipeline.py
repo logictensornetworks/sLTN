@@ -99,7 +99,7 @@ def _check_output_annotation(sym, output_axes: list | None, sig: Signature) -> N
 
 def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]:
     """Return the axis names passed to the structural relation *sym*, checking each one."""
-    dims = sym.structural_variables
+    dims = sym.dims
     if len(args) != len(dims):
         raise ValueError(
             f"Structural relation '{sym.name}' takes {len(dims)} argument(s) "
@@ -129,7 +129,7 @@ def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]
     return tuple(names)
 
 
-def _check_selection(axis: str, base: Any, sig: Signature) -> None:
+def _check_selection(axis: str, base: Any) -> None:
     """Raise unless ``base[axis=k]`` selects a structural axis of *base*."""
     available = base._free_structural_variables or set()
     if axis not in available:
@@ -169,7 +169,7 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
             # Promote _NameTerm in-place to typed term node.
             ann = list(node.axis_annotations)
             if isinstance(resolved, (VariableSymbol, ConstantSymbol)):
-                _check_annotation_dimensions(name, resolved.structural_variables, ann, sig)
+                _check_annotation_dimensions(name, resolved.dims, ann, sig)
             match resolved:
                 case StructuralVariableSymbol():
                     node.__class__ = StructuralVariable
@@ -447,7 +447,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
 
         case TermAxisSelect():
             _annotate_free_structural_variables(node.base_term, sig)
-            _check_selection(node.axis, node.base_term, sig)
+            _check_selection(node.axis, node.base_term)
             base_dims: set[str] = node.base_term._free_structural_variables or set()
             dims = base_dims - {node.axis}
 
@@ -469,7 +469,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
 
         case FormulaAxisSelect():
             inner_dims = _annotate_free_structural_variables(node.base_formula, sig)
-            _check_selection(node.axis, node.base_formula, sig)
+            _check_selection(node.axis, node.base_formula)
             dims = inner_dims - {node.axis}
 
         case And() | Or() | Implies() | Equivalent():

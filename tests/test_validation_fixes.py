@@ -1,5 +1,5 @@
-import sltn
 """Tests for signature validation, axis-name checks, quantifiers, and Interpretation groundings."""
+import sltn
 import pytest
 import torch
 

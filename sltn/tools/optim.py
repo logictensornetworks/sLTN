@@ -271,11 +271,15 @@ def kb_backward(
     Raises
     ------
     ValueError
+        If the KB is empty.
+    ValueError
         If the KB depends on trainable parameters that are neither in the
         optimizer nor in the interpretation (e.g. a network used inside a
         lambda), since nothing would train them.  Raised before any backward.
     """
     clause_list = list(formulas.values())
+    if not clause_list:
+        raise ValueError("kb_backward needs at least one clause; the KB is empty.")
     num_clauses = len(clause_list)
     sat_vals = torch.stack([interp(phi).value for phi in clause_list])
     _check_untrained_parameters(optimizer, interp, sat_vals)
