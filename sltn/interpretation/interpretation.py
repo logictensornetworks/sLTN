@@ -47,7 +47,7 @@ from sltn.interpretation.apply import (
 )
 
 from sltn.interpretation.operators.base import AggregationOperator
-from sltn.interpretation.logic import Logic, _parse_kind
+from sltn.interpretation.logic import Logic
 
 # Variable values fixed by enclosing quantifiers (e.g. diagonalised groups) during evaluation.
 Assignment = Dict[str, Tensor]
@@ -274,7 +274,6 @@ class Interpretation(torch.nn.Module):
     def logic(self, value: Logic) -> None:
         resolved = value.with_defaults()
         resolved._signature = self.signature
-        resolved._populate_structural_quantifiers()
         self._logic = resolved
 
     # ------------------------------------------------------------------
@@ -671,21 +670,10 @@ class Interpretation(torch.nn.Module):
     def get_struct_agg_op(self, axis: str, kind: str) -> AggregationOperator:
         """Return the structural aggregation operator for *axis* and *kind* ('forall'/'exists').
 
-        Operators are set per dimension, so every structural variable over it shares them.
+        Returns the operator set in ``logic.StructAgg`` for the axis's dimension if there
+        is one, and ``logic.Forall`` / ``logic.Exists`` otherwise (see :meth:`Logic.struct_op`).
         """
-        canonical_kind = _parse_kind(kind, kind)
-        canonical = self.signature.resolve_structural_axis(axis)
-        entry = self.logic._struct_entry(axis)
-        if entry is not None:
-            value = entry.get(canonical_kind)
-            if value is not None:
-                return value
-        if canonical in self.signature.dimensions:
-            return self.logic.Forall if canonical_kind == "forall" else self.logic.Exists
-        raise ValueError(
-            f"No structural aggregation operator registered for axis '{axis}'. "
-            f"Set Logic(StructAgg={{'{canonical}': {{'{canonical_kind}': <AggregOp>, ...}}}})"
-        )
+        return self.logic.struct_op(kind, axis)
 
     def get_structural_relation(self, name: str) -> Tensor:
         """Return the annotated sltn.Tensor for a **structural relation** by name.

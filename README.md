@@ -143,7 +143,7 @@ interp["next"]   = torch.diag(torch.ones(T_len - 1), diagonal=1)
 satisfaction = interp(phi)                                  # sltn.Tensor of shape (1,)
 ```
 
-Structural quantifiers over `T` use copies of the first-order `Forall`/`Exists` by default; override them per dimension with `interp.logic["forall,T"] = ...`.
+Structural quantifiers over `T` use the current first-order `Forall`/`Exists` unless overridden; override them per dimension with `interp.logic["forall,T"] = ...`.
 
 ---
 

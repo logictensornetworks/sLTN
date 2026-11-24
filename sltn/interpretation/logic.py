@@ -2,8 +2,7 @@ from __future__ import annotations
 
 __all__ = ["Logic"]
 
-import copy
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 from sltn.interpretation.operators.base import AggregationOperator, UnaryConnectiveOperator, BinaryConnectiveOperator
 from sltn.interpretation.operators import aggregator, conjunction, disjunction, implication, negation
 from sltn.interpretation.operators.utils import (
@@ -168,10 +167,9 @@ class Logic:
         fields keep their independent defaults.  An unset ``Equiv`` is always
         ``Equiv(And, Implies)``, built from the final ``And`` and ``Implies``.
 
-        When attached to a :class:`~sltn.signature.Signature` (via an
-        :class:`~sltn.interpretation.Interpretation`), any declared structural
-        dimension missing a ``forall`` or ``exists`` entry in ``StructAgg``
-        receives its own copy of ``Forall`` / ``Exists``.
+        ``StructAgg`` holds only explicit per-dimension overrides; a structural
+        quantifier without one uses the current ``Forall`` / ``Exists``
+        (see :meth:`struct_op`).
         """
         stable = self.stable if stable is None else stable
         eps = self.eps if eps is None else eps
@@ -220,44 +218,11 @@ class Logic:
         )
         result._threshold = self._threshold
         result._signature = self._signature
-        result._populate_structural_quantifiers()
         return result
-
-    def _default_struct_forall(self) -> AggregationOperator:
-        """Default universal structural aggregator for a declared dimension."""
-        if self.Forall is not None:
-            return copy.deepcopy(self.Forall)
-        return aggregator.AggregPMeanError(stable=self.stable, eps=self.eps)
-
-    def _default_struct_exists(self) -> AggregationOperator:
-        """Default existential structural aggregator for a declared dimension."""
-        if self.Exists is not None:
-            return copy.deepcopy(self.Exists)
-        return aggregator.AggregPMean(stable=self.stable, eps=self.eps)
-
-    def _populate_structural_quantifiers(self) -> None:
-        """Ensure every dimension declared in the attached Signature has forall/exists entries."""
-        if self._signature is None or not self._signature.dimensions:
-            return
-        if self.StructAgg is None:
-            self.StructAgg = {}
-        for dim_name in self._signature.dimensions:
-            entry = self._struct_entry(dim_name)
-            if entry is None:
-                self.StructAgg[dim_name] = {
-                    "forall": self._default_struct_forall(),
-                    "exists": self._default_struct_exists(),
-                }
-            else:
-                if "forall" not in entry:
-                    entry["forall"] = self._default_struct_forall()
-                if "exists" not in entry:
-                    entry["exists"] = self._default_struct_exists()
 
     @classmethod
     def classical(
         cls,
-        struct_agg_axes: Optional[List[str]] = None,
         *,
         threshold: Optional[float] = DEFAULT_CLASSICAL_THRESHOLD,
     ) -> Logic:
@@ -266,28 +231,19 @@ class Logic:
         All operators are closed over ``{0, 1}``: conjunction is min,
         disjunction is max, negation is ``1 - x``, implication is Gödel
         (``1 if x ≤ y else y``), quantifiers and aggregation use min/max
-        (including every structural dimension declared in the signature).
+        (structural quantifiers too, unless overridden per dimension).
         By default, atomic truth values are binarised at ``threshold``
         (``DEFAULT_CLASSICAL_THRESHOLD = 0.5``); pass ``threshold=None`` for
         unthresholded Zadeh/Gödel operators over ``[0, 1]``.
 
         Parameters
         ----------
-        struct_agg_axes : list of str, optional
-            Optional structural dimensions/axes to pre-populate when using
-            ``Logic.classical()`` standalone without an ``Interpretation``.
         threshold : float or None, optional
             Truth values are binarised where they enter the logic (atomic
             formulas, structural relations and Bool terms used as formulas) via
             ``(x >= threshold).float()`` before connectives and quantifiers are
             applied (default ``0.5``).  Pass ``None`` to skip thresholding.
         """
-        struct_agg = None
-        if struct_agg_axes:
-            struct_agg = {
-                ax: {"forall": aggregator.AggregMin(), "exists": aggregator.AggregMax()}
-                for ax in struct_agg_axes
-            }
         logic = cls(
             And=conjunction.AndMin(),
             Or=disjunction.OrMax(),
@@ -297,7 +253,6 @@ class Logic:
             Forall=aggregator.AggregMin(),
             Exists=aggregator.AggregMax(),
             SatAgg=aggregator.AggregMin(),
-            StructAgg=struct_agg,
         )
         logic._threshold = threshold
         return logic
@@ -325,6 +280,41 @@ class Logic:
                 return entry
         return None
 
+    def struct_op(self, kind: str, axis: str) -> AggregationOperator:
+        """Return the aggregation operator for quantifier *kind* over the structural axis *axis*.
+
+        *kind* is ``"forall"`` or ``"exists"`` (or another accepted spelling, such as ``"∀"``).
+        *axis* is a dimension or a structural variable; a variable is resolved to its dimension.
+
+        If ``StructAgg`` defines an operator for this dimension and *kind*, that operator is
+        returned. Otherwise ``self.Forall`` (for ``"forall"``) or ``self.Exists`` (for
+        ``"exists"``) is returned by reference. The lookup is done on every
+        call, so assigning a new ``Forall`` / ``Exists`` changes the result for every
+        dimension that has no ``StructAgg`` entry for *kind*.
+
+        Raises
+        ------
+        KeyError
+            If a signature is attached and *axis* is neither a declared dimension nor a
+            structural variable, or if the required ``Forall`` / ``Exists`` is ``None``.
+        """
+        kind = _parse_kind(kind, kind)
+        entry = self._struct_entry(axis)
+        if entry is not None and kind in entry:
+            return entry[kind]
+        if self._signature is not None and self._canonical_axis(axis) not in self._signature.dimensions:
+            raise KeyError(
+                f"Unknown structural axis {axis.strip()!r}: "
+                f"expected a dimension or a structural variable of the signature."
+            )
+        op = self.Forall if kind == "forall" else self.Exists
+        if op is None:
+            raise KeyError(
+                f"No '{kind}' operator for structural axis {axis.strip()!r}: "
+                f"Logic.{kind.capitalize()} is not set. Use Logic.with_defaults() or set it explicitly."
+            )
+        return op
+
     def __getitem__(self, key: str):
         """Read a logic operator by symbol or keyword.
 
@@ -340,20 +330,11 @@ class Logic:
 
             logic["∧"]      # → logic.And
             logic["forall"] # → logic.Forall
-            logic["∀,t"]    # → logic.StructAgg["T"]["forall"]  (t ranges over dimension T)
+            logic["∀,t"]    # → logic.StructAgg["T"]["forall"] if set, else logic.Forall
         """
         if "," in key:
             q_sym, axis = key.split(",", 1)
-            q = _parse_kind(q_sym, key)
-            if self.StructAgg is None:
-                raise KeyError(f"No structural aggregation operators registered (key={key!r}).")
-            entry = self._struct_entry(axis)
-            if entry is None:
-                raise KeyError(f"No structural aggregation operators registered for axis '{axis.strip()}'.")
-            value = entry.get(q)
-            if value is None:
-                raise KeyError(f"No structural '{q}' operator for axis '{axis.strip()}'.")
-            return value
+            return self.struct_op(_parse_kind(q_sym, key), axis)
         if key not in _SYMBOL_TO_FIELD:
             raise KeyError(f"Unknown logic operator key {key!r}. Valid keys: {sorted(_SYMBOL_TO_FIELD)}")
         return getattr(self, _SYMBOL_TO_FIELD[key])

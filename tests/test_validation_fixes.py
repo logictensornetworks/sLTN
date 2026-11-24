@@ -183,8 +183,38 @@ def test_structural_relation_accepts_tensors_and_parameters(tsig):
     assert i("next(t, t1)").value.shape == (5, 5, 1)
 
 
-def test_with_updates_accepts_logic_and_auto_fills_classical_struct_agg(tsig):
-    # A fresh Interpretation already populates smooth pMean defaults for declared dimensions.
+def test_structural_default_follows_current_forall_exists(tsig):
+    i = Interpretation(tsig)
+    i.logic["forall"] = AggregMin()
+    assert i.logic["forall,T"] is i.logic.Forall
+    assert i.logic["exists,t"] is i.logic.Exists
+    assert i.logic.StructAgg is None
+
+
+def test_structural_override_wins_over_default(tsig):
+    i = Interpretation(tsig)
+    override = AggregPMeanError(p=4)
+    i.logic["forall,t"] = override
+    i.logic["forall"] = AggregMin()
+    assert i.logic["forall,T"] is override
+    assert i.logic["exists,T"] is i.logic.Exists
+
+
+def test_dimension_declared_after_interpretation_uses_default(tsig):
+    i = Interpretation(tsig)
+    U = tsig.dimension("U")
+    tsig.structural_variable("u", U)
+    i.logic["exists"] = AggregMax()
+    assert i.logic["exists,u"] is i.logic.Exists
+
+
+def test_structural_op_rejects_undeclared_axis(tsig):
+    with pytest.raises(KeyError, match="Unknown structural axis"):
+        Interpretation(tsig).logic["forall,nope"]
+
+
+def test_with_updates_accepts_logic_and_classical_struct_quantifiers(tsig):
+    # Without overrides, structural quantifiers use the first-order Forall/Exists.
     fresh = Interpretation(tsig)
     assert isinstance(fresh.logic["forall,T"], AggregPMeanError)
     assert isinstance(fresh.logic["exists,T"], AggregPMean)
