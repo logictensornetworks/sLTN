@@ -21,14 +21,17 @@ class Type:
         self.name = name
         self.shape = tuple(shape)
         self.constraint = constraint
+        if not self.shape:
+            raise ValueError(
+                f"Type '{name}' needs at least one feature axis; "
+                f"use shape=(1,) for scalar values."
+            )
 
         if axis_names is None:
             if len(shape) > 1:
                 self.axis_names = [f"{name.lower()}_{i}" for i in range(len(shape))]
-            elif len(shape) == 1:
-                self.axis_names = [name.lower()]
             else:
-                self.axis_names = []
+                self.axis_names = [name.lower()]
         else:
             if len(axis_names) != len(shape):
                 raise ValueError(

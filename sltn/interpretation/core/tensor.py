@@ -27,7 +27,7 @@ class Tensor:
       - *domain*     — feature / type dimension
 
     The ``domain_type`` encodes the expected shape and constraints of the
-    domain axes collectively.
+    domain axes collectively.  Every tensor has at least one domain axis.
     """
 
     def __init__(
@@ -61,6 +61,11 @@ class Tensor:
 
         if len(set(self._axis_names)) != len(self._axis_names):
             raise ValueError(f"Axis names must be unique. Got: {self._axis_names}")
+        if not self._domain_axes:
+            raise ValueError(
+                f"A Tensor needs at least one domain axis; got axes {self._axis_names}. "
+                f"For scalar values add a trailing axis of size 1."
+            )
 
         if domain_type is not None:
             if self._domain_shape != domain_type.shape:
@@ -367,13 +372,8 @@ class Tensor:
         """
         Create an sltn.Tensor suitable for use as a FOL variable in assignments.
         """
-        if domain_type is None:
-            domain_shape = value.shape[1:]
-            axis_names = [f"domain_{i}" for i in range(len(domain_shape))]
-            domain_type = Type(shape=domain_shape, axis_names=axis_names)
-
-        axes = [Axis(name, 'variable')] + [
-            Axis(n, 'domain') for n in domain_type.axis_names
-        ]
+        domain_names = (domain_type.axis_names if domain_type is not None
+                        else [f"domain_{i}" for i in range(value.ndim - 1)])
+        axes = [Axis(name, 'variable')] + [Axis(n, 'domain') for n in domain_names]
 
         return Tensor(value=value, axes=axes, domain_type=domain_type)

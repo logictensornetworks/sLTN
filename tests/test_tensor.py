@@ -36,15 +36,13 @@ def test_construction_invalid_role_raises():
         Axis("x", "invalid_role")
 
 
-def test_as_variable_1d():
-    t = torch.rand(5)
-    e = Tensor.as_variable("x", t)
-    assert e.free_variables == ["x"]
-    assert e.value.shape == (5,)  # Represents a 1D batch of scalar individuals
-
-    # If domain_type is specified (e.g., Real with shape (1,)), passing 1D tensor should raise ValueError from sltn.Tensor
+def test_tensor_requires_a_domain_axis():
+    with pytest.raises(ValueError, match="at least one domain axis"):
+        Tensor(value=torch.rand(5), axes=[Axis("x", "variable")])
+    with pytest.raises(ValueError, match="at least one domain axis"):
+        Tensor.as_variable("x", torch.rand(5))
     with pytest.raises(ValueError, match="Number of tensor dims"):
-        Tensor.as_variable("x", t, domain_type=Real)
+        Tensor.as_variable("x", torch.rand(5), domain_type=Real)
 
 
 def test_as_variable_2d():
@@ -176,37 +174,37 @@ def test_align_single_tensor_is_idempotent():
 def test_align_overlapping_variable_axis():
     """Two tensors share one variable axis ('y'); canonical order: x, y, z."""
     expr_a = Tensor(
-        value=torch.randn(3, 4),
-        axes=[Axis("x", "variable"), Axis("y", "variable")],
+        value=torch.randn(3, 4, 1),
+        axes=[Axis("x", "variable"), Axis("y", "variable"), Axis("real", "domain")],
     )
     expr_b = Tensor(
-        value=torch.randn(4, 5),
-        axes=[Axis("y", "variable"), Axis("z", "variable")],
+        value=torch.randn(4, 5, 1),
+        axes=[Axis("y", "variable"), Axis("z", "variable"), Axis("real", "domain")],
     )
     aligned_a, aligned_b = Tensor.align(expr_a, expr_b)
     # Variables sorted alphabetically: x, y, z
-    assert aligned_a.axis_names == ["x", "y", "z"]
-    assert aligned_a.value.shape == (3, 4, 1)   # missing z → broadcast
-    assert aligned_b.axis_names == ["x", "y", "z"]
-    assert aligned_b.value.shape == (1, 4, 5)   # missing x → broadcast
+    assert aligned_a.axis_names == ["x", "y", "z", "real"]
+    assert aligned_a.value.shape == (3, 4, 1, 1)   # missing z → broadcast
+    assert aligned_b.axis_names == ["x", "y", "z", "real"]
+    assert aligned_b.value.shape == (1, 4, 5, 1)   # missing x → broadcast
 
 
 def test_align_variable_and_structural_mix():
     """Variables sorted first, then structural; missing dims get broadcast size 1."""
     expr_c = Tensor(
-        value=torch.randn(8, 10),
-        axes=[Axis("batch", "structural"), Axis("time", "variable")],
+        value=torch.randn(8, 10, 1),
+        axes=[Axis("batch", "structural"), Axis("time", "variable"), Axis("real", "domain")],
     )
     expr_d = Tensor(
-        value=torch.randn(8, 6),
-        axes=[Axis("batch", "structural"), Axis("other_var", "variable")],
+        value=torch.randn(8, 6, 1),
+        axes=[Axis("batch", "structural"), Axis("other_var", "variable"), Axis("real", "domain")],
     )
     aligned_c, aligned_d = Tensor.align(expr_c, expr_d)
-    # canonical: variables sorted (other_var, time) + structural sorted (batch)
-    assert aligned_c.axis_names == ["other_var", "time", "batch"]
-    assert aligned_c.value.shape == (1, 10, 8)
-    assert aligned_d.axis_names == ["other_var", "time", "batch"]
-    assert aligned_d.value.shape == (6, 1, 8)
+    # canonical: variables sorted (other_var, time) + structural sorted (batch) + domain
+    assert aligned_c.axis_names == ["other_var", "time", "batch", "real"]
+    assert aligned_c.value.shape == (1, 10, 8, 1)
+    assert aligned_d.axis_names == ["other_var", "time", "batch", "real"]
+    assert aligned_d.value.shape == (6, 1, 8, 1)
 
 
 def test_align_preserves_domain_dims():
@@ -308,9 +306,9 @@ def test_type_axis_names_initialization():
     t2 = Type(name="Matrix", shape=(3, 4))
     assert t2.axis_names == ["matrix_0", "matrix_1"]
     
-    # Scalar shape with len(shape) == 0
-    t0 = Type(name="Scalar", shape=())
-    assert t0.axis_names == []
+    # A type needs at least one feature axis
+    with pytest.raises(ValueError, match=r"use shape=\(1,\)"):
+        Type(name="Scalar", shape=())
 
     # Standard types
     assert Real.axis_names == ["real"]
