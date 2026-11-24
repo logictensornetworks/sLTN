@@ -105,7 +105,42 @@ class Signature:
     # Declarations
     # ------------------------------------------------------------------
 
-    def _check_name(self, name: str, infix: bool = False) -> None:
+    def _registries(self) -> dict[str, dict]:
+        """Every symbol registry, keyed by the name of its kind as used in messages."""
+        return {
+            "sort": self._sorts,
+            "dimension": self._dimensions,
+            "constant": self._constants,
+            "variable": self._variables,
+            "function": self._functions,
+            "predicate": self._predicates,
+            "structural variable": self._structural_variables,
+            "structural relation": self._structural_relations,
+            "definition": self._definitions,
+        }
+
+    def _kind_of(self, name: str) -> Optional[str]:
+        """The kind of the symbol declared as *name*, or ``None`` if the name is free."""
+        for kind, store in self._registries().items():
+            if name in store:
+                return kind
+        return None
+
+    def _check_name(self, name: str, kind: str, infix: bool = False) -> None:
+        """Raise if *name* is reserved, can't be written in a formula, or names a symbol of another kind.
+
+        All symbols share one namespace. Redeclaring a name with the same *kind*
+        is allowed (it replaces the declaration, with a warning).
+        """
+        self._check_reserved_and_syntax(name, infix)
+        existing = self._kind_of(name)
+        if existing is not None and existing != kind:
+            base = self.alias_base(name)
+            what = f"an alias of the {existing} '{base}'" if base else f"a {existing}"
+            raise ValueError(f"'{name}' is already {what}; a {kind} needs a different name.")
+
+    @staticmethod
+    def _check_reserved_and_syntax(name: str, infix: bool = False) -> None:
         """Raise if *name* is reserved or can't be written in a formula."""
         if name in _RESERVED_NAMES:
             raise ValueError(
@@ -131,17 +166,16 @@ class Signature:
         if infix and n_args != 2:
             raise ValueError(f"Infix symbol '{name}' must take exactly 2 arguments, got {n_args}.")
 
-    @staticmethod
-    def _warn_if_redeclared(store: dict, name: str, kind: str) -> None:
-        if name in store:
+    def _warn_if_redeclared(self, name: str, kind: str) -> None:
+        if name in self._registries()[kind]:
             warnings.warn(
-                f"{kind} '{name}' is already declared; replacing its declaration.",
+                f"{kind.capitalize()} '{name}' is already declared; replacing its declaration.",
                 UserWarning, stacklevel=3,
             )
 
     def sort(self, name: str) -> Sort:
-        self._check_name(name)
-        self._warn_if_redeclared(self._sorts, name, "Sort")
+        self._check_name(name, "sort")
+        self._warn_if_redeclared(name, "sort")
         s = Sort(name=name)
         self._sorts[name] = s
         return s
@@ -152,10 +186,8 @@ class Signature:
         sort: Optional[str | Sort] = None,
         labels: Optional[list] = None,
     ) -> Dimension:
-        self._check_name(name)
-        if name in self._structural_variables:
-            raise ValueError(f"'{name}' is already a structural variable; a dimension needs a different name.")
-        self._warn_if_redeclared(self._dimensions, name, "Dimension")
+        self._check_name(name, "dimension")
+        self._warn_if_redeclared(name, "dimension")
         resolved_sort = self._resolve_sort(sort) if sort is not None else None
         d = Dimension(name=name, sort=resolved_sort, labels=labels)
         self._dimensions[name] = d
@@ -167,8 +199,8 @@ class Signature:
         sort: str | Sort,
         dims: Optional[Sequence[str | Dimension]] = None,
     ) -> ConstantSymbol:
-        self._check_name(name)
-        self._warn_if_redeclared(self._constants, name, "ConstantSymbol")
+        self._check_name(name, "constant")
+        self._warn_if_redeclared(name, "constant")
         c = ConstantSymbol(name=name, sort=self._resolve_sort(sort), dims=self._resolve_dims(dims))
         self._constants[name] = c
         return c
@@ -179,8 +211,8 @@ class Signature:
         sort: str | Sort,
         dims: Optional[Sequence[str | Dimension]] = None,
     ) -> VariableSymbol:
-        self._check_name(name)
-        self._warn_if_redeclared(self._variables, name, "VariableSymbol")
+        self._check_name(name, "variable")
+        self._warn_if_redeclared(name, "variable")
         v = VariableSymbol(name=name, sort=self._resolve_sort(sort), dims=self._resolve_dims(dims))
         self._variables[name] = v
         return v
@@ -194,9 +226,9 @@ class Signature:
         output_dims: Optional[Sequence[str | Dimension]] = None,
         **kwargs,
     ) -> FunctionSymbol:
-        self._check_name(name, infix=kwargs.get("infix", False))
+        self._check_name(name, "function", infix=kwargs.get("infix", False))
         self._check_infix_arity(name, len(input_sorts or ()), kwargs.get("infix", False))
-        self._warn_if_redeclared(self._functions, name, "FunctionSymbol")
+        self._warn_if_redeclared(name, "function")
         f = FunctionSymbol(
             name=name,
             input_sorts=self._resolve_sorts(input_sorts),
@@ -216,9 +248,9 @@ class Signature:
         output_dims: Optional[Sequence[str | Dimension]] = None,
         **kwargs,
     ) -> PredicateSymbol:
-        self._check_name(name, infix=kwargs.get("infix", False))
+        self._check_name(name, "predicate", infix=kwargs.get("infix", False))
         self._check_infix_arity(name, len(input_sorts or ()), kwargs.get("infix", False))
-        self._warn_if_redeclared(self._predicates, name, "PredicateSymbol")
+        self._warn_if_redeclared(name, "predicate")
         p = PredicateSymbol(
             name=name,
             input_sorts=self._resolve_sorts(input_sorts),
@@ -239,14 +271,9 @@ class Signature:
             raise TypeError(
                 f"structural_variable(name, dimension) expects a name string, got {type(name).__name__}."
             )
-        self._check_name(name)
-        if name in self._dimensions:
-            raise ValueError(
-                f"'{name}' is already a dimension, and dimension names can't name axes. "
-                f"Use another name for the structural variable."
-            )
+        self._check_name(name, "structural variable")
         dim = self._resolve_dim(dimension)
-        self._warn_if_redeclared(self._structural_variables, name, "StructuralVariableSymbol")
+        self._warn_if_redeclared(name, "structural variable")
         sv = StructuralVariableSymbol(name=name, dimension=dim)
         self._structural_variables[name] = sv
         return sv
@@ -256,8 +283,8 @@ class Signature:
         name: str,
         dimensions: Sequence[str | Dimension],
     ) -> StructuralRelationSymbol:
-        self._check_name(name)
-        self._warn_if_redeclared(self._structural_relations, name, "StructuralRelationSymbol")
+        self._check_name(name, "structural relation")
+        self._warn_if_redeclared(name, "structural relation")
         sp = StructuralRelationSymbol(name=name, dimensions=[self._resolve_dim(d) for d in dimensions])
         self._structural_relations[name] = sp
         return sp
@@ -279,13 +306,13 @@ class Signature:
         it replaces it with *formula_body* with *arg_names[i]* substituted by
         *ti* — at parse time, before symbol resolution or evaluation.
         """
-        self._check_name(name, infix=infix)
+        self._check_name(name, "definition", infix=infix)
         for p in arg_names:
-            self._check_name(p)
+            self._check_reserved_and_syntax(p)
         if len(set(arg_names)) != len(arg_names):
             raise ValueError(f"Definition '{name}' has duplicate parameter names: {list(arg_names)}.")
         self._check_infix_arity(name, len(arg_names), infix)
-        self._warn_if_redeclared(self._definitions, name, "Definition")
+        self._warn_if_redeclared(name, "definition")
         if input_sorts is not None and len(input_sorts) != len(arg_names):
             raise ValueError(
                 f"Definition '{name}' declares {len(input_sorts)} input_sorts "
@@ -372,7 +399,7 @@ class Signature:
         Returns ``None`` if *name* is not an alias of a (structural) variable.
         """
         base = _base_name_of(name)
-        if base == name:
+        if base == name or self._kind_of(name) not in (None, "variable", "structural variable"):
             return None
         if base in self._structural_variables:
             alias = StructuralVariableSymbol(name=name, dimension=self._structural_variables[base].dimension)

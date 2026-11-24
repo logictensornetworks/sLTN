@@ -27,6 +27,57 @@ def test_duplicate_sort_warns_and_replaces():
     assert new is not old and sig.get_sort("A") is new
 
 
+@pytest.mark.parametrize("first, second", [
+    ("variable", "constant"),
+    ("variable", "predicate"),
+    ("predicate", "function"),
+    ("constant", "function"),
+    ("sort", "variable"),
+    ("predicate", "definition"),
+])
+def test_name_shared_across_kinds_is_rejected(first, second):
+    sig = Signature("test")
+    sig.sort("S")
+    declare = {
+        "sort": lambda: sig.sort("a"),
+        "variable": lambda: sig.variable("a", "S"),
+        "constant": lambda: sig.constant("a", "S"),
+        "predicate": lambda: sig.predicate("a", ["S"]),
+        "function": lambda: sig.function("a", ["S"], "S"),
+        "definition": lambda: sig.define("a", ["u"], "u"),
+    }
+    declare[first]()
+    with pytest.raises(ValueError, match=rf"^'a' is already a {first}; a {second} needs"):
+        declare[second]()
+
+
+def test_alias_is_not_registered_over_another_kind():
+    sig = Signature("test")
+    sig.sort("S")
+    sig.variable("x", "S")
+    sig.constant("x1", "S")
+    assert sig.alias("x1") is None
+    assert "x1" not in sig.variables
+
+
+def test_declaring_over_a_registered_alias_names_the_alias():
+    sig = Signature("test")
+    sig.sort("S")
+    sig.variable("x", "S")
+    sig.predicate("P", ["S"])
+    sig.parse("forall x1: P(x1)")
+    with pytest.raises(ValueError, match=r"^'x1' is already an alias of the variable 'x'; a constant needs"):
+        sig.constant("x1", "S")
+
+
+def test_definition_parameter_may_reuse_a_declared_name():
+    sig = Signature("test")
+    sig.sort("S")
+    sig.variable("x", "S")
+    sig.predicate("P", ["S"])
+    sig.define("D", ["x"], "P(x)")
+
+
 def test_dimension_declaration():
     sig = Signature("test")
     T = sig.dimension("time")
