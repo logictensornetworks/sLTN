@@ -10,6 +10,7 @@ Run from `notebooks/examples/CLEVR` (relative imports, so always with `-m`):
 python -m clevr_qa.prepare_crops                    # once; needs the full CLEVR images
 python -m clevr_qa.ground_truth --split train       # the formulas are satisfied by the ground truth
 python -m clevr_qa.train --steps 4500 [--learn_relations] [--seed 0] [--no_wandb]
+python -m clevr_qa.train_slots --counting --amp [--recon_weight 0.5] [--dup_weight 0.5] [--match paint]   # slots; needs ../prep_images.py
 ```
 
 | Module | Holds |
@@ -26,6 +27,8 @@ python -m clevr_qa.train --steps 4500 [--learn_relations] [--seed 0] [--no_wandb
 | `evaluation.py` | concept, relation and QA accuracy |
 | `train.py` | command line, training loop, results |
 | `prepare_crops.py` | cuts one 48x48 crop per object |
+| `slot_model.py` | Slot Attention (a copy of `../slots.py`): image -> 11 slots, their masks and the reconstruction |
+| `train_slots.py` | no crops: the slot model trained by the knowledge base (the question rules, the reconstruction axiom, the duplicate axiom), from scratch |
 
 ## Reading order
 

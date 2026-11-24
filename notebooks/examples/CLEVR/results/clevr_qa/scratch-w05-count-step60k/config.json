@@ -1,0 +1,59 @@
+{
+ "config": {
+  "steps": 60000,
+  "batch": 64,
+  "lr": 0.0004,
+  "warmup": 5000,
+  "decay_steps": 50000,
+  "decay_rate": 0.5,
+  "clip": 1.0,
+  "recon_weight": 0.5,
+  "alpha": 5.0,
+  "seed": 0,
+  "n_train_q": null,
+  "amp": true,
+  "log_every": 100,
+  "eval_every": 2000,
+  "eval_scenes": 1000,
+  "ckpt_every": 2000,
+  "resume": null,
+  "relation": "antisym",
+  "init": null,
+  "fresh_relation": false,
+  "run_dir": "/tmp/slots_out/scratch-w05-count",
+  "counting": true,
+  "fresh_present": false,
+  "eval_only": false,
+  "oracles": "none,P",
+  "images": "/tmp/datasets/CLEVR_images128",
+  "max_scenes": null,
+  "results": "/shared/notebooks/examples/CLEVR/results/clevr_qa",
+  "slots": 11,
+  "res": [
+   128,
+   192
+  ],
+  "n_train_inscope": 699989,
+  "device": "cuda",
+  "gpus": 1,
+  "images_per_step": 64,
+  "params": 922134
+ },
+ "sltn": {
+  "commit": "5c2bb0f85a12db17d337294455f21c8163b94fcb",
+  "branch": "bug-fixes-temp",
+  "dirty": true,
+  "untracked": [
+   "clevr_diag.py",
+   "e3_images.py",
+   "e3_dh_job.py",
+   "e3_dh_run.py",
+   "dh_deps.py",
+   "prep_crops_dh_job.py",
+   "slots.py",
+   "prep_images.py",
+   "e2_slots_pretrain.py",
+   "slots_dh_job.py"
+  ]
+ }
+}
