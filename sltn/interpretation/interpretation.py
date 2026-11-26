@@ -35,6 +35,7 @@ from sltn.fol.formula import (
     And, Or, Implies, Equivalent, Not, _BoundFormula, KB,
 )
 
+from sltn.parse.pipeline import _unsorted_structural_variable_error
 from sltn.parse.tokenizer import _base_name_of
 from sltn.signature import (
     Signature, Symbol, FunctionSymbol, PredicateSymbol
@@ -88,14 +89,14 @@ def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
 
 
 def _ground_structural_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a structural variable."""
-    axes: list[Axis] = [Axis(sym.name, 'structural')]
-    if sort_type is not None:
-        axes.extend(sort_type.domain_axes)
-        return Tensor(value=val, axes=axes, domain_type=sort_type)
-    for i in range(1, val.ndim):
-        axes.append(Axis(f'{sym.dimension.name}_{i - 1}', 'domain'))
-    return Tensor(value=val, axes=axes, domain_type=None)
+    """Wrap a tensor as an annotated sltn.Tensor for a structural variable over a sorted dimension."""
+    if sort_type is None:
+        raise RuntimeError(
+            f"Structural variable '{sym.name}': sort '{sym.dimension.sort.name}' of dimension "
+            f"'{sym.dimension.name}' has no Type grounding. Use 'interp[{sym.dimension.sort.name!r}] = Type(...)'."
+        )
+    axes = [Axis(sym.name, 'structural'), *sort_type.domain_axes]
+    return Tensor(value=val, axes=axes, domain_type=sort_type)
 
 
 def _ground_structural_relation(sym, relation: torch.Tensor) -> Tensor:
@@ -123,8 +124,7 @@ def _value_to_tensor(val: torch.Tensor | Tensor, name: str, interp: "Interpretat
             val = val.to(interp._device)
         sv_obj = sig.structural_variables.get(name)
         if sv_obj is not None:
-            sort = sv_obj.dimension.sort
-            sort_type = _resolve_sort_type(sort, interp) if sort is not None else None
+            sort_type = _resolve_sort_type(sv_obj.dimension.sort, interp)
             return _ground_structural_variable(sv_obj, val, sort_type)
         sym_obj = sig.variables.get(name)
         if sym_obj is not None:
@@ -339,6 +339,9 @@ class Interpretation(torch.nn.Module):
                 f"Cannot ground '{key}': it is an alias of '{base}' and shares its "
                 f"grounding. Ground '{base}' instead."
             )
+        struct_var = self.signature.structural_variables.get(key)
+        if struct_var is not None and struct_var.dimension.sort is None:
+            raise _unsorted_structural_variable_error(struct_var, "grounded")
         relation = self.signature.structural_relations.get(key)
         if relation is not None and not isinstance(value, (torch.Tensor, Tensor)):
             dims = " x ".join(d.name for d in relation.dims)
@@ -867,9 +870,14 @@ class Interpretation(torch.nn.Module):
                 lines.append(f"  {title}:")
                 lines.extend(f"    {n}: {_val_label(self._get_grounding(n))}" for n in names)
 
-        # Dimensions and structural variables are not listed: they have no grounding of
-        # their own (a structural variable over a sorted dimension only carries the
-        # optional values of its indices).
+        # Dimensions have no grounding; a structural variable has one only if its
+        # dimension has a sort (the values of its indices).
+        sorted_svs = {n: sv for n, sv in sig.structural_variables.items() if sv.dimension.sort is not None}
+        if sorted_svs:
+            lines.append("  Structural variables:")
+            for n, sv in sorted_svs.items():
+                lines.append(f"    {n} ({sv.dimension.name}): {_val_label(self._get_grounding(n))}")
+
         if sig.structural_relations:
             lines.append("  Structural relations:")
             for n, rel in sig.structural_relations.items():

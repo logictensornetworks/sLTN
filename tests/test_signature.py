@@ -815,3 +815,15 @@ def test_fsv_of_annotated_variables_and_constants_matches_evaluation(text, expec
             wipe(child)
     wipe(phi)
     assert phi.free_structural_variables == expected
+
+
+def test_struct_var_over_unsorted_dimension_cannot_be_grounded_or_used_as_term():
+    sig = Signature("s")
+    sig.dimension("T")
+    sig.structural_variable("t", "T")
+    sig.predicate("Late", ["Real"])
+
+    with pytest.raises(TypeError, match="dimension 'T' has no sort"):
+        Interpretation(sig)["t"] = torch.arange(4.0).unsqueeze(-1)
+    with pytest.raises(TypeError, match="cannot be used as a term"):
+        sig.parse("forall t: Late(t)")

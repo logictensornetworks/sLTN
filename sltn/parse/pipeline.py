@@ -139,6 +139,14 @@ def _check_selection(axis: str, base: Any) -> None:
         )
 
 
+def _unsorted_structural_variable_error(sym, action: str) -> TypeError:
+    dim = sym.dimension.name
+    return TypeError(
+        f"Structural variable '{sym.name}' cannot be {action}: its dimension '{dim}' "
+        f"has no sort. Declare it with sig.dimension('{dim}', sort=...)."
+    )
+
+
 def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
     """Walk the AST and replace string names with Symbol objects from *sig*.
 
@@ -172,6 +180,8 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                 _check_annotation_dimensions(name, resolved.dims, ann, sig)
             match resolved:
                 case StructuralVariableSymbol():
+                    if resolved.dimension.sort is None:
+                        raise _unsorted_structural_variable_error(resolved, "used as a term")
                     node.__class__ = StructuralVariable
                     StructuralVariable.__init__(node, resolved, ann)
                 case VariableSymbol():
