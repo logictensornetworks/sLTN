@@ -246,7 +246,7 @@ def test_classical_threshold_binarises_structural_relations(tsig):
 
 def test_copies_do_not_share_logic(tsig):
     i = _interp(tsig)
-    for other in (i.copy(), i.deepcopy(), i.with_updates(), Interpretation.merge(i, i)):
+    for other in (i.copy(), i.deepcopy(), i.with_updates()):
         assert other.logic is not i.logic
         other.logic["forall,T"] = AggregMin()
         assert isinstance(i.logic["forall,T"], AggregPMeanError)

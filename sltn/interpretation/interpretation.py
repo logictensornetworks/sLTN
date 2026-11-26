@@ -826,19 +826,6 @@ class Interpretation(torch.nn.Module):
                                                 remove_duplicate=remove_duplicate):
             yield prefix + _symbol_param_name(name), p
 
-    # ------------------------------------------------------------------
-    # Merge
-    # ------------------------------------------------------------------
-
-    @classmethod
-    def merge(cls, a: Interpretation, b: Interpretation) -> Interpretation:
-        """Merge two interpretations; *b* overrides *a*. Logic and
-        device come from *b* (device falls back to *a*'s)."""
-        merged = b._derive({**a._groundings(), **b._groundings()})
-        if merged._device is None and a._device is not None:
-            merged.to(a._device)
-        return merged
-
     def __repr__(self) -> str:
         sig = self.signature
         n_trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)

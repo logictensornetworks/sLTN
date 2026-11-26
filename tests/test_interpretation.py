@@ -273,22 +273,6 @@ def test_with_updates_accepts_overrides_dict_and_logic(simple_sig, simple_interp
 
 
 # ---------------------------------------------------------------------------
-# merge
-# ---------------------------------------------------------------------------
-
-def test_merge_b_overrides_a(simple_sig):
-    sig = simple_sig
-    fn1 = lambda v: torch.zeros_like(v)
-    fn2 = lambda v: torch.ones_like(v)
-    a = Interpretation(sig)
-    a[sig.predicates["P"]] = fn1
-    b = Interpretation(sig)
-    b[sig.predicates["P"]] = fn2
-    merged = Interpretation.merge(a, b)
-    assert merged[sig.predicates["P"]] is fn2
-
-
-# ---------------------------------------------------------------------------
 # parameters
 # ---------------------------------------------------------------------------
 
