@@ -178,6 +178,12 @@ def _symbol_param_name(qualified: str) -> str:
 # Interpretation
 # ---------------------------------------------------------------------------
 
+_VALIDATION_MODES = ("groundings", "all", "off")
+# Nodes whose value comes from a grounding rather than from a logical operator.
+_GROUNDING_NODES = (Variable, StructuralVariable, Constant, FunctionApplication,
+                    AtomicFormula, StructuralRelation)
+
+
 class Interpretation(torch.nn.Module):
     """
     A logical interpretation of a Signature.
@@ -203,6 +209,15 @@ class Interpretation(torch.nn.Module):
     logic : Logic, optional
         Initial logic operator bundle (filled with defaults via
         :meth:`Logic.with_defaults`).
+    validate_type_constraint : {"groundings", "all", "off"}, default "groundings"
+        Which values are checked against the constraint of their ``Type``
+        (e.g. truth values in [0, 1]).  ``"groundings"`` checks what the
+        groundings return (variables, constants, functions, predicates,
+        structural relations); ``"all"`` also checks every connective and
+        quantifier result, which locates the first NaN but is slow on GPU
+        (each check waits for the device); ``"off"`` checks nothing.
+        Settable later as an attribute; kept by :meth:`copy`,
+        :meth:`deepcopy` and :meth:`with_updates`.
     **kwargs
         Short-hand initial grounding entries (name → value).
     """
@@ -212,6 +227,8 @@ class Interpretation(torch.nn.Module):
         signature: Signature,
         overrides: Optional[Dict[str | Symbol, Any]] = None,
         logic: Optional["Logic"] = None,
+        *,
+        validate_type_constraint: str = "groundings",
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -231,6 +248,7 @@ class Interpretation(torch.nn.Module):
 
         # Toggle memoisation on/off (default: on).
         self.use_cache: bool = True
+        self.validate_type_constraint = validate_type_constraint
 
         self._ground_all({**(overrides or {}), **kwargs})
 
@@ -252,6 +270,7 @@ class Interpretation(torch.nn.Module):
         new = Interpretation(self.signature)
         new.training = self.training
         new._device = self._device
+        new.validate_type_constraint = self.validate_type_constraint
         new.logic = self._logic if logic is None else logic
         new._ground_all(overrides)
         return new
@@ -430,6 +449,31 @@ class Interpretation(torch.nn.Module):
     # Central evaluator
     # ------------------------------------------------------------------
 
+    @property
+    def validate_type_constraint(self) -> str:
+        """Which values are checked against their Type: "groundings", "all" or "off"."""
+        return self._validate_type_constraint
+
+    @validate_type_constraint.setter
+    def validate_type_constraint(self, value: str) -> None:
+        if value not in _VALIDATION_MODES:
+            raise ValueError(
+                f"validate_type_constraint must be one of {_VALIDATION_MODES}, got {value!r}."
+            )
+        self._validate_type_constraint = value
+
+    def _eval_validated(self, node: Any, asgn: Assignment) -> Tensor:
+        """:meth:`_eval_node`, then check the result's Type constraint as set by
+        :attr:`validate_type_constraint`."""
+        out = self._eval_node(node, asgn)
+        mode = self._validate_type_constraint
+        if mode == "all" or (mode == "groundings" and isinstance(node, _GROUNDING_NODES)):
+            try:
+                out.domain_type.validate(out.value)
+            except ValueError as exc:
+                raise ValueError(f"{exc} Value of {node!r}.") from None
+        return out
+
     def _eval(self, node: Any, asgn: Assignment) -> Tensor:
         """Evaluate *node* (Term or Formula) under this interpretation.
 
@@ -438,7 +482,7 @@ class Interpretation(torch.nn.Module):
         """
         cache = self._eval_cache
         if cache is None:
-            return self._eval_node(node, asgn)
+            return self._eval_validated(node, asgn)
         node_repr = node.__dict__.get('_cache_repr')
         if node_repr is None:
             node_repr = node.__dict__['_cache_repr'] = repr(node)
@@ -448,7 +492,7 @@ class Interpretation(torch.nn.Module):
         key = (node_repr, frozenset((k, id(v)) for k, v in asgn.items()), in_guard)
         if key not in cache:
             # Storing asgn keeps its tensors alive, so their ids can't be reused in this call.
-            cache[key] = (self._eval_node(node, asgn), asgn)
+            cache[key] = (self._eval_validated(node, asgn), asgn)
         return cache[key][0]
 
     def _variable(self, name: str) -> Tensor:

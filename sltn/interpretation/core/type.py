@@ -63,7 +63,7 @@ class Type:
 
 
 def _is_bool_like(x: torch.Tensor) -> bool:
-    return (x >= 0).all() and (x <= 1).all()
+    return bool(((x >= 0) & (x <= 1)).all())  # one device sync; False for NaN
 
 def _is_int(x: torch.Tensor) -> bool:
     return not x.is_floating_point() and not x.is_complex() and x.dtype != torch.bool

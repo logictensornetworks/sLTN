@@ -108,15 +108,14 @@ def test_apply_quantifier_guard_via_interpretation():
 # ---------------------------------------------------------------------------
 
 def test_apply_quantifier_does_not_mask_nan():
-    # NaN values propagate and fail the Bool domain constraint; missing data
-    # must be excluded explicitly with a guard rather than encoded as NaN.
+    # NaN values propagate; missing data must be excluded explicitly with guard
     formula = Tensor(
         value=torch.tensor([0.2, float("nan"), 0.8]).unsqueeze(-1),
         axes=[Axis("x", "variable"), Axis("bool", "domain")],
     )
     for quantifier in ("forall", "exists"):
-        with pytest.raises(ValueError, match="constraints of type 'Bool'"):
-            apply_quantifier(fuzzy_ops.AggregPMean(p=2.0), formula, ["x"], quantifier=quantifier)
+        out = apply_quantifier(fuzzy_ops.AggregPMean(p=2.0), formula, ["x"], quantifier=quantifier)
+        assert torch.isnan(out.value).all()
 
 
 def test_apply_quantifier_vacuous_axis_uses_identity_value():

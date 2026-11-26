@@ -79,7 +79,6 @@ class Tensor:
                     f"expected axis names {domain_type.axis_names} for type '{domain_type.name}'."
                 )
             self.domain_type = domain_type
-            domain_type.validate(self.value)
         else:
             self.domain_type = Type(shape=self._domain_shape, axis_names=self._domain_names)
 

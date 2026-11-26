@@ -726,3 +726,33 @@ def test_custom_connective_in_guard_is_used_as_is():
     # weights 0.5, 0.5, 0, 0: the mean of P over d = 0, 1
     got = interp(sig.parse("∀ d | (A(d) & B(d)): P(c[d])")).value.item()
     assert got == pytest.approx(0.5, abs=1e-5)
+
+
+def test_validate_type_constraint_modes():
+    sig = Signature("v")
+    sig.sort("R")
+    sig.variable("x", "R")
+    sig.predicate("P", ["R"])
+    sig.predicate("Q", ["R"])
+    f = sig.parse("forall x: (P(x) & Q(x))")
+    good = lambda v: torch.full((v.shape[0], 1), 0.6)
+    interp = Interpretation(sig, R=Type("R", shape=(1,)), x=torch.rand(3, 1), P=good, Q=good)
+
+    # Default: a grounding returning values outside [0, 1] is rejected.
+    interp["Q"] = lambda v: torch.full((v.shape[0], 1), 2.0)
+    with pytest.raises(ValueError, match=r"constraints of type 'Bool'.*Q\(x\)"):
+        interp(f)
+    interp.validate_type_constraint = "off"
+    interp(f)
+
+    # "groundings" does not check operator results; "all" does.
+    interp["Q"] = good
+    interp.logic = Logic(And=lambda a, b: a + b)
+    interp.validate_type_constraint = "groundings"
+    interp(f)
+    interp.validate_type_constraint = "all"
+    with pytest.raises(ValueError, match="constraints of type 'Bool'"):
+        interp(f)
+    assert interp.copy().validate_type_constraint == "all"
+    with pytest.raises(ValueError, match="must be one of"):
+        interp.validate_type_constraint = "none"
