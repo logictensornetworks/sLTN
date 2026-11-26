@@ -53,7 +53,7 @@ def test_nn_module_permutes_batched_before_preserved_structural(perm_interp):
             return torch.sigmoid(t)
 
     echo = ShapeEcho()
-    interp[sig.get_predicate("P")] = echo
+    interp[sig.predicates["P"]] = echo
     interp(sig.parse("P(x[z, a])[a]"))
 
     # Flattened batch = batch_z = 1 * 2 = 2; preserved axis a has size 3; domain 1.
@@ -74,7 +74,7 @@ def test_plain_callable_permutes_batched_before_preserved_structural(perm_interp
         last_shape["shape"] = tuple(t.shape)
         return torch.sigmoid(t)
 
-    interp[sig.get_predicate("P")] = recorder
+    interp[sig.predicates["P"]] = recorder
     interp(sig.parse("P(x[z, a])[a]"))
 
     # Flattened batch = batch_z = 1 * 2 = 2; preserved axis a has size 3; domain 1.
@@ -103,7 +103,7 @@ def test_consumed_axes_follow_input_dims_order():
         seen["shape"] = tuple(t.shape)
         return t
 
-    interp[sig.get_predicate("P")] = recorder
+    interp[sig.predicates["P"]] = recorder
     out = interp(sig.parse("P(x[z, a])[z, a]"))
 
     assert seen["shape"] == (1, 2, 3, 1)
@@ -133,8 +133,8 @@ def _alias_interp():
         seen["Step"] = tuple(v.shape)
         return torch.sigmoid(v.cumsum(dim=1))
 
-    interp[sig.get_predicate("Seq")] = seq
-    interp[sig.get_predicate("Step")] = step
+    interp[sig.predicates["Seq"]] = seq
+    interp[sig.predicates["Step"]] = step
     return sig, interp, seen
 
 

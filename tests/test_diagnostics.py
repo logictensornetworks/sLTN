@@ -17,8 +17,8 @@ def kb_interp():
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
     interp[x] = torch.rand(4, 1)
-    interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(v)
-    interp[sig.get_predicate("Q")] = lambda v: torch.sigmoid(-v)
+    interp[sig.predicates["P"]] = lambda v: torch.sigmoid(v)
+    interp[sig.predicates["Q"]] = lambda v: torch.sigmoid(-v)
 
     return sig, interp
 
@@ -79,7 +79,7 @@ def test_cache_benchmark_with_backward_compute():
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
     interp[x] = torch.rand(4, 1, requires_grad=True)
-    interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(v)
+    interp[sig.predicates["P"]] = lambda v: torch.sigmoid(v)
 
     phi = sig.parse("forall x: P(x)")
     result = cache_benchmark(interp, phi, n_runs=2, backward_compute=True)
@@ -98,8 +98,8 @@ def test_cache_benchmark_backward_leaves_parameter_grads_untouched():
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
     interp[x] = torch.rand(4, 1)
-    interp[sig.get_predicate("P")] = net
-    interp[sig.get_predicate("Q")] = lambda v: 1 - interp["P"](v)   # reuses a grounded module
+    interp[sig.predicates["P"]] = net
+    interp[sig.predicates["Q"]] = lambda v: 1 - interp["P"](v)   # reuses a grounded module
 
     cache_benchmark(interp, "forall x: (P(x) & Q(x))", n_runs=3, backward_compute=True)
     for p in net.parameters():

@@ -1,5 +1,6 @@
 """Tests for kb_backward, kb_eval, and kb_describe."""
 import importlib.util
+import sys
 
 import pytest
 import torch
@@ -48,8 +49,8 @@ def single_pred_kb():
     def make_interp():
         interp = Interpretation(sig)
         interp[S] = Type("S", shape=(1,))
-        interp[sig.get_variable("x")] = x_data
-        interp[sig.get_predicate("P")] = nn.Sequential(net, nn.Sigmoid())
+        interp[sig.variables["x"]] = x_data
+        interp[sig.predicates["P"]] = nn.Sequential(net, nn.Sigmoid())
         return interp
 
     phi = sig.parse("forall x: P(x)")
@@ -69,8 +70,8 @@ def single_pred_kb_module():
     sig.variable("x", S)
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
-    interp[sig.get_variable("x")] = torch.rand(4, 1)
-    interp[sig.get_predicate("P")] = nn.Sequential(nn.Linear(1, 1), nn.Sigmoid())
+    interp[sig.variables["x"]] = torch.rand(4, 1)
+    interp[sig.predicates["P"]] = nn.Sequential(nn.Linear(1, 1), nn.Sigmoid())
 
     phi = sig.parse("forall x: P(x)")
     kb_dict = kb_describe([phi])
@@ -319,3 +320,13 @@ def test_kb_backward_rejects_empty_kb(single_pred_kb_module):
     optimizer = torch.optim.SGD(list(interp.parameters()), lr=0.01)
     with pytest.raises(ValueError, match="KB is empty"):
         kb_backward(optimizer, interp, {})
+
+
+def test_kb_backward_torchjd_aggregator_without_torchjd_raises(simple_kb, monkeypatch):
+    sig, interp = simple_kb
+    for mod in ("torchjd", "torchjd.aggregation", "torchjd.autojac"):
+        monkeypatch.setitem(sys.modules, mod, None)
+    kb_dict = kb_describe(sig.parse("{forall x: P(x)}"))
+    opt = torch.optim.SGD([torch.zeros(1, requires_grad=True)], lr=0.1)
+    with pytest.raises(ImportError, match="needs torchjd"):
+        kb_backward(opt, interp, kb_dict, aggregator="upgrad")

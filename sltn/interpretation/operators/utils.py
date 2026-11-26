@@ -1,6 +1,7 @@
 import torch
 
-# Default epsilon for numerical stability (used to clamp truth values away from 0 or 1).
+# Default shift of the stable operators: pi_0 maps [0, 1] onto [eps, 1], pi_1 onto [0, 1 - eps].
+# Values below about 1e-7 vanish in float32 arithmetic (1 - 1e-8 == 1).
 DEFAULT_EPS: float = 1e-6
 # Default for the `stable` flag of every connective and aggregator.
 DEFAULT_STABLE: bool = True
@@ -11,16 +12,20 @@ DEFAULT_BETA: float = 10.
 
 def pi_0(x, eps=DEFAULT_EPS):
     """
-    Function that has to be used when we need to assure that the truth value in input to a fuzzy operator is never equal
-    to zero, in such a way to avoid gradient problems. It maps the interval [0, 1] in the interval ]eps, 1].
+    Affine map of [0, 1] onto [eps, 1]: ``(1 - eps) * x + eps``.
+
+    Used by stable operators whose value or gradient is singular at 0
+    (log, division, powers with exponent below 1).
     """
     return (1 - eps) * x + eps
 
 
 def pi_1(x, eps=DEFAULT_EPS):
     """
-    Function that has to be used when we need to assure that the truth value in input to a fuzzy operator is never equal
-    to one, in such a way to avoid gradient problems. It maps the interval [0, 1] in the interval [0, 1-eps[.
+    Affine map of [0, 1] onto [0, 1 - eps]: ``(1 - eps) * x``.
+
+    Used by stable operators whose gradient is singular at 1
+    (``sqrt(1 - x**2)`` in :class:`AndCos`).
     """
     return (1 - eps) * x
 

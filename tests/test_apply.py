@@ -93,8 +93,8 @@ def test_apply_quantifier_guard_via_interpretation():
     interp = Interpretation(sig)
     interp[S] = Type("S", shape=(1,))
     interp[x] = torch.tensor([[1.0], [2.0], [3.0]])
-    interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(-v)  # decreasing in v
-    interp[sig.get_predicate("Guard")] = lambda v: (v > 1.5).float()
+    interp[sig.predicates["P"]] = lambda v: torch.sigmoid(-v)  # decreasing in v
+    interp[sig.predicates["Guard"]] = lambda v: (v > 1.5).float()
 
     guarded = interp(sig.parse("forall x | Guard(x): P(x)"))
     unguarded = interp(sig.parse("forall x: P(x)"))

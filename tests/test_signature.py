@@ -24,7 +24,7 @@ def test_duplicate_sort_warns_and_replaces():
     old = sig.sort("A")
     with pytest.warns(UserWarning, match=r"^Sort 'A' is already declared; replacing its declaration\.$"):
         new = sig.sort("A")
-    assert new is not old and sig.get_sort("A") is new
+    assert new is not old and sig.sorts["A"] is new
 
 
 @pytest.mark.parametrize("first, second", [
@@ -346,7 +346,7 @@ def test_define_input_dims_accepts_structural_axis_alias():
     sig.dimension("D")
     sig.structural_variable("s", "S")
     sig.structural_variable("d", "D")
-    sig.predicate("P", [Tok], input_dims=[sig.get_dimension("S")], output_dims=[sig.get_dimension("D")])
+    sig.predicate("P", [Tok], input_dims=[sig.dimensions["S"]], output_dims=[sig.dimensions["D"]])
     sig.variable("x", Tok, dims=["S"])
     sig.define("Emb", ["X"], "P(X[s])[d]", input_dims=["S"], output_dims=["D"])
     sig.parse("Emb(x[s1])")
@@ -522,7 +522,7 @@ def test_define_formula_expanded_in_nested_fnapp():
     sig.predicate("P", [Tok])
     sig.variable("x", Tok)
     sig.define("L0", ["X"], "P(X) or P(X)")
-    B = sig.get_sort("Bool")
+    B = sig.sorts["Bool"]
     sig.function("Wrap", [B], B)
     sig.define("L1", ["Y"], "Wrap(Y)")
     phi = sig.parse("L1(L0(x))")

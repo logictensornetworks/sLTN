@@ -44,7 +44,6 @@ release; it is not implemented yet and currently raises ``NotImplementedError``.
 """
 from __future__ import annotations
 
-import warnings
 from collections import OrderedDict
 from typing import TYPE_CHECKING
 
@@ -55,10 +54,6 @@ from sltn.fol.formula import KB
 if TYPE_CHECKING:
     from sltn.interpretation import Interpretation
     from sltn.fol.formula import Formula
-
-# Emitted at most once per process if a torchjd aggregator is requested but
-# torchjd is not installed and the caller is silently downgraded to satagg.
-_TORCHJD_MISSING_WARNED: bool = False
 
 # ---------------------------------------------------------------------------
 # String → torchjd aggregator mapping
@@ -79,8 +74,8 @@ def _resolve_aggregator(aggregator):
         from torchjd.aggregation import Aggregator
     except ImportError as e:
         raise ImportError(
-            "torchjd is required for kb_backward. "
-            "Install it with: pip install torchjd"
+            f"aggregator={aggregator!r} needs torchjd. Install it with "
+            "'pip install sltn[multiobjective]', or use aggregator=None (SatAgg)."
         ) from e
 
     if isinstance(aggregator, Aggregator):
@@ -171,7 +166,7 @@ def kb_describe(formulas) -> OrderedDict[str, Formula]:
 
 def kb_eval(
     interp: Interpretation,
-    formulas: dict[str, Formula] | None = None,
+    formulas: dict[str, Formula],
 ) -> OrderedDict[str, float]:
     """Evaluate KB clauses in eval mode under ``torch.no_grad()`` and return sat values.
 
@@ -189,11 +184,6 @@ def kb_eval(
     OrderedDict[str, float]
         Satisfaction values in [0, 1] — higher is better.
     """
-    if formulas is None:
-        raise TypeError(
-            "kb_eval() requires 'formulas' to be passed explicitly. "
-            "Pass the dict returned by kb_describe()."
-        )
     was_training = interp.training
     interp.eval()
     try:
@@ -215,10 +205,11 @@ def kb_backward(
     aggregator: str | object | None = None,
     parallel_chunk_size: int | None = None,
 ) -> dict:
-    """Multi-objective backward pass for a knowledge base.
+    """Backward pass for a knowledge base.
 
     Evaluates all KB clauses in a **single forward pass**, then backpropagates
-    a combined gradient into each parameter's ``.grad`` field.  Call
+    into each parameter's ``.grad`` field: the gradient of ``1 - SatAgg`` by
+    default, or a torchjd multi-objective combination of the per-clause gradients.  Call
     ``optimizer.step()`` immediately after.
 
     Parameters
@@ -272,6 +263,8 @@ def kb_backward(
     ------
     ValueError
         If the KB is empty.
+    ImportError
+        If a torchjd aggregator is requested and torchjd is not installed.
     ValueError
         If the KB depends on trainable parameters that are neither in the
         optimizer nor in the interpretation (e.g. a network used inside a
@@ -313,34 +306,8 @@ def kb_backward(
     # ------------------------------------------------------------------
     # Multi-objective path: torchjd Jacobian aggregation
     # ------------------------------------------------------------------
-    try:
-        from torchjd.autojac import backward, jac_to_grad
-    except ImportError:
-        global _TORCHJD_MISSING_WARNED
-        if not _TORCHJD_MISSING_WARNED:
-            warnings.warn(
-                f"torchjd is not installed — aggregator={aggregator!r} is not available. "
-                "Falling back to the standard SatAgg backward pass. "
-                "To use multi-objective aggregators install torchjd: "
-                "pip install torchjd  (or: pip install sltn[multiobjective])",
-                UserWarning,
-                stacklevel=2,
-            )
-            _TORCHJD_MISSING_WARNED = True
-        sat = interp.logic.SatAgg(sat_vals)
-        loss = 1.0 - sat
-        loss.backward()
-        agg_loss_val = loss.item()
-        return {
-            "losses":     clause_losses,
-            "sats":       clause_sats,
-            "agg_loss":   agg_loss_val,
-            "agg_sat":    1.0 - agg_loss_val,
-            "weights":    None,
-            "aggregator": None,
-        }
-
     agg = _resolve_aggregator(aggregator)
+    from torchjd.autojac import backward, jac_to_grad
     params = list({
         id(p): p
         for group in optimizer.param_groups for p in group["params"] if p.requires_grad
@@ -364,7 +331,6 @@ def kb_backward(
         "weights":    weights,
         "aggregator": aggregator,
     }
-
 
 # ---------------------------------------------------------------------------
 # Crispness scheduler (p-parameter for pMean aggregators)

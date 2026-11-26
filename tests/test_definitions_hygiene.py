@@ -43,9 +43,9 @@ def test_selection_axis_follows_call_site_axis():
     sig.define("First", ["X"], "C(X[s][s=0])")
     phi = sig.parse("forall x: First(x[t])")
     interp = Interpretation(sig)
-    interp[sig.get_sort("E")] = Real
-    interp[sig.get_variable("x")] = torch.rand(3, 4, 1)
-    interp[sig.get_predicate("C")] = lambda e: torch.sigmoid(e)
+    interp[sig.sorts["E"]] = Real
+    interp[sig.variables["x"]] = torch.rand(3, 4, 1)
+    interp[sig.predicates["C"]] = lambda e: torch.sigmoid(e)
     out = interp(phi)
     assert out.value.numel() == 1
 

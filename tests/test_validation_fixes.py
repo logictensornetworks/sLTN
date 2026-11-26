@@ -20,7 +20,7 @@ def test_redeclaration_warns_and_replaces():
         UserWarning, match=r"^Predicate 'P' is already declared; replacing its declaration\.$"
     ):
         new = sig.predicate("P", ["E", "E"])
-    assert sig.get_predicate("P") is new
+    assert sig.predicates["P"] is new
 
 
 def test_foreign_sort_object_rejected():

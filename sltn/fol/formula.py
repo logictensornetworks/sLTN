@@ -29,14 +29,13 @@ __all__ = [
     "StructuralRelation",
 ]
 
-from abc import ABC
 from typing import Sequence
 
 from sltn.fol.term import Term, _call_axis_dims
 from sltn.signature.symbols import PredicateSymbol, FunctionSymbol, StructuralRelationSymbol
 
 
-class Formula(ABC):
+class Formula:
     """Abstract syntax node for a FOL formula."""
 
     # free variables
@@ -279,7 +278,7 @@ class Not(Formula):
 # Quantifiers
 # ---------------------------------------------------------------------------
 
-class _BoundFormula(Formula, ABC):
+class _BoundFormula(Formula):
     """Base for quantified formulas. Subclasses set ``quantifier`` and ``symbol``."""
 
     quantifier: str   # "forall" or "exists"

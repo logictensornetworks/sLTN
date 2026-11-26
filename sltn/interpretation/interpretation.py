@@ -60,7 +60,7 @@ _GUARD_DEPENDENT = (Not, And, Or, Implies, Equivalent, _BoundFormula, FormulaAxi
 # ---------------------------------------------------------------------------
 
 def _ground_constant(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a ConstantSymbol symbol."""
+    """Wrap a tensor as an annotated sltn.Tensor for a constant."""
     if sort_type is None:
         raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
     struct_names = _deduplicate_axis_names(sym.dims)
@@ -70,7 +70,7 @@ def _ground_constant(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
 
 
 def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a VariableSymbol symbol."""
+    """Wrap a tensor as an annotated sltn.Tensor for a variable."""
     if sort_type is None:
         raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
     reserved = set(sort_type.axis_names) | set(Bool.axis_names)
@@ -88,7 +88,7 @@ def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tenso
 
 
 def _ground_structural_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a StructuralVariableSymbol symbol."""
+    """Wrap a tensor as an annotated sltn.Tensor for a structural variable."""
     axes: list[Axis] = [Axis(sym.name, 'structural')]
     if sort_type is not None:
         axes.extend(sort_type.domain_axes)
@@ -99,7 +99,7 @@ def _ground_structural_variable(sym, val: torch.Tensor, sort_type: Optional[Type
 
 
 def _ground_structural_relation(sym, relation: torch.Tensor) -> Tensor:
-    """Wrap the relation tensor as an annotated sltn.Tensor for a StructuralRelationSymbol symbol."""
+    """Wrap the relation tensor as an annotated sltn.Tensor for a structural relation."""
     unique_names = _deduplicate_axis_names(sym.dims)
     axes = [Axis(n, 'structural') for n in unique_names] + [Axis('bool', 'domain')]
     return Tensor(value=relation.unsqueeze(-1), axes=axes, domain_type=Bool)
@@ -249,11 +249,10 @@ class Interpretation(torch.nn.Module):
     ) -> "Interpretation":
         """New interpretation grounded with *overrides*, with logic, device and
         train/eval mode copied from self (unless *logic* is given). The Logic is copied, not shared."""
-        source = self
         new = Interpretation(self.signature)
-        new.training = source.training
-        new._device = source._device
-        new.logic = source._logic if logic is None else logic
+        new.training = self.training
+        new._device = self._device
+        new.logic = self._logic if logic is None else logic
         new._ground_all(overrides)
         return new
 
@@ -312,7 +311,7 @@ class Interpretation(torch.nn.Module):
         sym : str | Symbol
             Symbol name or object.
         value :
-            - ``torch.nn.Module`` or callable for FunctionSymbol/PredicateSymbol symbols
+            - ``torch.nn.Module`` or callable for functions and predicates
             - ``torch.Tensor`` or annotated ``sltn.Tensor`` for Constants/Variables
             - ``torch.Tensor`` for StructuralRelationSymbol relation matrices
 
@@ -681,23 +680,20 @@ class Interpretation(torch.nn.Module):
                 f"Bind via 'interp[{name}] = tensor'."
             )
         if isinstance(val, torch.Tensor):
-            sp = self.signature.structural_relations.get(name)
-            result = _ground_structural_relation(sp, val) if sp is not None else val
-        else:
-            result = val
-        if isinstance(result, Tensor) and result.variable_axes:
+            return _ground_structural_relation(self.signature.structural_relations[name], val)
+        if val.variable_axes:
             raise ValueError(
                 f"Structural relation '{name}' must have no variable axes; "
-                f"got {[a.name for a in result.variable_axes]}."
+                f"got {[a.name for a in val.variable_axes]}."
             )
-        return result
+        return val
 
     # ------------------------------------------------------------------
     # Symbol resolution
     # ------------------------------------------------------------------
 
     def resolve(self, sym: str | Symbol, structural_axes_override: list[str] | None = None) -> Any:
-        """Return the effective callable for a FunctionSymbol or PredicateSymbol symbol.
+        """Return the effective callable for a function or predicate symbol.
 
         Parameters
         ----------
@@ -718,7 +714,7 @@ class Interpretation(torch.nn.Module):
         except KeyError:
             raise KeyError(
                 f"Symbol '{name}' not found in signature '{self.signature.name}'."
-            )
+            ) from None
 
         if isinstance(sym_obj, (FunctionSymbol, PredicateSymbol)):
             if override_val is None:
@@ -730,28 +726,30 @@ class Interpretation(torch.nn.Module):
                                 structural_axes_override=structural_axes_override)
 
         raise TypeError(
-            f"resolve() is for FunctionSymbol/PredicateSymbol symbols; "
-            f"got {type(sym_obj).__name__} ('{name}'). "
-            "Use get_constant_value() or get_variable_value() for non-callable symbols."
+            f"resolve() takes a function or predicate; '{name}' is a "
+            f"{type(sym_obj).__name__}. Use get_constant_value() or "
+            "get_variable_value() for constants and variables."
         )
 
     def get_constant_value(self, name: str) -> Tensor:
-        """Return the annotated sltn.Tensor value for a ConstantSymbol symbol."""
+        """Return the annotated sltn.Tensor value of a constant."""
         val = self._get_grounding(name)
         if val is None:
             raise RuntimeError(
-                f"ConstantSymbol '{name}' has no grounding in this Interpretation. "
+                f"Constant '{name}' has no grounding in this Interpretation. "
                 f"Use 'interp[{name}] = tensor' to ground it."
             )
         try:
-            sym_obj = self.signature.get_constant(name)
+            sym_obj = self.signature.constants[name]
         except KeyError:
-            raise KeyError(f"ConstantSymbol '{name}' not in signature '{self.signature.name}'.")
+            raise KeyError(
+                f"Constant '{name}' not declared in signature '{self.signature.name}'."
+            ) from None
         sort_type = _resolve_sort_type(sym_obj.sort, self)
         return _ground_constant(sym_obj, val, sort_type)
 
     def get_variable_value(self, name: str) -> Tensor:
-        """Return the annotated sltn.Tensor for a VariableSymbol from this Interpretation's groundings."""
+        """Return the annotated sltn.Tensor value of a variable."""
         val = self._get_grounding(name)
         if val is None:
             # An alias (x1) reads its base grounding, renamed to the alias.
@@ -760,14 +758,14 @@ class Interpretation(torch.nn.Module):
                 val = self._get_grounding(base_name)
                 if val is None:
                     raise RuntimeError(
-                        f"VariableSymbol '{name}' (alias of '{base_name}') has no grounding. "
+                        f"Variable '{name}' (alias of '{base_name}') has no grounding. "
                         f"Use 'interp[{base_name!r}] = tensor' to ground it."
                     )
                 if isinstance(val, Tensor):
                     return val.rename_axes({base_name: name})
                 return _value_to_tensor(val, name, self)
             raise RuntimeError(
-                f"VariableSymbol '{name}' has no grounding in this Interpretation. "
+                f"Variable '{name}' has no grounding in this Interpretation. "
                 f"Use 'interp[{name}] = tensor' to ground it."
             )
         return _value_to_tensor(val, name, self)
@@ -868,6 +866,15 @@ class Interpretation(torch.nn.Module):
             if names:
                 lines.append(f"  {title}:")
                 lines.extend(f"    {n}: {_val_label(self._get_grounding(n))}" for n in names)
+
+        # Dimensions and structural variables are not listed: they have no grounding of
+        # their own (a structural variable over a sorted dimension only carries the
+        # optional values of its indices).
+        if sig.structural_relations:
+            lines.append("  Structural relations:")
+            for n, rel in sig.structural_relations.items():
+                dims = " x ".join(d.name for d in rel.dims)
+                lines.append(f"    {n}({dims}): {_val_label(self._get_grounding(n))}")
 
         # ── Logic ─────────────────────────────────────────────────────
         lines.append(f"  {self.logic}")

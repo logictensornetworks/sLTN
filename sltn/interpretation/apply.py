@@ -34,10 +34,6 @@ def _var_axis_names(vars: list) -> list[str]:
     return list(seen)
 
 
-# ---------------------------------------------------------------------------
-# Public apply functions
-# ---------------------------------------------------------------------------
-
 def _exact(op: Any) -> Any:
     """Return *op* without its stable approximations, for evaluating guards.
 
@@ -62,6 +58,10 @@ def _exact(op: Any) -> Any:
         setattr(exact, k, _exact(v))
     return exact
 
+
+# ---------------------------------------------------------------------------
+# Public apply functions
+# ---------------------------------------------------------------------------
 
 def apply_connective(op: ConnectiveOperator, *exprs: Tensor, exact: bool = False) -> Tensor:
     """Apply a connective operator to one or more :class:`sltn.Tensor` objects.

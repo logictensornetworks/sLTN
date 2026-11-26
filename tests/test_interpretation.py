@@ -27,12 +27,12 @@ def simple_sig():
 def simple_interp(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
-    interp[sig.get_sort("S")] = Real
-    interp[sig.get_variable("x")] = torch.rand(5, 1)
-    interp[sig.get_variable("y")] = torch.rand(4, 1)
-    interp[sig.get_constant("c")] = torch.rand(1)
-    interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(v)
-    interp[sig.get_predicate("Q")] = lambda a, b: torch.sigmoid(a * b)
+    interp[sig.sorts["S"]] = Real
+    interp[sig.variables["x"]] = torch.rand(5, 1)
+    interp[sig.variables["y"]] = torch.rand(4, 1)
+    interp[sig.constants["c"]] = torch.rand(1)
+    interp[sig.predicates["P"]] = lambda v: torch.sigmoid(v)
+    interp[sig.predicates["Q"]] = lambda a, b: torch.sigmoid(a * b)
     return interp
 
 
@@ -42,7 +42,7 @@ def simple_interp(simple_sig):
 
 def test_ground_and_getitem(simple_sig, simple_interp):
     sig = simple_sig
-    val = simple_interp[sig.get_predicate("P")]
+    val = simple_interp[sig.predicates["P"]]
     assert callable(val)
 
 
@@ -50,21 +50,21 @@ def test_setitem_shorthand(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
     fn = lambda v: torch.sigmoid(v)
-    interp[sig.get_predicate("P")] = fn
-    assert interp[sig.get_predicate("P")] is fn
+    interp[sig.predicates["P"]] = fn
+    assert interp[sig.predicates["P"]] is fn
 
 
 def test_getitem_missing_raises(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
     with pytest.raises(KeyError):
-        _ = interp[sig.get_predicate("P")]
+        _ = interp[sig.predicates["P"]]
 
 
 def test_ground_returns_self(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
-    result = interp.ground(sig.get_predicate("P"), lambda v: v)
+    result = interp.ground(sig.predicates["P"], lambda v: v)
     assert result is interp
 
 
@@ -220,8 +220,8 @@ def test_to_dtype_only_keeps_device(simple_sig):
 def test_copy_shares_tensors(simple_interp, simple_sig):
     copy = simple_interp.copy()
     sig = simple_sig
-    orig_x = simple_interp[sig.get_variable("x")]
-    copy_x = copy[sig.get_variable("x")]
+    orig_x = simple_interp[sig.variables["x"]]
+    copy_x = copy[sig.variables["x"]]
     assert isinstance(orig_x, torch.Tensor) and isinstance(copy_x, torch.Tensor)
     # A shallow copy() must share the underlying tensor storage (same identity).
     assert orig_x.data_ptr() == copy_x.data_ptr()
@@ -230,8 +230,8 @@ def test_copy_shares_tensors(simple_interp, simple_sig):
 def test_deepcopy_clones_tensors(simple_interp, simple_sig):
     deep = simple_interp.deepcopy()
     sig = simple_sig
-    orig = simple_interp[sig.get_variable("x")]
-    copy = deep[sig.get_variable("x")]
+    orig = simple_interp[sig.variables["x"]]
+    copy = deep[sig.variables["x"]]
     assert isinstance(orig, torch.Tensor) and isinstance(copy, torch.Tensor)
     # A deepcopy() must clone the underlying tensor storage (different identity).
     assert orig.data_ptr() != copy.data_ptr()
@@ -244,19 +244,19 @@ def test_deepcopy_clones_tensors(simple_interp, simple_sig):
 def test_with_updates_overrides_grounding(simple_sig, simple_interp):
     sig = simple_sig
     new_x = torch.rand(3, 1)
-    updated = simple_interp.with_updates(**{sig.get_variable("x").name: new_x})
+    updated = simple_interp.with_updates(**{sig.variables["x"].name: new_x})
     # The updated interpretation has the new x
-    val = updated[sig.get_variable("x")]
+    val = updated[sig.variables["x"]]
     assert isinstance(val, torch.Tensor) and val.shape[0] == 3
 
 
 def test_with_updates_accepts_overrides_dict_and_logic(simple_sig, simple_interp):
     from sltn.interpretation import Logic
     sig = simple_sig
-    simple_interp[sig.get_predicate("P")] = lambda v: torch.full((v.shape[0], 1), 0.6)
+    simple_interp[sig.predicates["P"]] = lambda v: torch.full((v.shape[0], 1), 0.6)
     new_x = torch.ones(3, 1)
 
-    crisp = simple_interp.with_updates({sig.get_variable("x"): new_x}, logic=Logic.classical())
+    crisp = simple_interp.with_updates({sig.variables["x"]: new_x}, logic=Logic.classical())
     assert crisp.logic._threshold == fuzzy_ops.DEFAULT_CLASSICAL_THRESHOLD
     assert crisp("forall x: P(x)").value.item() == 1.0
 
@@ -281,11 +281,11 @@ def test_merge_b_overrides_a(simple_sig):
     fn1 = lambda v: torch.zeros_like(v)
     fn2 = lambda v: torch.ones_like(v)
     a = Interpretation(sig)
-    a[sig.get_predicate("P")] = fn1
+    a[sig.predicates["P"]] = fn1
     b = Interpretation(sig)
-    b[sig.get_predicate("P")] = fn2
+    b[sig.predicates["P"]] = fn2
     merged = Interpretation.merge(a, b)
-    assert merged[sig.get_predicate("P")] is fn2
+    assert merged[sig.predicates["P"]] is fn2
 
 
 # ---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ def test_parameters_yields_module_params(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
     net = nn.Linear(1, 1)
-    interp[sig.get_predicate("P")] = net
+    interp[sig.predicates["P"]] = net
     params = list(interp.parameters())
     assert len(params) == 2  # weight + bias
 
@@ -304,7 +304,7 @@ def test_parameters_yields_module_params(simple_sig):
 def test_parameters_empty_when_no_modules(simple_sig):
     sig = simple_sig
     interp = Interpretation(sig)
-    interp[sig.get_predicate("P")] = lambda v: torch.sigmoid(v)
+    interp[sig.predicates["P"]] = lambda v: torch.sigmoid(v)
     params = list(interp.parameters())
     assert params == []
 

@@ -40,7 +40,7 @@ class AndPMean(BinaryConnectiveOperator):
     """
     def __init__(self, stable=DEFAULT_STABLE, p=1., eps=DEFAULT_EPS):
         """
-        :param stable: if True, clamps inputs away from 0 for gradient stability.
+        :param stable: if True, maps inputs to [eps, 1] with pi_0, so the gradient stays finite at 0.
         :param p: exponent for the power mean (p=1 gives arithmetic mean).
         """
         self.stable = stable

@@ -334,35 +334,6 @@ class Signature:
     # Lookup
     # ------------------------------------------------------------------
 
-    def _get_from(self, store: dict, name: str, kind: str):
-        if name not in store:
-            raise KeyError(f"{kind} '{name}' not declared in '{self.name}'.")
-        return store[name]
-
-    def get_sort(self, name: str) -> Sort:
-        return self._get_from(self._sorts, name, "Sort")
-
-    def get_dimension(self, name: str) -> Dimension:
-        return self._get_from(self._dimensions, name, "Dimension")
-
-    def get_constant(self, name: str) -> ConstantSymbol:
-        return self._get_from(self._constants, name, "ConstantSymbol")
-
-    def get_variable(self, name: str) -> VariableSymbol:
-        return self._get_from(self._variables, name, "VariableSymbol")
-
-    def get_function(self, name: str) -> FunctionSymbol:
-        return self._get_from(self._functions, name, "FunctionSymbol")
-
-    def get_predicate(self, name: str) -> PredicateSymbol:
-        return self._get_from(self._predicates, name, "PredicateSymbol")
-
-    def get_structural_variable(self, name: str) -> StructuralVariableSymbol:
-        return self._get_from(self._structural_variables, name, "StructuralVariableSymbol")
-
-    def get_structural_relation(self, name: str) -> StructuralRelationSymbol:
-        return self._get_from(self._structural_relations, name, "StructuralRelationSymbol")
-
     def resolve_structural_axis(self, name: str) -> str:
         """Return the canonical ``Dimension`` name for a structural axis identifier.
 

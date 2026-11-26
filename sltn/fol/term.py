@@ -26,7 +26,6 @@ __all__ = [
     "TermAxisSelect",
 ]
 
-from abc import ABC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -85,7 +84,7 @@ def _call_axis_dims(symbol, args, output_axes) -> dict:
 # Term Base Class
 # ---------------------------------------------------------------------------
 
-class Term(ABC):
+class Term:
     """Abstract syntax node for a FOL term."""
 
     # free variables

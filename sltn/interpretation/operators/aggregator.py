@@ -1,6 +1,6 @@
 import torch
 from .base import AggregationOperator
-from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0, pi_1, safe_div
+from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0, safe_div
 
 
 def _mask_weights(xs, mask):
@@ -125,10 +125,10 @@ class AggregGeometricMean(AggregationOperator):
     Parameters
     ----------
     stable : bool
-        If ``True``, clamps inputs away from 0 before taking the log to
-        prevent gradient blow-up at the boundary.
+        If ``True``, maps inputs to ``[eps, 1]`` with :func:`pi_0` before
+        taking the log, so the value and gradient stay finite at 0.
     eps : float
-        Clamping epsilon used when *stable* is ``True``.
+        Shift used by :func:`pi_0` when *stable* is ``True``.
 
     Notes
     -----
@@ -142,7 +142,7 @@ class AggregGeometricMean(AggregationOperator):
         self.eps = eps
 
     def __repr__(self):
-        return "AggregGeometricMean(stable=" + str(self.stable) + ")"
+        return f"AggregGeometricMean(stable={self.stable}, eps={self.eps})"
 
     def __call__(self, xs, dim=None, mask=None, keepdim=False, stable=None):
         stable = self.stable if stable is None else stable
@@ -179,7 +179,7 @@ class AggregPMean(AggregationOperator):
         self.eps = eps
 
     def __repr__(self):
-        return "AggregPMean(p=" + str(self.p) + ", stable=" + str(self.stable) + ")"
+        return f"AggregPMean(p={self.p}, stable={self.stable}, eps={self.eps})"
 
     def __call__(self, xs, dim=None, keepdim=False, mask=None, p=None, stable=None):
 
@@ -224,7 +224,7 @@ class AggregPMeanError(AggregationOperator):
         self._pmean_op = AggregPMean(p=p, stable=stable, eps=eps)
 
     def __repr__(self):
-        return "AggregPMeanError(p=" + str(self.p) + ", stable=" + str(self.stable) + ")"
+        return f"AggregPMeanError(p={self.p}, stable={self.stable}, eps={self.eps})"
 
     def __call__(self, xs, dim=None, keepdim=False, mask=None, p=None, stable=None):
         p_call      = self.p      if p      is None else p
