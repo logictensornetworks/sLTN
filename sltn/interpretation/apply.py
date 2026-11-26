@@ -14,7 +14,7 @@ __all__ = [
 
 import copy
 from math import prod
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import torch
 
@@ -84,7 +84,7 @@ def apply_quantifier(
     axis_names: list,
     *,
     mask: Optional[Tensor] = None,
-    symbol: str = "∀",
+    quantifier: Literal["forall", "exists"] = "forall",
 ) -> Tensor:
     """Aggregate *formula* over *axis_names* using *agg_op*.
 
@@ -98,58 +98,36 @@ def apply_quantifier(
         Names of the axes to reduce.  Axes not present in *formula* are
         silently skipped.
     mask:
-        Optional Tensor of soft weights or a hard boolean mask.
-
-        * **float in [0, 1]** (soft / learnable guard) — passed to the
-          aggregation operator as weights; with pmean-based operators this
-          produces a weighted power mean.
-        * **bool** — hard filter; masked-out positions are excluded.
-
-        Missing data must be excluded with a mask (a guard). NaN values in
-        *formula* are not treated specially: they propagate, and the result
-        then fails the ``Bool`` check.
-    symbol:
-        Unicode quantifier symbol used in the output Tensor name.
+        Optional guard: a Bool Tensor of weights in ``[0, 1]``, aligned with
+        *formula* by axis name.  Entries of weight 0 are left out and only
+        the relative weights matter.
+    quantifier:
+        ``"forall"`` or ``"exists"``.  Where there is nothing to aggregate
+        (an empty axis, or a guard that is 0 everywhere), the result is the
+        quantifier's neutral value: 1 for ∀, 0 for ∃, whatever *agg_op* is.
     """
-    if mask is not None:
-        formula, aligned_mask = Tensor.align(formula, mask)
-        m = aligned_mask.value
-        mask_domain_names = {d.name for d in aligned_mask.domain_axes}
-        n_extra = sum(1 for d in formula.domain_axes if d.name not in mask_domain_names)
-        for _ in range(n_extra):
-            m = m.unsqueeze(-1)
-        explicit_mask = m
-    else:
-        explicit_mask = None
-
-    value = formula.value
-
-    if explicit_mask is not None:
-        effective = explicit_mask.float() if explicit_mask.dtype == torch.bool else explicit_mask
-        # Broadcast both to the full shape, so weighted aggregators count every
-        # element along axes the guard doesn't span.
-        value, effective = torch.broadcast_tensors(value, effective)
-    else:
-        effective = None
-
-    agg_indices: list = []
     ax_map = formula.axis_map
-    for ax in axis_names:
-        if ax in ax_map:
-            agg_indices.append(ax_map[ax])
-
-    if not agg_indices:
+    dims = [ax_map[ax] for ax in axis_names if ax in ax_map]
+    if not dims:
         return formula
 
-    vacuous_axes = any(value.shape[i] == 0 for i in agg_indices)
-    if vacuous_axes:
-        identity = 1.0 if symbol == "∀" else 0.0
-        rest_shape = tuple(
-            value.shape[j] for j in range(value.ndim) if j not in set(agg_indices)
-        )
-        output = torch.full(rest_shape, identity, dtype=value.dtype, device=value.device)
+    weights = None
+    if mask is not None:
+        formula, mask = Tensor.align(formula, mask)
+        # The guard may span axes the body lacks, and vice versa.
+        value, weights = torch.broadcast_tensors(formula.value, mask.value)
     else:
-        output = agg_op(value, dim=agg_indices, mask=effective)
+        value = formula.value
+
+    neutral = 1.0 if quantifier == "forall" else 0.0
+    if any(value.shape[i] == 0 for i in dims):
+        rest_shape = [n for i, n in enumerate(value.shape) if i not in dims]
+        output = torch.full(rest_shape, neutral, dtype=value.dtype, device=value.device)
+    else:
+        output = agg_op(value, dim=dims, mask=weights)
+        if weights is not None:
+            empty = weights.sum(dim=dims) == 0
+            output = torch.where(empty, neutral, output)
 
     new_axes = [d for d in formula.axes if d.name not in axis_names]
     return Tensor(value=output, axes=new_axes, domain_type=Bool)

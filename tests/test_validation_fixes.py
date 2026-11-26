@@ -377,3 +377,22 @@ def test_classical_threshold_leaves_function_arguments_unchanged():
     i["f"] = lambda z: (seen.append(z.clone()), z)[1]
     i.with_updates(logic=Logic.classical())("forall v: f(v)")
     assert torch.allclose(seen[-1], torch.tensor([[0.7]]))
+
+
+@pytest.mark.parametrize("quantifier, last", [("forall", 1.0), ("exists", 0.0)])
+def test_guard_without_successor_gives_quantifier_neutral(quantifier, last):
+    # The last instant has no successor: weak next under ∀, strong next under ∃,
+    # also when the ∀ aggregator alone would give 0 (pMean with p < 1).
+    sig = Signature("next")
+    sig.sort("E")
+    T = sig.dimension("T")
+    sig.structural_variable("t", T)
+    sig.constant("c", "E", dims=[T])
+    sig.predicate("P", ["E", "E"])
+    sig.structural_relation("next", [T, T])
+    i = Interpretation(sig, overrides={"E": Real, "c": torch.rand(4, 1)})
+    i.logic = Logic(Forall=AggregPMean(p=0.5))
+    i["P"] = lambda a, b: torch.sigmoid(a - b)
+    i["next"] = torch.diag(torch.ones(3), 1)
+    out = i(f"{quantifier} t1 | next(t, t1): P(c[t], c[t1])")
+    assert out.value[-1].item() == last

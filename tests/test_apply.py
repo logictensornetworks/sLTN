@@ -67,7 +67,7 @@ def test_apply_quantifier_bool_mask_excludes_positions():
     )
     agg_op = fuzzy_ops.AggregMin()
 
-    result = apply_quantifier(agg_op, formula, ["x"], mask=mask, symbol="∀")
+    result = apply_quantifier(agg_op, formula, ["x"], mask=mask, quantifier="forall")
     # The masked-out 0.0 entry must not affect the min: min(0.2, 0.8) = 0.2.
     assert torch.allclose(result.value, torch.tensor([0.2]))
 
@@ -77,7 +77,7 @@ def test_apply_quantifier_soft_mask_weights_pmean():
     soft_mask = _bool_tensor([1.0, 0.0])
     agg_op = fuzzy_ops.AggregPMean(p=1.0, stable=False)
 
-    result = apply_quantifier(agg_op, formula, ["x"], mask=soft_mask, symbol="∀")
+    result = apply_quantifier(agg_op, formula, ["x"], mask=soft_mask, quantifier="forall")
     # Weight-1 entry dominates entirely: weighted mean collapses to it.
     assert torch.allclose(result.value, torch.tensor([0.2]), atol=1e-4)
 
@@ -114,9 +114,9 @@ def test_apply_quantifier_does_not_mask_nan():
         value=torch.tensor([0.2, float("nan"), 0.8]).unsqueeze(-1),
         axes=[Axis("x", "variable"), Axis("bool", "domain")],
     )
-    for symbol in ("∀", "∃"):
+    for quantifier in ("forall", "exists"):
         with pytest.raises(ValueError, match="constraints of type 'Bool'"):
-            apply_quantifier(fuzzy_ops.AggregPMean(p=2.0), formula, ["x"], symbol=symbol)
+            apply_quantifier(fuzzy_ops.AggregPMean(p=2.0), formula, ["x"], quantifier=quantifier)
 
 
 def test_apply_quantifier_vacuous_axis_uses_identity_value():
@@ -128,11 +128,33 @@ def test_apply_quantifier_vacuous_axis_uses_identity_value():
     )
     agg_op = fuzzy_ops.AggregMin()
 
-    forall_result = apply_quantifier(agg_op, formula, ["x"], symbol="∀")
+    forall_result = apply_quantifier(agg_op, formula, ["x"], quantifier="forall")
     assert torch.allclose(forall_result.value, torch.ones(1))
 
-    exists_result = apply_quantifier(agg_op, formula, ["x"], symbol="∃")
+    exists_result = apply_quantifier(agg_op, formula, ["x"], quantifier="exists")
     assert torch.allclose(exists_result.value, torch.zeros(1))
+
+
+_EMPTY_GUARD_OPS = [
+    fuzzy_ops.AggregPMean(p=2), fuzzy_ops.AggregPMean(p=0.5), fuzzy_ops.AggregPMean(p=0),
+    fuzzy_ops.AggregPMean(p=-1), fuzzy_ops.AggregPMeanError(p=2), fuzzy_ops.AggregMin(),
+]
+
+
+@pytest.mark.parametrize("agg_op", _EMPTY_GUARD_OPS, ids=repr)
+@pytest.mark.parametrize("quantifier, neutral", [("forall", 1.0), ("exists", 0.0)])
+def test_apply_quantifier_empty_guard_gives_quantifier_neutral(agg_op, quantifier, neutral):
+    # The value of an empty guard is set by the quantifier, not by the aggregator,
+    # and no gradient (NaN or other) reaches the body or the guard.
+    value = torch.tensor([[0.2], [0.9]], requires_grad=True)
+    guard = torch.zeros(2, 1, requires_grad=True)
+    formula = Tensor(value, [Axis("x", "variable"), Axis("bool", "domain")], Bool)
+    mask = Tensor(guard, [Axis("x", "variable"), Axis("bool", "domain")], Bool)
+    out = apply_quantifier(agg_op, formula, ["x"], mask=mask, quantifier=quantifier)
+    assert out.value.item() == neutral
+    out.value.sum().backward()
+    assert torch.equal(value.grad, torch.zeros_like(value))
+    assert guard.grad is None or torch.equal(guard.grad, torch.zeros_like(guard))
 
 
 # ---------------------------------------------------------------------------

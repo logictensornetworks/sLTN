@@ -326,8 +326,8 @@ def test_extremum_ignores_masked_entries_when_fewer_than_k_are_valid():
     y = torch.tensor([0.2, 1.0, 0.5])
     assert torch.isclose(fuzzy_ops.AggregMin(bottom_k=2)(y, dim=0, mask=torch.tensor([True, True, False])), torch.tensor(0.6))
     empty = torch.zeros(3, dtype=torch.bool)
-    assert fuzzy_ops.AggregMin(bottom_k=2)(x, dim=0, mask=empty) == 1.0
-    assert fuzzy_ops.AggregMax(top_k=2)(x, dim=0, mask=empty) == 0.0
+    assert torch.isfinite(fuzzy_ops.AggregMin(bottom_k=2)(x, dim=0, mask=empty))
+    assert torch.isfinite(fuzzy_ops.AggregMax(top_k=2)(x, dim=0, mask=empty))
 
 
 def test_extremum_over_several_dims_takes_k_extremes_jointly():
@@ -363,3 +363,19 @@ def test_default_aggregator_gradient_is_finite_at_the_boundary(op, boundary):
     xs = torch.full((4,), boundary, requires_grad=True)
     op(xs, dim=[0]).backward()
     assert torch.isfinite(xs.grad).all()
+
+
+@pytest.mark.parametrize("op", [fuzzy_ops.AggregPMean(stable=False), fuzzy_ops.AggregGeometricMean(stable=False),
+                                fuzzy_ops.AggregMin(), fuzzy_ops.AggregMax()], ids=repr)
+def test_aggregator_broadcasts_partial_mask(op) -> None:
+    # A mask covering only some dims weights every entry it spans.
+    x = torch.rand(2, 3)
+    mask = torch.tensor([[1.0], [0.0]])
+    assert torch.isclose(op(x, dim=[0, 1], mask=mask), op(x[0], dim=0))
+
+
+def test_aggregmin_aggregmax_reject_k_below_one() -> None:
+    with pytest.raises(ValueError, match="at least 1"):
+        fuzzy_ops.AggregMin(bottom_k=0)
+    with pytest.raises(ValueError, match="at least 1"):
+        fuzzy_ops.AggregMax()(torch.rand(3), dim=0, top_k=0)

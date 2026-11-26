@@ -3,29 +3,43 @@ from .base import AggregationOperator
 from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0, pi_1, safe_div
 
 
+def _mask_weights(xs, mask):
+    """Return *xs* and *mask* broadcast to one shape, the mask as float weights.
+
+    Broadcasting lets the weighted means count every entry a partial mask spans.
+    """
+    return torch.broadcast_tensors(xs, mask.to(xs.dtype))
+
+
 class _AggregExtremum(AggregationOperator):
     """Base for min/max fuzzy aggregation over the top-k or bottom-k values.
 
     Computes the mean of the *k* extreme values along each requested dimension.
     When *k* is 1 (default) this is the true min or max.
 
+    A mask only decides whether an entry takes part (weight above 0): soft
+    weights are not used, and the mask receives no gradient.
+
     Parameters
     ----------
     k : int
-        Number of extreme values to average.  Default: 1.
+        Number of extreme values to average, at least 1.  Default: 1.
     largest : bool
         ``True`` for max (top-k), ``False`` for min (bottom-k).
-    _mask_fill : float
-        Value used to neutralise masked-out positions (1.0 for min, 0.0 for max).
     """
 
-    def __init__(self, k: int = 1, *, largest: bool, _mask_fill: float) -> None:
-        self.k          = k
-        self._largest   = largest
-        self._mask_fill = _mask_fill
+    def __init__(self, k: int = 1, *, largest: bool) -> None:
+        self.k        = self._check_k(k)
+        self._largest = largest
+
+    @staticmethod
+    def _check_k(k: int) -> int:
+        if k < 1:
+            raise ValueError(f"k must be at least 1, got {k}.")
+        return k
 
     def __call__(self, xs, dim=None, keepdim=False, mask=None, k=None):
-        k = self.k if k is None else k
+        k = self.k if k is None else self._check_k(k)
 
         # Normalise dims; None reduces over every dim, as torch.mean does.
         if dim is None:
@@ -49,18 +63,16 @@ class _AggregExtremum(AggregationOperator):
         else:
             # Masked-out entries are filled with -inf / +inf so they are only
             # selected when fewer than k entries are valid; the mean is then
-            # taken over the valid selected entries only. An empty mask gives
-            # the neutral value (1 for min, 0 for max).
-            xs, valid = torch.broadcast_tensors(xs, mask > 0)
-            flat, valid = flatten(xs), flatten(valid)
+            # taken over the valid selected entries only.
+            xs, w = _mask_weights(xs, mask)
+            flat, valid = flatten(xs), flatten(w > 0)
             fill = float("-inf") if self._largest else float("inf")
             vals, idx = torch.topk(torch.where(valid, flat, fill), k=k, dim=-1,
                                    largest=self._largest, sorted=False)
             sel   = torch.gather(valid, -1, idx)
             count = sel.sum(dim=-1)
             total = torch.where(sel, vals, torch.zeros_like(vals)).sum(dim=-1)
-            result = torch.where(count > 0, total / count.clamp(min=1),
-                                 torch.full_like(total, self._mask_fill))
+            result = total / count.clamp(min=1)
 
         if keepdim:
             for d in dims:
@@ -78,7 +90,7 @@ class AggregMin(_AggregExtremum):
     """
 
     def __init__(self, bottom_k: int = 1) -> None:
-        super().__init__(k=bottom_k, largest=False, _mask_fill=1.0)
+        super().__init__(k=bottom_k, largest=False)
         self.bottom_k = bottom_k
 
     def __repr__(self) -> str:
@@ -98,7 +110,7 @@ class AggregMax(_AggregExtremum):
     """
 
     def __init__(self, top_k: int = 1) -> None:
-        super().__init__(k=top_k, largest=True, _mask_fill=0.0)
+        super().__init__(k=top_k, largest=True)
         self.top_k = top_k
 
     def __repr__(self) -> str:
@@ -120,12 +132,9 @@ class AggregGeometricMean(AggregationOperator):
 
     Notes
     -----
-    Accepts an optional ``mask``,
-    (:class:`AggregPMean`, :class:`AggregPMeanError`): a hard boolean mask
-    excludes entries from the aggregation domain, while a soft mask in
-    ``[0, 1]`` is used as a per-element weight, turning the operator into a
-    *weighted* geometric mean,
-    ``exp(sum(w_i * log(x_i)) / sum(w_i))``.
+    The geometric mean is the limit of :class:`AggregPMean` as ``p → 0`` and
+    behaves like a normalised product, i.e. a soft ∀.  With a mask it is the
+    weighted geometric mean ``exp(sum(w_i * log(x_i)) / sum(w_i))``.
     """
 
     def __init__(self, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
@@ -142,13 +151,9 @@ class AggregGeometricMean(AggregationOperator):
             xs = pi_0(xs, self.eps)
 
         if mask is not None:
-            # Accept both bool masks (hard guard) and float tensors in [0,1];
-            # a soft mask turns this into a weighted geometric mean.
-            # Zero-weight positions are replaced by the product's neutral
-            # element (1.0, i.e. log 0) so they never contribute, regardless
-            # of their raw truth value, and so log(0) never triggers a NaN
-            # via 0 * -inf.
-            w = mask.float() if mask.dtype == torch.bool else mask
+            # Zero-weight entries are replaced by 1 (log 1 = 0) so they never
+            # contribute and log(0) never gives 0 * -inf = NaN.
+            xs, w = _mask_weights(xs, mask)
             safe_xs     = torch.where(w > 0, xs, torch.ones_like(xs))
             log_xs      = torch.log(safe_xs)
             numerator   = torch.sum(w * log_xs, dim=dim, keepdim=keepdim)
@@ -160,8 +165,12 @@ class AggregGeometricMean(AggregationOperator):
         return torch.exp(mean_log)
 
 class AggregPMean(AggregationOperator):
-    """
-    pMean fuzzy aggregation operator.
+    """pMean fuzzy aggregation operator, ``(mean(x_i ** p)) ** (1 / p)``.
+
+    For ``p >= 1`` it lies between the arithmetic mean and the max and suits
+    ∃; for ``p < 1`` it moves towards the min and suits ∀.  ``p = 0`` is the
+    geometric mean.  With a mask it is the weighted mean
+    ``(sum(w_i * x_i ** p) / sum(w_i)) ** (1 / p)``.
     """
     def __init__(self, p=2, stable=DEFAULT_STABLE, eps=DEFAULT_EPS):
 
@@ -186,8 +195,7 @@ class AggregPMean(AggregationOperator):
             xs = pi_0(xs, self.eps)
 
         if mask is not None:
-            # Accept both bool masks (hard guard) and float tensors in [0,1]
-            w = mask.float() if mask.dtype == torch.bool else mask
+            xs, w = _mask_weights(xs, mask)
             # Masked-out entries get a finite placeholder: 0 ** p is inf for p < 0.
             xs_pow      = torch.pow(torch.where(w > 0, xs, torch.ones_like(xs)), p)
             numerator   = torch.sum(w * xs_pow, dim=dim, keepdim=keepdim)
@@ -196,9 +204,8 @@ class AggregPMean(AggregationOperator):
             mean_val    = safe_div(numerator, denominator)
             if stable:
                 mean_val = pi_0(mean_val, self.eps)
-            # An empty guard gives 0 (so ∀ via pMeanError gives 1), also for p < 0.
-            result = torch.pow(torch.where(empty, torch.ones_like(mean_val), mean_val), 1 / p)
-            return torch.where(empty, torch.zeros_like(result), result)
+            # An empty mask gives a finite value with finite gradients, also for p < 0.
+            return torch.pow(torch.where(empty, torch.ones_like(mean_val), mean_val), 1 / p)
         else:
             mean_val = torch.mean(torch.pow(xs, p), dim=dim, keepdim=keepdim)
             if stable:

@@ -570,7 +570,6 @@ class Interpretation(torch.nn.Module):
         # (rejected at parse time), and structural ones share one dimension.
         struct_var_names = [v for v in node.var_names if v in sig.structural_variables]
         quantifier = node.quantifier  # "forall" or "exists"
-        symbol     = node.symbol      # "∀" or "∃"
 
         formula_result = self._eval(node.formula, assignment)
         guard_result   = self._eval_guard(node.guard, assignment) if node.guard else None
@@ -581,7 +580,7 @@ class Interpretation(torch.nn.Module):
         else:
             agg_op = self.logic.Forall if quantifier == "forall" else self.logic.Exists
             axes = _var_axis_names([assignment[v] for v in node.var_names if v in assignment])
-        return apply_quantifier(agg_op, formula_result, axes, mask=guard_result, symbol=symbol)
+        return apply_quantifier(agg_op, formula_result, axes, mask=guard_result, quantifier=quantifier)
 
     def forward(self, target: Any) -> Tensor | Any:
         """Evaluate *target* under this interpretation (called as ``interp(target)``).

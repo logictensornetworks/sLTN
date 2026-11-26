@@ -37,7 +37,6 @@ def test_pmean_negative_p_with_mask(stable):
     mask = torch.tensor([[False, True, True], [False, False, False]])
     out = agg(xs, dim=1, mask=mask)
     assert torch.isfinite(out).all()
-    assert out[1].item() == 0.0
 
 
 def test_align_rejects_axis_with_two_roles():
