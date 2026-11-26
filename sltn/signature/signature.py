@@ -438,20 +438,32 @@ class Signature:
     # Repr
     # ------------------------------------------------------------------
 
+    def _aliases_of(self, base: str) -> list[str]:
+        aliases = {**self._variables_aliases, **self._structural_variables_aliases}
+        return [a for a, b in aliases.items() if b == base]
+
     def __repr__(self) -> str:
         lines: list[str] = []
 
+        def _with_aliases(sym) -> str:
+            aliases = self._aliases_of(sym.name)
+            return sym.sig_line() + (f"  (aliases: {', '.join(aliases)})" if aliases else "")
+
         def _section(title: str, items, key=lambda x: x.sig_line()):
+            items = list(items)
             if items:
                 lines.append(f"{title}:")
                 lines.extend(f"  {key(item)}" for item in items)
 
-        _section("Sorts",                 self._sorts.values())
+        def _bases(store):
+            return [s for n, s in store.items() if self.alias_base(n) is None]
+
+        lines.append(f"Sorts: {', '.join(self._sorts)}")
         _section("Dimensions",            self._dimensions.values())
-        _section("Structural variables",  self._structural_variables.values())
-        _section("Structural relations", self._structural_relations.values())
+        _section("Structural variables",  _bases(self._structural_variables), _with_aliases)
+        _section("Structural relations",  self._structural_relations.values())
         _section("Constants",             self._constants.values())
-        _section("Variables",             self._variables.values())
+        _section("Variables",             _bases(self._variables), _with_aliases)
         _section("Functions",             self._functions.values())
         _section("Predicates",            self._predicates.values())
         _section("Definitions",           self._definitions.values())

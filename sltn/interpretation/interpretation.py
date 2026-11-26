@@ -841,52 +841,59 @@ class Interpretation(torch.nn.Module):
 
     def __repr__(self) -> str:
         sig = self.signature
-        lines = [f"Interpretation(signature={sig.name!r})"]
+        n_trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        header = [f"signature={sig.name!r}"]
+        if self._device is not None:
+            header.append(f"device={self._device}")
+        header.append(f"{n_trainable:,} trainable parameters")
+        lines = [f"Interpretation({', '.join(header)})"]
+        missing: list[str] = []
 
-        def _val_label(val: Any) -> str:
+        def _val_label(name: str) -> str:
+            val = self._get_grounding(name)
             if val is None:
+                missing.append(name)
                 return "(not grounded)"
             if isinstance(val, torch.nn.Module):
                 n_params = sum(p.numel() for p in val.parameters())
-                return f"{val.__class__.__name__}({n_params:,} params)"
-            if isinstance(val, torch.Tensor):
-                return f"Tensor{list(val.shape)}"
+                return f"{val.__class__.__name__} ({n_params:,} params)"
+            if isinstance(val, (torch.Tensor, Tensor)):
+                shape = val.shape if isinstance(val, torch.Tensor) else val.value.shape
+                return f"Tensor{list(shape)}"
             if callable(val):
                 n = getattr(val, "__name__", None) or val.__class__.__name__
                 return f"λ {n}"
             return repr(val)
 
-        # ── Sorts ─────────────────────────────────────────────────────
-        if sig.sorts:
-            lines.append("  Sorts:")
-            for s_name in sig.sorts:
-                typ = self._get_grounding(s_name)
-                suffix = f" : {typ}" if typ is not None else ""
-                lines.append(f"    {s_name}{suffix}")
-
-        for title, names in (("Constants", sig.constants), ("Variables", sig.variables),
-                             ("Predicates", sig.predicates), ("Functions", sig.functions)):
-            if names:
+        def _section(title: str, entries: list[str]) -> None:
+            if entries:
                 lines.append(f"  {title}:")
-                lines.extend(f"    {n}: {_val_label(self._get_grounding(n))}" for n in names)
+                lines.extend(f"    {e}" for e in entries)
 
+        def _bases(store) -> list[str]:
+            return [n for n in store if sig.alias_base(n) is None]
+
+        sort_entries = []
+        for name, sort in sig.sorts.items():
+            typ = _resolve_sort_type(sort, self)
+            if typ is None:
+                missing.append(name)
+            sort_entries.append(f"{name}: {typ if typ is not None else '(not grounded)'}")
+        _section("Sorts", sort_entries)
         # Dimensions have no grounding; a structural variable has one only if its
         # dimension has a sort (the values of its indices).
-        sorted_svs = {n: sv for n, sv in sig.structural_variables.items() if sv.dimension.sort is not None}
-        if sorted_svs:
-            lines.append("  Structural variables:")
-            for n, sv in sorted_svs.items():
-                lines.append(f"    {n} ({sv.dimension.name}): {_val_label(self._get_grounding(n))}")
-
-        if sig.structural_relations:
-            lines.append("  Structural relations:")
-            for n, rel in sig.structural_relations.items():
-                dims = " x ".join(d.name for d in rel.dims)
-                lines.append(f"    {n}({dims}): {_val_label(self._get_grounding(n))}")
-
-        # ── Logic ─────────────────────────────────────────────────────
+        _section("Structural variables", [
+            f"{n}: {_val_label(n)}" for n in _bases(sig.structural_variables)
+            if sig.structural_variables[n].dimension.sort is not None
+        ])
+        _section("Structural relations", [f"{n}: {_val_label(n)}" for n in sig.structural_relations])
+        _section("Constants", [f"{n}: {_val_label(n)}" for n in sig.constants])
+        _section("Variables", [f"{n}: {_val_label(n)}" for n in _bases(sig.variables)])
+        _section("Functions", [f"{n}: {_val_label(n)}" for n in sig.functions])
+        _section("Predicates", [f"{n}: {_val_label(n)}" for n in sig.predicates])
+        if missing:
+            lines.append(f"  Not grounded: {', '.join(missing)}")
         lines.append(f"  {self.logic}")
-
         return "\n".join(lines)
 
 

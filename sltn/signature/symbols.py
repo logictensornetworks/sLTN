@@ -53,6 +53,18 @@ class Symbol:
         return f"{type(self).__name__}({self.name!r})"
 
 
+def _call_details(sym) -> str:
+    """Structural profile and infix flag of a function or predicate, for sig_line."""
+    parts = []
+    if sym.input_dims:
+        parts.append(f"input_dims=[{', '.join(d.name for d in sym.input_dims)}]")
+    if sym.output_dims:
+        parts.append(f"output_dims=[{', '.join(d.name for d in sym.output_dims)}]")
+    if sym.infix:
+        parts.append("infix")
+    return f"  ({', '.join(parts)})" if parts else ""
+
+
 # ---------------------------------------------------------------------------
 # Definition
 # ---------------------------------------------------------------------------
@@ -70,7 +82,11 @@ class Definition:
     output_dims: list[Dimension] = field(default_factory=list)
 
     def sig_line(self) -> str:
-        return f"{self.name}: {self.body} with arguments {self.params}"
+        if self.infix and len(self.params) == 2:
+            head = f"{self.params[0]} {self.name} {self.params[1]}"
+        else:
+            head = f"{self.name}({', '.join(self.params)})"
+        return f"{head} := {self.body}"
 
 
 # ---------------------------------------------------------------------------
@@ -124,9 +140,10 @@ class Dimension(Symbol):
         self.labels: list | None = list(labels) if labels is not None else None
 
     def sig_line(self) -> str:
+        line = self.name if self.sort is None else f"{self.name}: {self.sort.name}"
         if self.labels is not None:
-            return f"{self.name}  [{', '.join(str(l) for l in self.labels)}]"
-        return self.name
+            line += f"  [{', '.join(str(l) for l in self.labels)}]"
+        return line
 
     def __repr__(self) -> str:
         parts = [f"{self.name!r}"]
@@ -248,7 +265,7 @@ class FunctionSymbol(Symbol):
     def sig_line(self) -> str:
         lhs = " x ".join(s.name for s in self.input_sorts) or "ε"
         rhs = self.output_sort.name if self.output_sort else "?"
-        return f"{self.name}: {lhs} ⟶ {rhs}"
+        return f"{self.name}: {lhs} ⟶ {rhs}{_call_details(self)}"
 
     def __repr__(self) -> str:
         in_sorts = " x ".join(s.name for s in self.input_sorts) or "ε"
@@ -289,7 +306,7 @@ class PredicateSymbol(Symbol):
 
     def sig_line(self) -> str:
         lhs = " x ".join(s.name for s in self.input_sorts) or "ε"
-        return f"{self.name}: {lhs} ⟶ Bool"
+        return f"{self.name}: {lhs} ⟶ Bool{_call_details(self)}"
 
     def __repr__(self) -> str:
         in_sorts = " x ".join(s.name for s in self.input_sorts) or "ε"
