@@ -556,7 +556,7 @@ def test_define_formula_body_quantifier_or_struct_symref_parses():
 
 def test_infix_predicate_parses_when_lhs_is_symref_with_axis_list():
     from sltn.fol.formula import AtomicFormula
-    from sltn.parse import parse_formula_string
+    from sltn.parse.parser import parse_formula_string
 
     ast = parse_formula_string("X[s,d] =b Table[v,d]", infix_preds=["=b", "=f"], infix_fns=None)
     assert isinstance(ast, AtomicFormula)

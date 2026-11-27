@@ -422,7 +422,7 @@ class Interpretation(torch.nn.Module):
                 return _apply_axis_renames(node.axis_annotations, val)
             case FunctionApplication():
                 evaluated = [self._eval(arg, asgn) for arg in node.args]
-                fn = self.resolve(node.symbol, structural_axes_override=node.output_axes)
+                fn = self._resolve(node.symbol, structural_axes_override=node.output_axes)
                 return fn(*evaluated)
             case TermAxisSelect():
                 return self._eval(node.base_term, asgn).select(node.axis, node.index)
@@ -475,7 +475,7 @@ class Interpretation(torch.nn.Module):
         )
 
     def _eval_atomic(self, node: Any, asgn: Assignment) -> Tensor:
-        fn = self.resolve(node.symbol, structural_axes_override=node.structural_axes)
+        fn = self._resolve(node.symbol, structural_axes_override=node.structural_axes)
         evaluated = [self._eval(arg, asgn) for arg in node.args]
         return fn(*evaluated)
 
@@ -620,7 +620,7 @@ class Interpretation(torch.nn.Module):
         return val
 
     # Symbol resolution
-    def resolve(self, sym: str | Symbol, structural_axes_override: list[str] | None = None) -> Any:
+    def _resolve(self, sym: str | Symbol, structural_axes_override: list[str] | None = None) -> Any:
         """Return the effective callable for a function or predicate symbol.
 
         Parameters

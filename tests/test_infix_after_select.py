@@ -13,7 +13,7 @@ import pytest
 from sltn import Signature
 from sltn.fol.formula import AtomicFormula
 from sltn.fol.term import TermAxisSelect, FunctionApplication
-from sltn.parse import parse_formula_string, parse_term_string
+from sltn.parse.parser import parse_formula_string, parse_term_string
 
 
 @pytest.fixture

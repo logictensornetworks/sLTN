@@ -24,7 +24,6 @@ from sltn.fol.formula import (
 from sltn.fol.term import Term, Variable, Constant, StructuralVariable, FunctionApplication, TermAxisSelect
 from sltn.interpretation import Interpretation, Logic
 from sltn.tools.optim import kb_backward, kb_describe, kb_eval
-from sltn.parse import parse_term_string, parse_formula_string
 
 __all__ = [
     "__version__",
@@ -74,9 +73,6 @@ __all__ = [
     "StructuralVariable",
     "FunctionApplication",
     "TermAxisSelect",
-    # Parse
-    "parse_term_string",
-    "parse_formula_string",
     # Training utilities
     "kb_backward",
     "kb_describe",
