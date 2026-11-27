@@ -160,9 +160,9 @@ def _copied_axes_note(inputs: list, preserved_structural_axes: list) -> str:
     )
     return (
         f"\nEvery argument receives all the consumed axes of the call, so "
-        f"{described} and gets copies along it. If your grounding removes "
-        f"'{copied[0][2]}' (e.g. a GRU over the frames) before combining it with "
-        f"this argument, drop the copies first, e.g. arg.select({copied[0][1]}, 0)."
+        f"{described} and gets copies along it. Either combine the arguments "
+        f"element-wise, or reduce '{copied[0][2]}' in every argument, "
+        f"e.g. arg.mean(dim={copied[0][1]})."
     )
 
 

@@ -213,7 +213,7 @@ def test_failing_grounding_is_told_about_the_copied_axis():
     assert "'P'" in message
     assert "(9, 5, 2)" in message
     assert "argument 2" in message and "'t'" in message
-    assert "select(1, 0)" in message
+    assert "mean(dim=1)" in message
     assert "must match the size" in message  # the original error is kept
 
 

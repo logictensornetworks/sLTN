@@ -827,3 +827,30 @@ def test_struct_var_over_unsorted_dimension_cannot_be_grounded_or_used_as_term()
         Interpretation(sig)["t"] = torch.arange(4.0).unsqueeze(-1)
     with pytest.raises(TypeError, match="cannot be used as a term"):
         sig.parse("forall t: Late(t)")
+
+
+def _consuming_sig():
+    s = Signature("consume")
+    s.sort("R")
+    s.dimension("T")
+    s.structural_variable("t", "T")
+    s.variable("x", "R", dims=["T"])
+    s.variable("z", "R")
+    s.predicate("P", ["R", "R"], input_dims=["T"])
+    s.predicate("Q", ["R", "R"], input_dims=["T", "T"])
+    return s
+
+
+def test_consumed_dimension_rejects_more_axes_than_declared():
+    with pytest.raises(ValueError, match="consumes 1 axis"):
+        _consuming_sig().parse("P(x[t], x[t1])")
+
+
+def test_consumed_dimension_rejects_arguments_without_it():
+    with pytest.raises(ValueError, match="none of its arguments"):
+        _consuming_sig().parse("P(z, z)")
+
+
+@pytest.mark.parametrize("formula", ["P(x[t], x[t])", "P(x[t], z)", "Q(x[t], x[t])", "Q(x[t], x[t1])"])
+def test_consumed_dimension_accepts_up_to_declared_axes(formula):
+    _consuming_sig().parse(formula)

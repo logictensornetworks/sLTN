@@ -137,6 +137,32 @@ def _check_selection(axis: str, base: Any) -> None:
         )
 
 
+def _check_consumed_axes(node: Any) -> None:
+    """Raise unless each dimension in ``input_dims`` has between one and as many distinct argument axes as it occurs."""
+    from collections import Counter
+    expected = Counter(d.name for d in node.symbol.input_dims)
+    if not expected:
+        return
+    found: dict[str, list[str]] = {}
+    for arg in node.args:
+        for name, dim in arg._axis_dimensions().items():
+            if dim is not None and dim.name in expected and name not in found.get(dim.name, []):
+                found.setdefault(dim.name, []).append(name)
+    for dim, n in expected.items():
+        axes = found.get(dim, [])
+        if not axes:
+            raise ValueError(
+                f"'{node}': '{node.symbol.name}' consumes '{dim}' (input_dims), "
+                f"but none of its arguments has an axis over '{dim}'."
+            )
+        if len(axes) > n:
+            raise ValueError(
+                f"'{node}': '{node.symbol.name}' consumes {n} axis(es) over '{dim}' "
+                f"(input_dims), but its arguments have {len(axes)}: {axes}. "
+                f"Use the same name for an axis shared by several arguments."
+            )
+
+
 def _unsorted_structural_variable_error(sym, action: str) -> TypeError:
     dim = sym.dimension.name
     return TypeError(
@@ -456,6 +482,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
         case FunctionApplication():
             for arg in node.args:
                 _annotate_free_structural_variables(arg, sig)
+            _check_consumed_axes(node)
             dims = set(node._axis_dimensions())
 
         case StructuralRelation():
@@ -464,6 +491,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
         case AtomicFormula():
             for arg in node.args:
                 _annotate_free_structural_variables(arg, sig)
+            _check_consumed_axes(node)
             dims = set(node._axis_dimensions())
 
         case TermFormula():
