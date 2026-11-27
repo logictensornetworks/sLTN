@@ -14,7 +14,7 @@ def test_construction_basic():
     e = Tensor(value=t, axes=dims)
     assert e.value is t
     assert e.ndim == 2
-    assert e.named_shape == {"x": 3, "f": 4}
+    assert e.axis_names == ["x", "f"] and e.shape == (3, 4)
 
 
 def test_construction_dim_count_mismatch_raises():
@@ -49,7 +49,7 @@ def test_as_variable_2d():
     t = torch.rand(5, 3)
     e = Tensor.as_variable("x", t)
     assert e.free_variables == ["x"]
-    assert e.named_shape == {"x": 5, "domain_0": 3}
+    assert e.axis_names == ["x", "domain_0"] and e.shape == (5, 3)
 
 
 # ---------------------------------------------------------------------------
@@ -61,24 +61,6 @@ def test_free_variables_and_free_structural_variables():
     e = Tensor(value=torch.rand(2, 3, 4), axes=dims)
     assert e.free_variables == ["x"]
     assert e.free_structural_variables == ["t"]
-
-
-# ---------------------------------------------------------------------------
-# Indexing
-# ---------------------------------------------------------------------------
-
-def test_getitem_integer_removes_axis():
-    dims = [Axis("x", "variable"), Axis("f", "domain")]
-    e = Tensor(value=torch.rand(4, 2), axes=dims)
-    e2 = e[1]
-    assert "x" not in e2.axis_names
-
-
-def test_getitem_dict():
-    dims = [Axis("x", "variable"), Axis("y", "variable"), Axis("f", "domain")]
-    e = Tensor(value=torch.rand(3, 4, 2), axes=dims)
-    e2 = e[{"x": 0}]
-    assert e2.value.shape == (4, 2)
 
 
 # ---------------------------------------------------------------------------

@@ -14,17 +14,15 @@ __all__ = [
 
 import copy
 from math import prod
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import torch
 
-from sltn.interpretation.core import Tensor, Axis, Bool
+from sltn.interpretation.core import Axis, Bool, Tensor
 from sltn.interpretation.operators.base import AggregationOperator, ConnectiveOperator
 
 
-# ---------------------------------------------------------------------------
 # Internal helpers
-# ---------------------------------------------------------------------------
 
 def _var_axis_names(vars: list) -> list[str]:
     """Return unique variable-role axis names from a list of variable Tensors."""
@@ -59,9 +57,7 @@ def _exact(op: Any) -> Any:
     return exact
 
 
-# ---------------------------------------------------------------------------
 # Public apply functions
-# ---------------------------------------------------------------------------
 
 def apply_connective(op: ConnectiveOperator, *exprs: Tensor, exact: bool = False) -> Tensor:
     """Apply a connective operator to one or more :class:`sltn.Tensor` objects.
@@ -83,7 +79,7 @@ def apply_quantifier(
     formula: Tensor,
     axis_names: list,
     *,
-    mask: Optional[Tensor] = None,
+    mask: Tensor | None = None,
     quantifier: Literal["forall", "exists"] = "forall",
 ) -> Tensor:
     """Aggregate *formula* over *axis_names* using *agg_op*.
@@ -146,43 +142,7 @@ def apply_sat_agg(agg_op: AggregationOperator, *formulas: Tensor) -> Tensor:
     )
 
 
-# ---------------------------------------------------------------------------
-# TensorCallable — user-facing wrapper type for sltn.Tensor-level callables
-# ---------------------------------------------------------------------------
-
-class TensorCallable:
-    """Wrap a callable so it receives aligned :class:`sltn.Tensor` objects rather
-    than raw ``torch.Tensor`` batches, and returns a :class:`sltn.Tensor` directly.
-
-    Intended as a low-level escape hatch: the returned :class:`sltn.Tensor` is
-    used as-is, bypassing signature-driven ``input_dims``/``output_dims``
-    bookkeeping and sort-shape validation.
-    """
-
-    def __init__(self, fn: Any) -> None:
-        self.fn = fn
-
-    def __call__(self, *tensors: Tensor) -> Tensor:
-        return self.fn(*tensors)
-
-    def __repr__(self) -> str:
-        return f"TensorCallable({self.fn!r})"
-
-
-def _apply_tensor_callable(func: "TensorCallable", inputs: list, name: str) -> Tensor:
-    aligned = Tensor.align(*inputs) if inputs else []
-    result = func(*aligned)
-    if not isinstance(result, Tensor):
-        raise TypeError(
-            f"TensorCallable for '{name}' must return a Tensor, "
-            f"got {type(result).__name__}."
-        )
-    return result
-
-
-# ---------------------------------------------------------------------------
 # Callable-dispatch helpers (used by Interpretation._SymbolProxy)
-# ---------------------------------------------------------------------------
 
 def _copied_axes_note(inputs: list, preserved_structural_axes: list) -> str:
     """Describe the preserved axes that an argument received only as copies."""
@@ -213,7 +173,7 @@ def _batch_axis_note(batch_axes: list, batch_shape: tuple, batch_size: int) -> s
     elif len(batch_axes) == 1:
         where = f"one row per individual of {batch_axes[0].name} ({batch_size})"
     else:
-        sizes = " × ".join(f"{d.name} ({n})" for d, n in zip(batch_axes, batch_shape))
+        sizes = " × ".join(f"{d.name} ({n})" for d, n in zip(batch_axes, batch_shape, strict=True))
         where = f"one row per combination of {sizes} = {batch_size}, flattened"
     return (
         f"\nThe first axis the grounding receives is the batch: {where}. "
@@ -271,7 +231,7 @@ def _apply_batch_callable(
 
     try:
         if batch_size == 0:
-            probe_inputs = [r.new_zeros((1,) + r.shape[1:]) for r in reshaped]
+            probe_inputs = [r.new_zeros((1, *r.shape[1:])) for r in reshaped]
             # Only the output shape is needed: eval mode keeps BatchNorm/Dropout state untouched.
             modes = [(m, m.training) for m in func.modules()] if isinstance(func, torch.nn.Module) else []
             try:
@@ -284,7 +244,7 @@ def _apply_batch_callable(
                     m.training = mode
             if not isinstance(probe_out, torch.Tensor):
                 raise TypeError(f"Callable for '{name}' must return a Tensor, got {type(probe_out)}.")
-            output_flat = reshaped[0].new_zeros((0,) + probe_out.shape[1:])
+            output_flat = reshaped[0].new_zeros((0, *probe_out.shape[1:]))
         else:
             output_flat = func(*reshaped)
             if not isinstance(output_flat, torch.Tensor):
@@ -310,11 +270,10 @@ def _apply_batch_callable(
     new_output_axis_names = [n for n in output_axis_names if n not in pres_out_names]
 
     n_struct_new = len(new_output_axis_names)
-    if n_struct_new > 0 and len(output_type.shape) > 0:
-        if len(out_data_shape) == n_struct_new:
-            for _ in output_type.shape:
-                output_flat = output_flat.unsqueeze(-1)
-            out_data_shape = output_flat.shape[1 + n_out_pres:]
+    if n_struct_new > 0 and len(output_type.shape) > 0 and len(out_data_shape) == n_struct_new:
+        for _ in output_type.shape:
+            output_flat = output_flat.unsqueeze(-1)
+        out_data_shape = output_flat.shape[1 + n_out_pres:]
 
     new_struct_out = [Axis(n, 'structural') for n in new_output_axis_names]
     out_axes       = new_struct_out + output_type.domain_axes
@@ -335,19 +294,3 @@ def _apply_batch_callable(
     output = output_flat.reshape(*batch_shape, *output_pres_shape, *out_data_shape)
     return Tensor(value=output, axes=final_dims, domain_type=output_type)
 
-
-def _apply_callable(
-    func,
-    inputs: list,
-    preserved_axis_names,
-    output_axis_names,
-    output_type,
-    name: str,
-) -> Tensor:
-    """Dispatch to the appropriate execution path based on *func* type."""
-    if isinstance(func, TensorCallable):
-        return _apply_tensor_callable(func, inputs, name)
-    return _apply_batch_callable(
-        func, inputs, preserved_axis_names, output_axis_names, output_type,
-        name,
-    )

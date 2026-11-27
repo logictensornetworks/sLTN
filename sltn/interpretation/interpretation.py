@@ -9,151 +9,64 @@ to numerically evaluate any formula or term.
 from __future__ import annotations
 
 __all__ = [
-    "TensorCallable",
     "Interpretation",
 ]
 
 import copy
-from typing import Any, Dict, Optional
+from typing import Any
 
 import torch
 
-# ---------------------------------------------------------------------------
-# SLTN Imports
-# ---------------------------------------------------------------------------
-from sltn.interpretation.core.axis import Axis
-from sltn.interpretation.core.type import Type, Bool, Real
-from sltn.interpretation.core.tensor import Tensor
-
-from sltn.fol.term import (
-    _NameTerm, Variable, Constant, StructuralVariable,
-    FunctionApplication, TermAxisSelect, Term, _deduplicate_axis_names,
-)
 from sltn.fol.formula import (
-    Formula, TermFormula, FormulaAxisSelect, AtomicFormula,
+    KB,
+    And,
+    AtomicFormula,
+    Equivalent,
+    Formula,
+    FormulaAxisSelect,
+    Implies,
+    Not,
+    Or,
     StructuralRelation,
-    And, Or, Implies, Equivalent, Not, _BoundFormula, KB,
+    TermFormula,
+    _BoundFormula,
 )
-
-from sltn.parse.pipeline import _unsorted_structural_variable_error
-from sltn.parse.tokenizer import _base_name_of
-from sltn.signature import (
-    Signature, Symbol, FunctionSymbol, PredicateSymbol
+from sltn.fol.term import (
+    Constant,
+    FunctionApplication,
+    StructuralVariable,
+    Term,
+    TermAxisSelect,
+    Variable,
+    _NameTerm,
 )
-
 from sltn.interpretation.apply import (
-    apply_connective, apply_quantifier, apply_sat_agg,
     _var_axis_names,
-    TensorCallable, _apply_callable
+    apply_connective,
+    apply_quantifier,
+    apply_sat_agg,
 )
-
-from sltn.interpretation.operators.base import AggregationOperator
+from sltn.interpretation.core.tensor import Tensor
+from sltn.interpretation.core.type import Bool, Type
+from sltn.interpretation.grounding import (
+    _apply_axis_renames,
+    _ground_constant,
+    _ground_structural_relation,
+    _resolve_sort_type,
+    _SymbolProxy,
+    _value_to_tensor,
+)
 from sltn.interpretation.logic import Logic
+from sltn.parse.pipeline import _unsorted_structural_variable_error
+from sltn.signature import FunctionSymbol, PredicateSymbol, Signature, Symbol
 
 # Variable values fixed by enclosing quantifiers (e.g. diagonalised groups) during evaluation.
-Assignment = Dict[str, Tensor]
+Assignment = dict[str, Tensor]
 
 # Formula nodes whose value can contain connectives, so it differs inside a guard.
 _GUARD_DEPENDENT = (Not, And, Or, Implies, Equivalent, _BoundFormula, FormulaAxisSelect, KB)
 
-# ---------------------------------------------------------------------------
-# Symbol → sltn.Tensor wrapping helpers
-# ---------------------------------------------------------------------------
 
-def _ground_constant(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a constant."""
-    if sort_type is None:
-        raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
-    struct_names = _deduplicate_axis_names(sym.dims)
-    axes: list[Axis] = [Axis(n, 'structural') for n in struct_names]
-    axes += [Axis(n, 'domain') for n in sort_type.axis_names]
-    return Tensor(value=val, axes=axes, domain_type=sort_type)
-
-
-def _ground_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a variable."""
-    if sort_type is None:
-        raise ValueError(f"Sort '{sym.sort.name}' is not grounded with a type.")
-    reserved = set(sort_type.axis_names) | set(Bool.axis_names)
-    if sym.name in reserved:
-        raise ValueError(
-            f"Variable '{sym.name}' has the same name as a domain axis "
-            f"({sorted(reserved)}) of its sort '{sym.sort.name}' or of predicate outputs. "
-            f"Rename the variable, or set the axis names with Type(..., axis_names=[...])."
-        )
-    struct_names = _deduplicate_axis_names(sym.dims)
-    axes: list[Axis] = [Axis(sym.name, 'variable')]
-    axes += [Axis(n, 'structural') for n in struct_names]
-    axes += [Axis(n, 'domain') for n in sort_type.axis_names]
-    return Tensor(value=val, axes=axes, domain_type=sort_type)
-
-
-def _ground_structural_variable(sym, val: torch.Tensor, sort_type: Optional[Type]) -> Tensor:
-    """Wrap a tensor as an annotated sltn.Tensor for a structural variable over a sorted dimension."""
-    if sort_type is None:
-        raise RuntimeError(
-            f"Structural variable '{sym.name}': sort '{sym.dimension.sort.name}' of dimension "
-            f"'{sym.dimension.name}' has no Type grounding. Use 'interp[{sym.dimension.sort.name!r}] = Type(...)'."
-        )
-    axes = [Axis(sym.name, 'structural'), *sort_type.domain_axes]
-    return Tensor(value=val, axes=axes, domain_type=sort_type)
-
-
-def _ground_structural_relation(sym, relation: torch.Tensor) -> Tensor:
-    """Wrap the relation tensor as an annotated sltn.Tensor for a structural relation."""
-    unique_names = _deduplicate_axis_names(sym.dims)
-    axes = [Axis(n, 'structural') for n in unique_names] + [Axis('bool', 'domain')]
-    return Tensor(value=relation.unsqueeze(-1), axes=axes, domain_type=Bool)
-
-
-def _resolve_sort_type(sort, interp) -> Optional[Type]:
-    """Look up the tensor Type for *sort* from the interpretation's overrides."""
-    grounding = interp._get_grounding(sort.name)
-    if isinstance(grounding, Type):
-        return grounding
-    return {"Bool": Bool, "Real": Real}.get(sort.name)
-
-
-def _value_to_tensor(val: torch.Tensor | Tensor, name: str, interp: "Interpretation") -> Tensor:
-    """Convert a Tensor binding into a properly annotated sltn.Tensor."""
-    if isinstance(val, Tensor):
-        return val
-    if isinstance(val, torch.Tensor):
-        sig = interp.signature
-        if interp._device is not None:
-            val = val.to(interp._device)
-        sv_obj = sig.structural_variables.get(name)
-        if sv_obj is not None:
-            sort_type = _resolve_sort_type(sv_obj.dimension.sort, interp)
-            return _ground_structural_variable(sv_obj, val, sort_type)
-        sym_obj = sig.variables.get(name)
-        if sym_obj is not None:
-            return _ground_variable(sym_obj, val, _resolve_sort_type(sym_obj.sort, interp))
-        const_obj = sig.constants.get(name)
-        if const_obj is not None:
-            return _ground_constant(const_obj, val, _resolve_sort_type(const_obj.sort, interp))
-        return Tensor.as_variable(name, val)
-    raise TypeError(
-        f"Binding for '{name}' must be a Tensor or annotated sltn.Tensor, "
-        f"got {type(val).__name__}."
-    )
-
-
-def _apply_axis_renames(axis_annotations: list[str], val: Tensor) -> Tensor:
-    """Rename structural axes when ``x[t1, …]`` syntax supplies explicit names."""
-    if not axis_annotations:
-        return val
-    struct_axes = val.structural_axes
-    renames = {
-        d.name: ann
-        for d, ann in zip(struct_axes, axis_annotations)
-        if d.name != ann
-    }
-    return val.rename_axes(renames) if renames else val
-
-
-# torch groundings live in the `_grounded` submodule under escaped keys:
-# symbol names like 'train' or 'keys' would clash with nn.Module attributes.
 _REG_PREFIX = "g_"
 _REG_PATH = "_grounded." + _REG_PREFIX
 
@@ -174,9 +87,7 @@ def _symbol_param_name(qualified: str) -> str:
     return f"{_sym_name(reg)}.{rest}" if rest else _sym_name(reg)
 
 
-# ---------------------------------------------------------------------------
 # Interpretation
-# ---------------------------------------------------------------------------
 
 _VALIDATION_MODES = ("groundings", "all", "off")
 # Nodes whose value comes from a grounding rather than from a logical operator.
@@ -225,16 +136,16 @@ class Interpretation(torch.nn.Module):
     def __init__(
         self,
         signature: Signature,
-        overrides: Optional[Dict[str | Symbol, Any]] = None,
-        logic: Optional["Logic"] = None,
+        overrides: dict[str | Symbol, Any] | None = None,
+        logic: Logic | None = None,
         *,
         validate_type_constraint: str = "groundings",
         **kwargs: Any,
     ) -> None:
         super().__init__()
         self.signature = signature
-        self._device: Optional[torch.device] = None
-        self._overrides: Dict[str, Any] = {}   # non-torch groundings
+        self._device: torch.device | None = None
+        self._overrides: dict[str, Any] = {}   # non-torch groundings
         self._grounded = torch.nn.Module()     # modules, parameters, tensors (buffers)
 
         self.logic = logic if logic is not None else Logic()
@@ -252,7 +163,7 @@ class Interpretation(torch.nn.Module):
 
         self._ground_all({**(overrides or {}), **kwargs})
 
-    def _ground_all(self, items: Dict[str | Symbol, Any]) -> None:
+    def _ground_all(self, items: dict[str | Symbol, Any]) -> None:
         """Ground every entry of *items*, sorts first (tensor shape checks need their Type)."""
         def is_sort(k: str | Symbol) -> bool:
             return (k.name if isinstance(k, Symbol) else k) in self.signature.sorts
@@ -261,24 +172,22 @@ class Interpretation(torch.nn.Module):
 
     def _derive(
         self,
-        overrides: Dict[str | Symbol, Any],
+        overrides: dict[str | Symbol, Any],
         *,
-        logic: Optional[Logic] = None,
-    ) -> "Interpretation":
-        """New interpretation grounded with *overrides*, with logic, device and
-        train/eval mode copied from self (unless *logic* is given). The Logic is copied, not shared."""
+        logic: Logic | None = None,
+    ) -> Interpretation:
+        """New interpretation grounded with *overrides*, with logic, device, cache and
+        validation settings and train/eval mode copied from self (unless *logic* is given). The Logic is copied, not shared."""
         new = Interpretation(self.signature)
         new.training = self.training
         new._device = self._device
+        new.use_cache = self.use_cache
         new.validate_type_constraint = self.validate_type_constraint
         new.logic = self._logic if logic is None else logic
         new._ground_all(overrides)
         return new
 
-    # ------------------------------------------------------------------
     # Logic property
-    # ------------------------------------------------------------------
-
     @property
     def logic(self) -> Logic:
         """The fuzzy operator bundle for this Interpretation.
@@ -294,10 +203,7 @@ class Interpretation(torch.nn.Module):
         resolved._signature = self.signature
         self._logic = resolved
 
-    # ------------------------------------------------------------------
     # Binding interface
-    # ------------------------------------------------------------------
-
     def _has_grounding(self, name: str) -> bool:
         """Return True if *name* (or the base of an alias) is bound."""
         if self._get_grounding(name) is not None:
@@ -314,7 +220,7 @@ class Interpretation(torch.nn.Module):
                 return store[reg]
         return self._overrides.get(name)
 
-    def _groundings(self) -> Dict[str, Any]:
+    def _groundings(self) -> dict[str, Any]:
         """All groundings by symbol name."""
         g = self._grounded
         out = dict(self._overrides)
@@ -445,10 +351,7 @@ class Interpretation(torch.nn.Module):
             val = self._get_grounding(self.signature.alias_base(key))
         return val
 
-    # ------------------------------------------------------------------
     # Central evaluator
-    # ------------------------------------------------------------------
-
     @property
     def validate_type_constraint(self) -> str:
         """Which values are checked against their Type: "groundings", "all" or "off"."""
@@ -462,9 +365,24 @@ class Interpretation(torch.nn.Module):
             )
         self._validate_type_constraint = value
 
-    def _eval_validated(self, node: Any, asgn: Assignment) -> Tensor:
-        """:meth:`_eval_node`, then check the result's Type constraint as set by
-        :attr:`validate_type_constraint`."""
+    def _eval(self, node: Any, asgn: Assignment) -> Tensor:
+        """Evaluate *node* (Term or Formula) under this interpretation.
+
+        Results are cached (keyed on node repr + assignment identity) when
+        ``self._eval_cache`` is set by :meth:`forward`, and Type constraints are
+        checked as set by :attr:`validate_type_constraint`.
+        """
+        cache = self._eval_cache
+        if cache is not None:
+            node_repr = node.__dict__.get('_cache_repr')
+            if node_repr is None:
+                node_repr = node.__dict__['_cache_repr'] = repr(node)
+            # Nodes that contain connectives have a different value inside a guard;
+            # atoms and terms don't, so a network used in a guard and a body runs once.
+            in_guard = self._in_guard and isinstance(node, _GUARD_DEPENDENT)
+            key = (node_repr, frozenset((k, id(v)) for k, v in asgn.items()), in_guard)
+            if key in cache:
+                return cache[key][0]
         out = self._eval_node(node, asgn)
         mode = self._validate_type_constraint
         if mode == "all" or (mode == "groundings" and isinstance(node, _GROUNDING_NODES)):
@@ -472,36 +390,18 @@ class Interpretation(torch.nn.Module):
                 out.domain_type.validate(out.value)
             except ValueError as exc:
                 raise ValueError(f"{exc} Value of {node!r}.") from None
+        if cache is not None:
+            # Storing asgn keeps its tensors alive, so their ids can't be reused in this call.
+            cache[key] = (out, asgn)
         return out
 
-    def _eval(self, node: Any, asgn: Assignment) -> Tensor:
-        """Evaluate *node* (Term or Formula) under this interpretation.
-
-        Caching (keyed on node repr + assignment identity) is applied here
-        when ``self._eval_cache`` is set by ``__call__``.
-        """
-        cache = self._eval_cache
-        if cache is None:
-            return self._eval_validated(node, asgn)
-        node_repr = node.__dict__.get('_cache_repr')
-        if node_repr is None:
-            node_repr = node.__dict__['_cache_repr'] = repr(node)
-        # Nodes that contain connectives have a different value inside a guard;
-        # atoms and terms don't, so a network used in a guard and a body runs once.
-        in_guard = self._in_guard and isinstance(node, _GUARD_DEPENDENT)
-        key = (node_repr, frozenset((k, id(v)) for k, v in asgn.items()), in_guard)
-        if key not in cache:
-            # Storing asgn keeps its tensors alive, so their ids can't be reused in this call.
-            cache[key] = (self._eval_validated(node, asgn), asgn)
-        return cache[key][0]
-
     def _variable(self, name: str) -> Tensor:
-        """``get_variable_value``, grounded once per call so cached sub-formulas are shared."""
+        """``_variable_value``, grounded once per call so cached sub-formulas are shared."""
         memo = self._eval_vars
         if memo is None:
-            return self.get_variable_value(name)
+            return self._variable_value(name)
         if name not in memo:
-            memo[name] = self.get_variable_value(name)
+            memo[name] = self._variable_value(name)
         return memo[name]
 
     def _eval_node(self, node: Any, asgn: Assignment) -> Tensor:
@@ -518,7 +418,7 @@ class Interpretation(torch.nn.Module):
                 return _apply_axis_renames(node.axis_annotations, val)
             case Constant():
                 n = node.name
-                val = asgn[n] if n in asgn else self.get_constant_value(n)
+                val = asgn[n] if n in asgn else self._constant_value(n)
                 return _apply_axis_renames(node.axis_annotations, val)
             case FunctionApplication():
                 evaluated = [self._eval(arg, asgn) for arg in node.args]
@@ -532,9 +432,9 @@ class Interpretation(torch.nn.Module):
             case FormulaAxisSelect():
                 return self._eval(node.base_formula, asgn).select(node.axis, node.index)
             case StructuralRelation():
-                rel = self.get_structural_relation(node.pred_name)
-                current = rel.axis_names
-                renames = {old: new for old, new in zip(current, node.var_names) if old != new}
+                rel = self._structural_relation(node.pred_name)
+                current = [a.name for a in rel.structural_axes]
+                renames = {old: new for old, new in zip(current, node.var_names, strict=True) if old != new}
                 return self._apply_threshold(rel.rename_axes(renames) if renames else rel)
             case AtomicFormula():
                 return self._apply_threshold(self._eval_atomic(node, asgn))
@@ -609,8 +509,7 @@ class Interpretation(torch.nn.Module):
                 present = [v for v in group if v in assignment]
                 if len(present) > 1:
                     diag_vars = Tensor.diag(*[assignment[v] for v in present])
-                    for v_name, var in zip(present, diag_vars):
-                        assignment[v_name] = var
+                    assignment.update(zip(present, diag_vars, strict=True))
 
         # Individual and structural variables are never mixed in one quantifier
         # (rejected at parse time), and structural ones share one dimension.
@@ -621,7 +520,7 @@ class Interpretation(torch.nn.Module):
         guard_result   = self._eval_guard(node.guard, assignment) if node.guard else None
 
         if struct_var_names:
-            agg_op = self.get_struct_agg_op(struct_var_names[0], quantifier)
+            agg_op = self.logic.struct_op(quantifier, struct_var_names[0])
             axes = struct_var_names
         else:
             agg_op = self.logic.Forall if quantifier == "forall" else self.logic.Exists
@@ -673,10 +572,7 @@ class Interpretation(torch.nn.Module):
         finally:
             self._eval_cache = self._eval_vars = None
 
-    # ------------------------------------------------------------------
     # Device placement
-    # ------------------------------------------------------------------
-
     def to(self, *args: Any, **kwargs: Any) -> Interpretation:
         """``nn.Module.to``; the device is also remembered for future
         :meth:`ground` / ``interp[sym] = value`` calls. Returns *self*.
@@ -693,23 +589,11 @@ class Interpretation(torch.nn.Module):
         return self
 
     @property
-    def device(self) -> Optional[torch.device]:
+    def device(self) -> torch.device | None:
         """The device this interpretation runs on."""
         return self._device
 
-    # ------------------------------------------------------------------
-    # Structural axis operator lookup
-    # ------------------------------------------------------------------
-
-    def get_struct_agg_op(self, axis: str, kind: str) -> AggregationOperator:
-        """Return the structural aggregation operator for *axis* and *kind* ('forall'/'exists').
-
-        Returns the operator set in ``logic.StructAgg`` for the axis's dimension if there
-        is one, and ``logic.Forall`` / ``logic.Exists`` otherwise (see :meth:`Logic.struct_op`).
-        """
-        return self.logic.struct_op(kind, axis)
-
-    def get_structural_relation(self, name: str) -> Tensor:
+    def _structural_relation(self, name: str) -> Tensor:
         """Return the annotated sltn.Tensor for a **structural relation** by name.
 
         A *structural relation* is a truth-valued tensor indexed purely by
@@ -735,10 +619,7 @@ class Interpretation(torch.nn.Module):
             )
         return val
 
-    # ------------------------------------------------------------------
     # Symbol resolution
-    # ------------------------------------------------------------------
-
     def resolve(self, sym: str | Symbol, structural_axes_override: list[str] | None = None) -> Any:
         """Return the effective callable for a function or predicate symbol.
 
@@ -774,11 +655,10 @@ class Interpretation(torch.nn.Module):
 
         raise TypeError(
             f"resolve() takes a function or predicate; '{name}' is a "
-            f"{type(sym_obj).__name__}. Use get_constant_value() or "
-            "get_variable_value() for constants and variables."
+            f"{type(sym_obj).__name__}. Use interp[name] for constants and variables."
         )
 
-    def get_constant_value(self, name: str) -> Tensor:
+    def _constant_value(self, name: str) -> Tensor:
         """Return the annotated sltn.Tensor value of a constant."""
         val = self._get_grounding(name)
         if val is None:
@@ -795,7 +675,7 @@ class Interpretation(torch.nn.Module):
         sort_type = _resolve_sort_type(sym_obj.sort, self)
         return _ground_constant(sym_obj, val, sort_type)
 
-    def get_variable_value(self, name: str) -> Tensor:
+    def _variable_value(self, name: str) -> Tensor:
         """Return the annotated sltn.Tensor value of a variable."""
         val = self._get_grounding(name)
         if val is None:
@@ -817,13 +697,11 @@ class Interpretation(torch.nn.Module):
             )
         return _value_to_tensor(val, name, self)
 
-    # ------------------------------------------------------------------
     # Binding management
-    # ------------------------------------------------------------------
     def with_updates(
         self,
-        overrides: Optional[Dict[str | Symbol, Any]] = None,
-        logic: Optional[Logic] = None,
+        overrides: dict[str | Symbol, Any] | None = None,
+        logic: Logic | None = None,
         **kwargs: Any,
     ) -> Interpretation:
         """Return a shallow copy with additional/overridden groundings and/or a new Logic."""
@@ -840,7 +718,7 @@ class Interpretation(torch.nn.Module):
         """Return a deep copy where all tensors and modules are independently cloned.
         A module bound to several symbols stays shared in the copy."""
         memo: dict = {}
-        new_overrides: Dict[str, Any] = {}
+        new_overrides: dict[str, Any] = {}
         for k, v in self._groundings().items():
             if isinstance(v, (torch.nn.Module, torch.nn.Parameter)):
                 new_overrides[k] = copy.deepcopy(v, memo)
@@ -858,10 +736,7 @@ class Interpretation(torch.nn.Module):
         memo[id(self)] = result
         return result
 
-    # ------------------------------------------------------------------
     # Trainable parameters
-    # ------------------------------------------------------------------
-
     def named_parameters(self, prefix: str = "", recurse: bool = True,
                          remove_duplicate: bool = True):
         """``nn.Module.named_parameters`` with symbol-based names (``"P.0.weight"``).
@@ -926,83 +801,3 @@ class Interpretation(torch.nn.Module):
             lines.append(f"  Not grounded: {', '.join(missing)}")
         lines.append(f"  {self.logic}")
         return "\n".join(lines)
-
-
-
-
-# ---------------------------------------------------------------------------
-# Internal proxy for overriding the callable of a symbol
-# ---------------------------------------------------------------------------
-
-class _SymbolProxy:
-    """Wraps a FunctionSymbol/PredicateSymbol with its grounding callable for one evaluation call.
-
-    ``axes_override`` names the symbol's ``output_dims`` in order (``A(x[t])[t1]``).
-    A name that is already an argument axis passes that axis through.
-    """
-
-    def __init__(
-        self,
-        sym: FunctionSymbol | PredicateSymbol,
-        override_callable: Any,
-        interp: Interpretation,
-        structural_axes_override: list[str] | None = None,
-    ) -> None:
-        self._sym      = sym
-        self._fn       = override_callable
-        self._is_pred  = isinstance(sym, PredicateSymbol)
-        self._interp   = interp
-        self._axes_override: list[str] | None = structural_axes_override
-
-    def __call__(self, *inputs: Tensor) -> Tensor:
-        preserved = self._preserved_axes(inputs)
-        out_dims = self._sym.output_dims
-        if self._axes_override is None:
-            names = [d.name for d in out_dims]
-        else:
-            names = list(self._axes_override)
-            if len(names) != len(out_dims):
-                raise ValueError(
-                    f"'{self._sym.name}' has {len(out_dims)} output dimension(s), "
-                    f"got the output annotation {names}."
-                )
-        input_axes = {ax for inp in inputs for ax in inp.free_structural_variables}
-        preserved += [n for n in names if n in input_axes and n not in preserved]
-        return self._call_symbol(inputs, preserved, names)
-
-    def _call_symbol(self, inputs, preserved, ax_names) -> Tensor:
-        if self._is_pred:
-            output_type = Bool
-        else:
-            # FunctionSymbol: resolve output type from sort grounding.
-            osort = self._sym.output_sort
-            output_type = _resolve_sort_type(osort, self._interp) if osort is not None else None
-            if output_type is None:
-                sname = osort.name if osort is not None else "?"
-                raise ValueError(
-                    f"FunctionSymbol '{self._sym.name}' has no output type. "
-                    f"Ground sort '{sname}' to a Type via interp[sort] = Type."
-                )
-        return _apply_callable(
-            func=self._fn, inputs=inputs, preserved_axis_names=preserved,
-            output_axis_names=ax_names, output_type=output_type,
-            name=self._sym.name,
-        )
-
-    def _preserved_axes(self, inputs) -> list[str]:
-        """Argument structural axes of the declared input_dims, in input_dims order (ties by name)."""
-        sig = self._interp.signature
-        rank: dict[str, int] = {}
-        for i, d in enumerate(self._sym.input_dims):
-            rank.setdefault(d.name, i)
-        if not rank:
-            return []
-        found: dict[str, int] = {}
-        for inp in inputs:
-            for axis in inp.structural_axes:
-                dim = sig.dimension_of(axis.name)
-                base = dim.name if dim is not None else _base_name_of(axis.name)
-                r = rank.get(axis.name, rank.get(base))
-                if r is not None:
-                    found[axis.name] = r
-        return sorted(found, key=lambda n: (found[n], n))

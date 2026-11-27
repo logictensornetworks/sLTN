@@ -10,12 +10,11 @@ fuzzy logic operator implementations.
 
 from __future__ import annotations
 
+from .apply import apply_connective, apply_quantifier, apply_sat_agg
 from .interpretation import Interpretation
-from .apply import apply_connective, apply_quantifier, apply_sat_agg, TensorCallable
 from .logic import Logic
 
 __all__ = [
-    "TensorCallable",
     "Interpretation",
     "Logic",
     "apply_connective",

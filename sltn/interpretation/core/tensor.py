@@ -5,16 +5,15 @@ from __future__ import annotations
 
 __all__ = ["Tensor"]
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 import torch
 
-from sltn.interpretation.core.type import Type
 from sltn.interpretation.core.axis import Axis
+from sltn.interpretation.core.type import Type
 
-# ---------------------------------------------------------------------------
+
 # Annotated Tensor
-# ---------------------------------------------------------------------------
 
 class Tensor:
     """
@@ -34,7 +33,7 @@ class Tensor:
         self,
         value: torch.Tensor,
         axes: Sequence[Axis],
-        domain_type: Optional[Type] = None,
+        domain_type: Type | None = None,
     ) -> None:
         if not isinstance(value, torch.Tensor):
             raise TypeError(f"Expected 'value' to be a torch.Tensor, got {type(value).__name__}")
@@ -82,10 +81,7 @@ class Tensor:
         else:
             self.domain_type = Type(shape=self._domain_shape, axis_names=self._domain_names)
 
-    # ------------------------------------------------------------------
     # Properties
-    # ------------------------------------------------------------------
-
     @property
     def shape(self) -> torch.Size:
         return self.value.shape
@@ -97,10 +93,6 @@ class Tensor:
     @property
     def axis_map(self) -> dict[str, int]:
         return self._axis_map
-
-    @property
-    def named_shape(self) -> dict[str, int]:
-        return {d.name: self.value.shape[i] for i, d in enumerate(self.axes)}
 
     @property
     def ndim(self) -> int:
@@ -126,14 +118,7 @@ class Tensor:
     def domain_axes(self) -> list[Axis]:
         return self._domain_axes
 
-    @property
-    def domain_shape(self) -> tuple[int, ...]:
-        return self._domain_shape
-
-    # ------------------------------------------------------------------
     # Repr
-    # ------------------------------------------------------------------
-
     def __repr__(self) -> str:
         axes_repr = ", ".join(
             f"{d.name}({d.role}): {self.value.shape[i]}"
@@ -144,53 +129,7 @@ class Tensor:
             f"domain_type={self.domain_type.name})"
         )
 
-    # ------------------------------------------------------------------
-    # Indexing
-    # ------------------------------------------------------------------
-
-    def __getitem__(self, idx) -> Tensor:
-        slicing         = [slice(None)] * self.ndim
-        new_axes        = list(self.axes)
-        axes_to_remove  = []
-
-        if isinstance(idx, dict):
-            for axis_name, index_val in idx.items():
-                if axis_name not in self._axis_map:
-                    raise ValueError(f"Axis '{axis_name}' not in annotated Tensor.")
-                axis = self._axis_map[axis_name]
-                slicing[axis] = index_val
-                if isinstance(index_val, int):
-                    axes_to_remove.append(axis_name)
-        else:
-            variable_axes = [
-                (i, d) for i, d in enumerate(self.axes) if d.role == 'variable'
-            ]
-            if len(variable_axes) != 1:
-                raise ValueError(
-                    "Default indexing requires exactly one 'variable' axis."
-                )
-            axis, dim_obj = variable_axes[0]
-            slicing[axis] = idx
-            if isinstance(idx, int):
-                axes_to_remove.append(dim_obj.name)
-
-        new_value  = self.value[tuple(slicing)]
-        final_axes = [d for d in new_axes if d.name not in axes_to_remove]
-
-        if not final_axes:
-            new_value  = new_value.unsqueeze(0)
-            final_axes = [Axis('domain_0', 'domain')]
-
-        return Tensor(
-            value=new_value,
-            axes=final_axes,
-            domain_type=self.domain_type,
-        )
-
-    # ------------------------------------------------------------------
     # Permute / rename / flatten
-    # ------------------------------------------------------------------
-
     def permute(self, *axis_names: str) -> Tensor:
         if len(axis_names) != self.ndim or set(axis_names) != set(self._axis_map):
             raise ValueError("Permutation axes must be a permutation of existing axes.")
@@ -260,10 +199,7 @@ class Tensor:
             domain_type=self.domain_type,
         )
 
-    # ------------------------------------------------------------------
     # Broadcast alignment
-    # ------------------------------------------------------------------
-
     @classmethod
     def align(cls, *expressions: Tensor) -> list[Tensor]:
         """Broadcast-align a set of sltn.Tensors over all variable and structural axes."""
@@ -324,10 +260,7 @@ class Tensor:
 
         return aligned
 
-    # ------------------------------------------------------------------
     # Diagonal
-    # ------------------------------------------------------------------
-
     @classmethod
     def diag(cls, *expressions: Tensor) -> list[Tensor]:
         """Share a single variable axis across multiple expressions (for diagonal quantification)."""
@@ -342,7 +275,7 @@ class Tensor:
             raise ValueError("diag requires at least two expressions.")
 
         var_axes  = [e.variable_axes[0] for e in expressions]
-        var_sizes = [e.shape[e.axis_map[d.name]] for e, d in zip(expressions, var_axes)]
+        var_sizes = [e.shape[e.axis_map[d.name]] for e, d in zip(expressions, var_axes, strict=True)]
         if len(set(var_sizes)) != 1:
             raise ValueError(
                 f"All expressions in diag must have the same number of individuals. "
@@ -353,20 +286,17 @@ class Tensor:
         new_var_axis   = Axis(name=diag_axis_name, role='variable')
 
         diag_exprs = []
-        for expr, old_var_axis in zip(expressions, var_axes):
+        for expr, old_var_axis in zip(expressions, var_axes, strict=True):
             new_axes = [new_var_axis if d == old_var_axis else d for d in expr.axes]
             diag_exprs.append(cls(value=expr.value, axes=new_axes, domain_type=expr.domain_type))
         return diag_exprs
 
-    # ------------------------------------------------------------------
     # Factory: variable-shaped sltn.Tensor
-    # ------------------------------------------------------------------
-
     @staticmethod
     def as_variable(
         name: str,
         value: torch.Tensor,
-        domain_type: Optional[Type] = None,
+        domain_type: Type | None = None,
     ) -> Tensor:
         """
         Create an sltn.Tensor suitable for use as a FOL variable in assignments.
