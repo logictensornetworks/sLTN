@@ -55,9 +55,7 @@ if TYPE_CHECKING:
     from sltn.interpretation import Interpretation
     from sltn.fol.formula import Formula
 
-# ---------------------------------------------------------------------------
 # String → torchjd aggregator mapping
-# ---------------------------------------------------------------------------
 
 _AGGREGATOR_ALIASES: dict[str, str] = {
     "mgda":    "MGDA",
@@ -98,9 +96,7 @@ def _resolve_aggregator(aggregator):
     )
 
 
-# ---------------------------------------------------------------------------
 # Public API
-# ---------------------------------------------------------------------------
 
 def _unpack_clauses(formulas) -> list:
     if isinstance(formulas, KB):
@@ -196,7 +192,6 @@ def kb_eval(
         interp.train(was_training)
 
 
-
 def kb_backward(
     optimizer: torch.optim.Optimizer,
     interp: Interpretation,
@@ -279,16 +274,14 @@ def kb_backward(
 
     clause_sats = OrderedDict(
         (name, sat_val.item())
-        for name, sat_val in zip(formulas.keys(), sat_vals)
+        for name, sat_val in zip(formulas.keys(), sat_vals, strict=True)
     )
     clause_losses = OrderedDict(
         (name, 1.0 - sat_val.item())
-        for name, sat_val in zip(formulas.keys(), sat_vals)
+        for name, sat_val in zip(formulas.keys(), sat_vals, strict=True)
     )
 
-    # ------------------------------------------------------------------
     # Standard path: single SatAgg loss (no torchjd required)
-    # ------------------------------------------------------------------
     if aggregator is None or aggregator == "satagg":
         sat = interp.logic.SatAgg(sat_vals)
         loss = 1.0 - sat
@@ -303,9 +296,7 @@ def kb_backward(
             "aggregator": None,
         }
 
-    # ------------------------------------------------------------------
     # Multi-objective path: torchjd Jacobian aggregation
-    # ------------------------------------------------------------------
     agg = _resolve_aggregator(aggregator)
     from torchjd.autojac import backward, jac_to_grad
     params = list({
@@ -332,9 +323,8 @@ def kb_backward(
         "aggregator": aggregator,
     }
 
-# ---------------------------------------------------------------------------
+
 # Crispness scheduler (p-parameter for pMean aggregators)
-# ---------------------------------------------------------------------------
 
 class CrispnessScheduler:
     """Experimental, not yet implemented.

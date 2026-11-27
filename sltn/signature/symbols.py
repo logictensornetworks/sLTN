@@ -24,24 +24,23 @@ Vocabulary
 from __future__ import annotations
 
 __all__ = [
-    "Symbol",
-    "Definition",
-    "Sort",
-    "Dimension",
     "ConstantSymbol",
-    "VariableSymbol",
+    "Definition",
+    "Dimension",
     "FunctionSymbol",
     "PredicateSymbol",
-    "StructuralVariableSymbol",
+    "Sort",
     "StructuralRelationSymbol",
+    "StructuralVariableSymbol",
+    "Symbol",
+    "VariableSymbol",
 ]
 
 from dataclasses import dataclass, field
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
-# ---------------------------------------------------------------------------
+
 # Base symbol
-# ---------------------------------------------------------------------------
 
 class Symbol:
     """Abstract base for a symbol, which is every declared entity in a Signature."""
@@ -65,9 +64,7 @@ def _call_details(sym) -> str:
     return f"  ({', '.join(parts)})" if parts else ""
 
 
-# ---------------------------------------------------------------------------
 # Definition
-# ---------------------------------------------------------------------------
 
 @dataclass
 class Definition:
@@ -77,7 +74,7 @@ class Definition:
     body: str
     infix: bool = False
     input_sorts: list[Sort] = field(default_factory=list)
-    output_sort: Optional[Sort] = None
+    output_sort: Sort | None = None
     input_dims: list[Dimension] = field(default_factory=list)
     output_dims: list[Dimension] = field(default_factory=list)
 
@@ -89,9 +86,7 @@ class Definition:
         return f"{head} := {self.body}"
 
 
-# ---------------------------------------------------------------------------
 # Sort
-# ---------------------------------------------------------------------------
 
 class Sort(Symbol):
     """A domain (sort) declaration.
@@ -111,9 +106,7 @@ class Sort(Symbol):
         return f"Sort({self.name!r})"
 
 
-# ---------------------------------------------------------------------------
 # Dimension
-# ---------------------------------------------------------------------------
 
 class Dimension(Symbol):
     """A structural/world dimension symbol (e.g. 'time', 'event').
@@ -132,8 +125,8 @@ class Dimension(Symbol):
     def __init__(
         self,
         name: str,
-        sort: Optional[Sort] = None,
-        labels: Optional[list] = None,
+        sort: Sort | None = None,
+        labels: list | None = None,
     ) -> None:
         super().__init__(name)
         self.sort = sort
@@ -154,9 +147,7 @@ class Dimension(Symbol):
         return f"Dimension({', '.join(parts)})"
 
 
-# ---------------------------------------------------------------------------
 # ConstantSymbol
-# ---------------------------------------------------------------------------
 
 class ConstantSymbol(Symbol):
     """An individual constant declaration.
@@ -172,7 +163,7 @@ class ConstantSymbol(Symbol):
         self,
         name: str,
         sort: Sort,
-        dims: Optional[Sequence[Dimension]] = None,
+        dims: Sequence[Dimension] | None = None,
     ) -> None:
         super().__init__(name)
         self.sort = sort
@@ -190,9 +181,7 @@ class ConstantSymbol(Symbol):
         return f"ConstantSymbol({self.name!r}, sort={self.sort.name!r}{dims_str})"
 
 
-# ---------------------------------------------------------------------------
 # VariableSymbol
-# ---------------------------------------------------------------------------
 
 class VariableSymbol(Symbol):
     """A variable symbol declaration.
@@ -206,7 +195,7 @@ class VariableSymbol(Symbol):
         self,
         name: str,
         sort: Sort,
-        dims: Optional[Sequence[Dimension]] = None,
+        dims: Sequence[Dimension] | None = None,
     ) -> None:
         super().__init__(name)
         self.sort = sort
@@ -224,9 +213,7 @@ class VariableSymbol(Symbol):
         return f"VariableSymbol({self.name!r}, sort={self.sort.name!r}{dims_str})"
 
 
-# ---------------------------------------------------------------------------
 # FunctionSymbol
-# ---------------------------------------------------------------------------
 
 class FunctionSymbol(Symbol):
     """A function symbol.
@@ -249,15 +236,15 @@ class FunctionSymbol(Symbol):
     def __init__(
         self,
         name: str,
-        input_sorts: Optional[list[Sort]] = None,
-        output_sort: Optional[Sort] = None,
-        input_dims: Optional[Sequence[Dimension]] = None,
-        output_dims: Optional[Sequence[Dimension]] = None,
+        input_sorts: list[Sort] | None = None,
+        output_sort: Sort | None = None,
+        input_dims: Sequence[Dimension] | None = None,
+        output_dims: Sequence[Dimension] | None = None,
         infix: bool = False,
     ) -> None:
         super().__init__(name)
         self.input_sorts:  list[Sort]      = list(input_sorts or [])
-        self.output_sort:  Optional[Sort]  = output_sort
+        self.output_sort:  Sort | None  = output_sort
         self.input_dims:   list[Dimension] = list(input_dims or [])
         self.output_dims:  list[Dimension] = list(output_dims or [])
         self.infix: bool = infix
@@ -273,9 +260,7 @@ class FunctionSymbol(Symbol):
         return f"FunctionSymbol({self.name!r}: {in_sorts} → {out_sort})"
 
 
-# ---------------------------------------------------------------------------
 # PredicateSymbol
-# ---------------------------------------------------------------------------
 
 class PredicateSymbol(Symbol):
     """A predicate symbol mapping to truth values in [0, 1].
@@ -293,9 +278,9 @@ class PredicateSymbol(Symbol):
     def __init__(
         self,
         name: str,
-        input_sorts: Optional[list[Sort]] = None,
-        input_dims: Optional[Sequence[Dimension]] = None,
-        output_dims: Optional[Sequence[Dimension]] = None,
+        input_sorts: list[Sort] | None = None,
+        input_dims: Sequence[Dimension] | None = None,
+        output_dims: Sequence[Dimension] | None = None,
         infix: bool = False,
     ) -> None:
         super().__init__(name)
@@ -313,9 +298,7 @@ class PredicateSymbol(Symbol):
         return f"PredicateSymbol({self.name!r}: {in_sorts} → Bool)"
 
 
-# ---------------------------------------------------------------------------
 # StructuralVariableSymbol
-# ---------------------------------------------------------------------------
 
 class StructuralVariableSymbol(Symbol):
     """A dimensional variable symbol (e.g. τ, α of dimension 'time').
@@ -336,9 +319,7 @@ class StructuralVariableSymbol(Symbol):
         return f"StructuralVariableSymbol({self.name!r}, dimension={self.dimension.name!r})"
 
 
-# ---------------------------------------------------------------------------
 # StructuralRelationSymbol
-# ---------------------------------------------------------------------------
 
 class StructuralRelationSymbol(Symbol):
     """A structural relation symbol (e.g. 'next(time, time)').

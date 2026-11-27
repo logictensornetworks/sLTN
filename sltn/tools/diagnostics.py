@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from sltn.fol.formula import Formula
 
 
-# ------------------------------------------------------------------
 # Cache benchmarking
-# ------------------------------------------------------------------
 
 def _sync(device: torch.device) -> None:
     """Wait for pending GPU work on *device*, so that the clock measures it and not just kernel launches."""

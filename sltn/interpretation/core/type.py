@@ -3,17 +3,20 @@ sltn.interpretation.core.type — Type system for tensor domain shapes and const
 """
 from __future__ import annotations
 
-__all__ = ["Type", "Real", "Bool", "Int", "PositiveReal", "Complex", "product_type"]
+__all__ = ["Bool", "Complex", "Int", "PositiveReal", "Real", "Type", "product_type"]
+
+from collections.abc import Callable
 
 import torch
-from typing import Callable, Tuple
+
 from sltn.interpretation.core.axis import Axis
+
 
 class Type:
     def __init__(
         self,
         name: str = "Tensor",
-        shape: Tuple[int, ...] = (1,),
+        shape: tuple[int, ...] = (1,),
         constraint: Callable[[torch.Tensor], bool] | None = None,
         axis_names: list[str] | None = None,
     ) -> None:
@@ -65,17 +68,22 @@ class Type:
 def _is_bool_like(x: torch.Tensor) -> bool:
     return bool(((x >= 0) & (x <= 1)).all())  # one device sync; False for NaN
 
+
 def _is_int(x: torch.Tensor) -> bool:
     return not x.is_floating_point() and not x.is_complex() and x.dtype != torch.bool
+
 
 def _is_float(x: torch.Tensor) -> bool:
     return x.is_floating_point()
 
+
 def _is_positive_float(x: torch.Tensor) -> bool:
     return x.is_floating_point() and (x > 0).all()
 
+
 def _is_complex(x: torch.Tensor) -> bool:
     return torch.is_complex(x)
+
 
 # Define some common types
 Bool = Type(name="Bool", 
@@ -106,7 +114,7 @@ Complex = Type(name="Complex",
 
 def product_type(
     base_type: Type,
-    shape: Tuple[int, ...],
+    shape: tuple[int, ...],
     axis_names: list[str] | None = None,
 ) -> Type:
     """Create a product type: N copies of *base_type* arranged along new prefix axes.

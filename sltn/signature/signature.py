@@ -15,7 +15,8 @@ __all__ = [
 import warnings
 from contextlib import contextmanager
 from types import MappingProxyType
-from typing import Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from collections.abc import Iterator, Sequence
 
 from sltn.signature.symbols import (
     Symbol, Definition, Sort, Dimension, ConstantSymbol, VariableSymbol,
@@ -31,9 +32,8 @@ if TYPE_CHECKING:
 
 _GRAMMAR_CHARS = frozenset("()[]{},:|")
 
-# ---------------------------------------------------------------------------
+
 # Signature
-# ---------------------------------------------------------------------------
 
 class Signature:
     """
@@ -73,10 +73,7 @@ class Signature:
         self.sort("Bool")
         self.sort("Real")
 
-    # ------------------------------------------------------------------
     # Private name-resolution helpers
-    # ------------------------------------------------------------------
-
     def _resolve_sort(self, sort: str | Sort) -> Sort:
         if isinstance(sort, Sort):
             if self._sorts.get(sort.name) is not sort:
@@ -86,7 +83,7 @@ class Signature:
             raise KeyError(f"Sort '{sort}' not declared in '{self.name}'.")
         return self._sorts[sort]
 
-    def _resolve_sorts(self, sorts: Optional[Sequence[str | Sort]]) -> list[Sort]:
+    def _resolve_sorts(self, sorts: Sequence[str | Sort] | None) -> list[Sort]:
         return [self._resolve_sort(s) for s in sorts] if sorts else []
 
     def _resolve_dim(self, dim: str | Dimension) -> Dimension:
@@ -98,13 +95,10 @@ class Signature:
             raise KeyError(f"Dimension '{dim}' not declared in '{self.name}'.")
         return self._dimensions[dim]
 
-    def _resolve_dims(self, dims: Optional[Sequence[str | Dimension]]) -> list[Dimension]:
+    def _resolve_dims(self, dims: Sequence[str | Dimension] | None) -> list[Dimension]:
         return [self._resolve_dim(d) for d in dims] if dims else []
 
-    # ------------------------------------------------------------------
     # Declarations
-    # ------------------------------------------------------------------
-
     def _registries(self) -> dict[str, dict]:
         """Every symbol registry, keyed by the name of its kind as used in messages."""
         return {
@@ -119,7 +113,7 @@ class Signature:
             "definition": self._definitions,
         }
 
-    def _kind_of(self, name: str) -> Optional[str]:
+    def _kind_of(self, name: str) -> str | None:
         """The kind of the symbol declared as *name*, or ``None`` if the name is free."""
         for kind, store in self._registries().items():
             if name in store:
@@ -183,8 +177,8 @@ class Signature:
     def dimension(
         self,
         name: str,
-        sort: Optional[str | Sort] = None,
-        labels: Optional[list] = None,
+        sort: str | Sort | None = None,
+        labels: list | None = None,
     ) -> Dimension:
         self._check_name(name, "dimension")
         self._warn_if_redeclared(name, "dimension")
@@ -197,7 +191,7 @@ class Signature:
         self,
         name: str,
         sort: str | Sort,
-        dims: Optional[Sequence[str | Dimension]] = None,
+        dims: Sequence[str | Dimension] | None = None,
     ) -> ConstantSymbol:
         self._check_name(name, "constant")
         self._warn_if_redeclared(name, "constant")
@@ -209,7 +203,7 @@ class Signature:
         self,
         name: str,
         sort: str | Sort,
-        dims: Optional[Sequence[str | Dimension]] = None,
+        dims: Sequence[str | Dimension] | None = None,
     ) -> VariableSymbol:
         self._check_name(name, "variable")
         self._warn_if_redeclared(name, "variable")
@@ -222,8 +216,8 @@ class Signature:
         name: str,
         input_sorts: list[str | Sort],
         output_sort: str | Sort,
-        input_dims: Optional[Sequence[str | Dimension]] = None,
-        output_dims: Optional[Sequence[str | Dimension]] = None,
+        input_dims: Sequence[str | Dimension] | None = None,
+        output_dims: Sequence[str | Dimension] | None = None,
         **kwargs,
     ) -> FunctionSymbol:
         self._check_name(name, "function", infix=kwargs.get("infix", False))
@@ -244,8 +238,8 @@ class Signature:
         self,
         name: str,
         input_sorts: list[str | Sort],
-        input_dims: Optional[Sequence[str | Dimension]] = None,
-        output_dims: Optional[Sequence[str | Dimension]] = None,
+        input_dims: Sequence[str | Dimension] | None = None,
+        output_dims: Sequence[str | Dimension] | None = None,
         **kwargs,
     ) -> PredicateSymbol:
         self._check_name(name, "predicate", infix=kwargs.get("infix", False))
@@ -295,10 +289,10 @@ class Signature:
         arg_names: list[str],
         formula_body: str,
         infix: bool = False,
-        input_sorts: Optional[Sequence[str | Sort]] = None,
-        output_sort: Optional[str | Sort] = None,
-        input_dims: Optional[Sequence[str | Dimension]] = None,
-        output_dims: Optional[Sequence[str | Dimension]] = None,
+        input_sorts: Sequence[str | Sort] | None = None,
+        output_sort: str | Sort | None = None,
+        input_dims: Sequence[str | Dimension] | None = None,
+        output_dims: Sequence[str | Dimension] | None = None,
     ) -> None:
         """Register a derived predicate as a syntactic abbreviation (rewriting rule).
 
@@ -330,10 +324,7 @@ class Signature:
             output_dims=self._resolve_dims(output_dims),
         )
 
-    # ------------------------------------------------------------------
     # Lookup
-    # ------------------------------------------------------------------
-
     def resolve_structural_axis(self, name: str) -> str:
         """Return the canonical ``Dimension`` name for a structural axis identifier.
 
@@ -351,7 +342,7 @@ class Signature:
         dim = self.dimension_of(name)
         return dim.name if dim is not None else name
 
-    def dimension_of(self, name: str) -> Optional[Dimension]:
+    def dimension_of(self, name: str) -> Dimension | None:
         """The dimension of the structural variable *name*, or of the one it's an alias of."""
         sv = self._structural_variables.get(name) or self._structural_variables.get(_base_name_of(name))
         return sv.dimension if sv is not None else None
@@ -360,7 +351,7 @@ class Signature:
         """Whether *name* is a dimension or looks like an alias of one (``T1``)."""
         return name in self._dimensions or _base_name_of(name) in self._dimensions
 
-    def alias_base(self, name: str) -> Optional[str]:
+    def alias_base(self, name: str) -> str | None:
         """The base variable of the registered alias *name* (``x1`` → ``x``), or ``None``."""
         return self._variables_aliases.get(name) or self._structural_variables_aliases.get(name)
 
@@ -394,7 +385,7 @@ class Signature:
         try:
             yield
         except BaseException:
-            for registry, saved in zip(registries, snapshot):
+            for registry, saved in zip(registries, snapshot, strict=True):
                 registry.clear()
                 registry.update(saved)
             raise
@@ -421,10 +412,7 @@ class Signature:
                 return store[name]
         raise KeyError(f"Symbol '{name}' not found in signature '{self.name}'.")
 
-    # ------------------------------------------------------------------
     # Parsing
-    # ------------------------------------------------------------------
-
     def parse(self, formula_string: str) -> Formula | Term:
         """Parse *formula_string* as a formula (or as a term, if the whole string is one)."""
         from sltn.parse.pipeline import parse
@@ -434,10 +422,8 @@ class Signature:
         """Parse *term_string* and resolve symbol names against this signature."""
         from sltn.parse.pipeline import parse_term
         return parse_term(term_string, self)
-    # ------------------------------------------------------------------
-    # Repr
-    # ------------------------------------------------------------------
 
+    # Repr
     def _aliases_of(self, base: str) -> list[str]:
         aliases = {**self._variables_aliases, **self._structural_variables_aliases}
         return [a for a, b in aliases.items() if b == base]

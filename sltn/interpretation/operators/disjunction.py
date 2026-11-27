@@ -1,9 +1,11 @@
-from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
-from .utils import DEFAULT_EPS, DEFAULT_STABLE
+from __future__ import annotations
+
 import torch
 
-from .conjunction import AndProd, AndMin, AndLuk
+from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
+from .conjunction import AndLuk, AndMin, AndProd
 from .negation import NotStandard
+from .utils import DEFAULT_EPS, DEFAULT_STABLE
 
 
 class OrDual(BinaryConnectiveOperator):

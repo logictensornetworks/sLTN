@@ -10,9 +10,8 @@ __all__ = ["Axis"]
 
 from dataclasses import dataclass
 
-# ---------------------------------------------------------------------------
+
 # Axis — named tensor-dimension tag
-# --------------------------------------------------------------------------- 
 
 @dataclass(frozen=True)
 class Axis:

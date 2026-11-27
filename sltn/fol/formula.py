@@ -14,22 +14,22 @@ Formulas are:
 from __future__ import annotations
 
 __all__ = [
-    "Formula",
-    "TermFormula",
-    "FormulaAxisSelect",
-    "AtomicFormula",
-    "And",
-    "Or",
-    "Not",
-    "Implies",
-    "Equivalent",
-    "Forall",
-    "Exists",
     "KB",
+    "And",
+    "AtomicFormula",
+    "Equivalent",
+    "Exists",
+    "Forall",
+    "Formula",
+    "FormulaAxisSelect",
+    "Implies",
+    "Not",
+    "Or",
     "StructuralRelation",
+    "TermFormula",
 ]
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from sltn.fol.term import Term, _call_axis_dims
 from sltn.signature.symbols import PredicateSymbol, FunctionSymbol, StructuralRelationSymbol
@@ -117,9 +117,7 @@ class FormulaAxisSelect(Formula):
         return f"({self.base_formula})[{self.axis}={self.index}]"
 
 
-# ---------------------------------------------------------------------------
 # Atomic formula
-# ---------------------------------------------------------------------------
 
 class AtomicFormula(Formula):
     """P(t1, …, tn) — a predicate applied to a sequence of terms.
@@ -172,10 +170,7 @@ class AtomicFormula(Formula):
         return f"{self.pred_name}({args_str})"
 
 
-
-# ---------------------------------------------------------------------------
 # Structural relation
-# ---------------------------------------------------------------------------
 
 class StructuralRelation(Formula):
     """A structural predicate applied to structural variable names.
@@ -207,9 +202,7 @@ class StructuralRelation(Formula):
         return f"{self.pred_name}({', '.join(self.var_names)})"
 
 
-# ---------------------------------------------------------------------------
 # Connectives
-# ---------------------------------------------------------------------------
 
 def _binary_connective(class_name: str, op_attr: str, symbol: str, doc: str = "") -> type:
     """Return a concrete binary Formula class for a given connective."""
@@ -274,9 +267,7 @@ class Not(Formula):
         return f"{self.symbol}{self.operand}"
 
 
-# ---------------------------------------------------------------------------
 # Quantifiers
-# ---------------------------------------------------------------------------
 
 class _BoundFormula(Formula):
     """Base for quantified formulas. Subclasses set ``quantifier`` and ``symbol``."""
@@ -309,12 +300,10 @@ class _BoundFormula(Formula):
         return (self.formula.free_structural_variables | guard_fvs) - set(self.var_names)
 
     def _render_vars(self) -> str:
-        parts = []
-        for group in self._var_groups:
-            parts.append(
-                group[0] if len(group) == 1 else f"({', '.join(group)})"
-            )
-        return ", ".join(parts)
+        return ", ".join(
+            group[0] if len(group) == 1 else f"({', '.join(group)})"
+            for group in self._var_groups
+        )
 
     def __repr__(self) -> str:
         guard_str = f" | {self.guard}" if self.guard else ""
@@ -333,9 +322,7 @@ class Exists(_BoundFormula):
     symbol     = "∃"
 
 
-# ---------------------------------------------------------------------------
 # Knowledge Base
-# ---------------------------------------------------------------------------
 
 class KB(Formula):
     """{ φ1, …, φn } — flat set of axiom clauses.
@@ -388,14 +375,14 @@ class KB(Formula):
             return NotImplemented
         if isinstance(other, KB):
             return KB(self.clauses + other.clauses)
-        return KB(self.clauses + [other])
+        return KB([*self.clauses, other])
 
     def __radd__(self, other: Formula | KB) -> KB:
         if not isinstance(other, Formula):
             return NotImplemented
         if isinstance(other, KB):
             return KB(other.clauses + self.clauses)
-        return KB([other] + self.clauses)
+        return KB([other, *self.clauses])
 
     def __repr__(self) -> str:
         return "{ " + ", ".join(map(str, self.clauses)) + " }"

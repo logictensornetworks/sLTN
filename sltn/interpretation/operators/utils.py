@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import torch
 
 # Default shift of the stable operators: pi_0 maps [0, 1] onto [eps, 1], pi_1 onto [0, 1 - eps].
@@ -9,6 +11,7 @@ DEFAULT_STABLE: bool = True
 DEFAULT_CLASSICAL_THRESHOLD: float = 0.5
 # Experimental, not used by any operator: smooth clamping helpers kept for future work.
 DEFAULT_BETA: float = 10.
+
 
 def pi_0(x, eps=DEFAULT_EPS):
     """

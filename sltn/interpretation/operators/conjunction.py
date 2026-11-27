@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import torch
+
 from .base import BinaryConnectiveOperator
 from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0, pi_1
 

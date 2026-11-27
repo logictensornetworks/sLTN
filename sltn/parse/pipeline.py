@@ -41,11 +41,9 @@ if TYPE_CHECKING:
     from sltn.signature.signature import Signature
 
 
-# ---------------------------------------------------------------------------
 # Symbol resolution
-# ---------------------------------------------------------------------------
 
-def _dimension_name_error(name: str, sig: Signature) -> NameError:
+def _dimension_name_error(name: str) -> NameError:
     return NameError(
         f"'{name}' is a dimension name (or an alias of one), which can't name an axis. "
         f"Declare a structural variable over the dimension with "
@@ -70,11 +68,11 @@ def _check_annotation_dimensions(name: str, dims: list, annotations: list, sig: 
         )
     if len(set(annotations)) != len(annotations):
         raise ValueError(f"'{written}' uses the same axis name more than once.")
-    for dim, ann in zip(dims, annotations):
+    for dim, ann in zip(dims, annotations, strict=True):
         ann_dim = sig.dimension_of(ann)
         if ann_dim is None:
             if sig.is_dimension_name(ann):
-                raise _dimension_name_error(ann, sig)
+                raise _dimension_name_error(ann)
             raise NameError(
                 f"Axis annotation '{ann}' in '{written}' is not a structural variable "
                 f"or an alias of one."
@@ -106,7 +104,7 @@ def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]
             f"({[d.name for d in dims]}), got {len(args)}."
         )
     names = []
-    for arg, dim in zip(args, dims):
+    for arg, dim in zip(args, dims, strict=True):
         if not isinstance(arg, _NameTerm) or arg.axis_annotations:
             raise ValueError(
                 f"Arguments of structural relation '{sym.name}' must be structural variable "
@@ -115,7 +113,7 @@ def _relation_argument_names(sym, args: list, sig: Signature) -> tuple[str, ...]
         arg_dim = sig.dimension_of(arg.symbol)
         if arg_dim is None:
             if sig.is_dimension_name(arg.symbol):
-                raise _dimension_name_error(arg.symbol, sig)
+                raise _dimension_name_error(arg.symbol)
             raise NameError(
                 f"Argument '{arg.symbol}' of structural relation '{sym.name}' is not a structural "
                 f"variable or an alias of one."
@@ -167,7 +165,7 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                 resolved = sig.alias(name)
                 if resolved is None:
                     if sig.is_dimension_name(name):
-                        raise _dimension_name_error(name, sig)
+                        raise _dimension_name_error(name)
                     raise NameError(
                         f"Symbol '{name}' is not declared in signature '{sig.name}'. "
                         f"Available variables: {list(sig.variables)}, "
@@ -278,10 +276,10 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                 if vname in sig.structural_variables or vname in sig.variables:
                     continue
                 if vname in sig.dimensions:
-                    raise _dimension_name_error(vname, sig)
+                    raise _dimension_name_error(vname)
                 if sig.alias(vname) is None:
                     if sig.is_dimension_name(vname):
-                        raise _dimension_name_error(vname, sig)
+                        raise _dimension_name_error(vname)
                     raise NameError(
                         f"Quantified name '{vname}' in signature '{sig.name}' is not declared "
                         f"as a variable (sig.variable(...)) or a structural variable "
@@ -297,9 +295,7 @@ def _resolve_symbols(node: Formula | Term, sig: Signature) -> None:
                 _resolve_symbols(clause, sig)
 
 
-# ---------------------------------------------------------------------------
 # Argument validation
-# ---------------------------------------------------------------------------
 
 def _sort_name(arg: Formula | Term) -> str | None:
     """Sort of a resolved argument; ``None`` when it has none (a structural variable
@@ -337,7 +333,7 @@ def _check_arguments(node: Formula | Term) -> None:
             raise TypeError(
                 f"{kind} '{sym.name}' expects {len(expected)} argument(s), got {len(node.args)}, in {node}."
             )
-        for i, (arg, sort) in enumerate(zip(node.args, expected)):
+        for i, (arg, sort) in enumerate(zip(node.args, expected, strict=True)):
             got = _sort_name(arg)
             if got is not None and got != sort.name:
                 raise TypeError(
@@ -345,9 +341,7 @@ def _check_arguments(node: Formula | Term) -> None:
                 )
 
 
-# ---------------------------------------------------------------------------
 # Quantifier validation
-# ---------------------------------------------------------------------------
 
 def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
     """Validate the names bound by every quantifier.
@@ -421,9 +415,7 @@ def _validate_quantifiers(node: Formula | Term, sig: Signature) -> None:
             _validate_quantifiers(node.base_formula, sig)
 
 
-# ---------------------------------------------------------------------------
 # Structural-variable annotation (dimensional calculus)
-# ---------------------------------------------------------------------------
 
 def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) -> set[str]:
     """Recursively annotate every AST node with its free structural-variable set.
@@ -512,9 +504,7 @@ def _annotate_free_structural_variables(node: Formula | Term, sig: Signature) ->
     return dims
 
 
-# ---------------------------------------------------------------------------
 # Free-variable annotation
-# ---------------------------------------------------------------------------
 
 def _annotate_free_variables(node: Formula | Term, sig: Signature) -> set[str]:
     """Recursively annotate every AST node with its set of free FOL variables.
@@ -530,9 +520,8 @@ def _annotate_free_variables(node: Formula | Term, sig: Signature) -> set[str]:
     node._free_variables = node._compute_free_variables()
     return node._free_variables
 
-# ---------------------------------------------------------------------------
+
 # KB clause validation (post-annotation)
-# ---------------------------------------------------------------------------
 
 def _validate_kb_clauses(node: Any) -> None:
     """Walk the AST and raise ValueError for any KB whose clauses are not closed."""
@@ -552,9 +541,7 @@ def _validate_kb_clauses(node: Any) -> None:
             _validate_kb_clauses(node.base_formula)
 
 
-# ---------------------------------------------------------------------------
 # Top-level parse / pipeline entry points
-# ---------------------------------------------------------------------------
 
 def _warn_on_escaped_variables(ast: Formula | Term) -> None:
     """Warn when a quantified name also occurs free: usually a missing pair of parentheses."""
@@ -576,7 +563,7 @@ def _warn_on_escaped_variables(ast: Formula | Term) -> None:
         )
 
 
-def _run_pipeline(ast, sig: "Signature"):
+def _run_pipeline(ast, sig: Signature):
     """Expand definitions and run all annotation passes on *ast* in place.
 
     Symbols auto-registered while resolving names (aliases such as ``x1`` or
@@ -595,7 +582,7 @@ def _run_pipeline(ast, sig: "Signature"):
     return ast
 
 
-def parse_raw(source: str, sig: "Signature", expect: Literal["formula", "term", "any"]) -> "Formula | Term":
+def parse_raw(source: str, sig: Signature, expect: Literal["formula", "term", "any"]) -> Formula | Term:
     """Parse *source* with *sig*'s infix symbols, without resolving names.
 
     ``"any"`` parses a formula, but returns a bare term (``digit(x)``, ``y``) as a term.
@@ -608,7 +595,7 @@ def parse_raw(source: str, sig: "Signature", expect: Literal["formula", "term", 
     return ast
 
 
-def parse(formula_string: str, sig: "Signature") -> "Formula | Term":
+def parse(formula_string: str, sig: Signature) -> Formula | Term:
     """Parse *formula_string* against *sig* and run the full pipeline (``sig.parse``).
 
     The result is a formula, or a term when the whole string is a term (``digit(x)``).
@@ -618,6 +605,6 @@ def parse(formula_string: str, sig: "Signature") -> "Formula | Term":
     return ast
 
 
-def parse_term(term_string: str, sig: "Signature") -> "Term":
+def parse_term(term_string: str, sig: Signature) -> Term:
     """Parse *term_string* against *sig* and run the resolution pipeline (``sig.parse_term``)."""
     return _run_pipeline(parse_raw(term_string, sig, "term"), sig)

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import torch
+
 from .base import BinaryConnectiveOperator, UnaryConnectiveOperator
+from .conjunction import AndLuk, AndMin, AndProd
 from .negation import NotStandard
-from .conjunction import AndProd, AndMin, AndLuk
 from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0
 
 
@@ -20,6 +23,7 @@ class ImpliesDual(BinaryConnectiveOperator):
     def __call__(self, x, y) -> torch.Tensor:
 
         return self.neg_op(self.and_op(x, self.neg_op(y)))
+
 
 class ImpliesKleeneDienes(ImpliesDual):
     """
@@ -106,6 +110,7 @@ class Equiv(BinaryConnectiveOperator):
         op1 = self.implies_op(x, y)
         op2 = self.implies_op(y, x)
         return self.and_op(op1, op2)
+
 
 class EquivSimilarity(BinaryConnectiveOperator):
     """

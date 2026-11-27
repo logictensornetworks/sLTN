@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import torch
+
 from .base import UnaryConnectiveOperator
+
 
 class NotStandard(UnaryConnectiveOperator):
     """Standard fuzzy negation: ¬A = 1 - A."""
@@ -9,6 +13,7 @@ class NotStandard(UnaryConnectiveOperator):
 
     def __call__(self, x) -> torch.Tensor:
         return 1. - x
+
 
 class NotGodel(UnaryConnectiveOperator):
     """Gödel (crisp) negation: ¬A = 1 if A == 0 else 0."""

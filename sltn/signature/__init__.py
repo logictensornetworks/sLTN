@@ -1,4 +1,5 @@
 """sltn.signature — Symbol declarations and Signature registry."""
+from __future__ import annotations
 
 from sltn.signature.symbols import (
     Symbol,
@@ -15,15 +16,15 @@ from sltn.signature.symbols import (
 from sltn.signature.signature import Signature
 
 __all__ = [
-    "Symbol",
-    "Definition",
-    "Sort",
-    "Dimension",
     "ConstantSymbol",
-    "VariableSymbol",
+    "Definition",
+    "Dimension",
     "FunctionSymbol",
     "PredicateSymbol",
-    "StructuralVariableSymbol",
-    "StructuralRelationSymbol",
     "Signature",
+    "Sort",
+    "StructuralRelationSymbol",
+    "StructuralVariableSymbol",
+    "Symbol",
+    "VariableSymbol",
 ]

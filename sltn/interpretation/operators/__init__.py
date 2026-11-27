@@ -17,82 +17,84 @@ Connectives:
 Aggregation:
   - :mod:`.aggregator`   — AggregMin, AggregMax, AggregGeometricMean, AggregPMean, AggregPMeanError
 """
-from .base import (
-    ConnectiveOperator,
-    UnaryConnectiveOperator,
-    BinaryConnectiveOperator,
-    AggregationOperator,
-)
-from .utils import DEFAULT_CLASSICAL_THRESHOLD, DEFAULT_EPS, DEFAULT_STABLE, pi_0, pi_1
-from .conjunction import (
-    AndMin,
-    AndProd,
-    AndPMean,
-    AndCos,
-    AndLuk,
-)
-from .disjunction import (
-    OrMax,
-    OrProbSum,
-    OrDual,
-    OrLuk,
-    XOrClassical,
-)
-from .negation import (
-    NotStandard,
-    NotGodel,
-)
-from .implication import (
-    ImpliesKleeneDienes,
-    ImpliesGodel,
-    ImpliesReichenbach,
-    ImpliesGoguen,
-    ImpliesLuk,
-    ImpliesDual,
-    Equiv,
-    EquivSimilarity,
-)
+from __future__ import annotations
+
 from .aggregator import (
-    AggregMin,
-    AggregMax,
     AggregGeometricMean,
+    AggregMax,
+    AggregMin,
     AggregPMean,
     AggregPMeanError,
 )
+from .base import (
+    AggregationOperator,
+    BinaryConnectiveOperator,
+    ConnectiveOperator,
+    UnaryConnectiveOperator,
+)
+from .conjunction import (
+    AndCos,
+    AndLuk,
+    AndMin,
+    AndPMean,
+    AndProd,
+)
+from .disjunction import (
+    OrDual,
+    OrLuk,
+    OrMax,
+    OrProbSum,
+    XOrClassical,
+)
+from .implication import (
+    Equiv,
+    EquivSimilarity,
+    ImpliesDual,
+    ImpliesGodel,
+    ImpliesGoguen,
+    ImpliesKleeneDienes,
+    ImpliesLuk,
+    ImpliesReichenbach,
+)
+from .negation import (
+    NotGodel,
+    NotStandard,
+)
+from .utils import DEFAULT_CLASSICAL_THRESHOLD, DEFAULT_EPS, DEFAULT_STABLE, pi_0, pi_1
 
 __all__ = [
     "DEFAULT_CLASSICAL_THRESHOLD",
     "DEFAULT_EPS",
     "DEFAULT_STABLE",
-    "pi_0",
-    "pi_1",
-    "ConnectiveOperator",
-    "UnaryConnectiveOperator",
-    "BinaryConnectiveOperator",
-    "AggregationOperator",
-    "AndMin",
-    "AndProd",
-    "AndPMean",
-    "AndCos",
-    "AndLuk",
-    "OrMax",
-    "OrProbSum",
-    "OrDual",
-    "OrLuk",
-    "XOrClassical",
-    "NotStandard",
-    "NotGodel",
-    "ImpliesDual",
-    "ImpliesKleeneDienes",
-    "ImpliesGodel",
-    "ImpliesReichenbach",
-    "ImpliesGoguen",
-    "ImpliesLuk",
-    "Equiv",
-    "EquivSimilarity",
-    "AggregMin",
-    "AggregMax",
     "AggregGeometricMean",
+    "AggregMax",
+    "AggregMin",
     "AggregPMean",
     "AggregPMeanError",
+    "AggregationOperator",
+    "AndCos",
+    "AndLuk",
+    "AndMin",
+    "AndPMean",
+    "AndProd",
+    "BinaryConnectiveOperator",
+    "ConnectiveOperator",
+    "Equiv",
+    "EquivSimilarity",
+    "ImpliesDual",
+    "ImpliesGodel",
+    "ImpliesGoguen",
+    "ImpliesKleeneDienes",
+    "ImpliesLuk",
+    "ImpliesReichenbach",
+    "NotGodel",
+    "NotStandard",
+    "OrDual",
+    "OrLuk",
+    "OrMax",
+    "OrProbSum",
+    "UnaryConnectiveOperator",
+    "XOrClassical",
+    "pi_0",
+    "pi_1",
 ]

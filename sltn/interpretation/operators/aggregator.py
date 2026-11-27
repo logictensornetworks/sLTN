@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import torch
+
 from .base import AggregationOperator
 from .utils import DEFAULT_EPS, DEFAULT_STABLE, pi_0, safe_div
 
@@ -119,6 +122,7 @@ class AggregMax(_AggregExtremum):
     def __call__(self, xs, dim=None, keepdim=False, mask=None, top_k=None):
         return super().__call__(xs, dim=dim, keepdim=keepdim, mask=mask, k=top_k)
 
+
 class AggregGeometricMean(AggregationOperator):
     """Geometric mean fuzzy aggregation operator.
 
@@ -163,6 +167,7 @@ class AggregGeometricMean(AggregationOperator):
             mean_log = torch.mean(torch.log(xs), dim=dim, keepdim=keepdim)
 
         return torch.exp(mean_log)
+
 
 class AggregPMean(AggregationOperator):
     """pMean fuzzy aggregation operator, ``(mean(x_i ** p)) ** (1 / p)``.
@@ -211,6 +216,7 @@ class AggregPMean(AggregationOperator):
             if stable:
                 mean_val = pi_0(mean_val, self.eps)
             return torch.pow(mean_val, 1 / p)
+
 
 class AggregPMeanError(AggregationOperator):
     """pMeanError fuzzy aggregation operator.

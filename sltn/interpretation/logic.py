@@ -2,23 +2,33 @@ from __future__ import annotations
 
 __all__ = ["Logic"]
 
-from typing import Dict, Optional, TYPE_CHECKING
-from sltn.interpretation.operators.base import AggregationOperator, UnaryConnectiveOperator, BinaryConnectiveOperator
-from sltn.interpretation.operators import aggregator, conjunction, disjunction, implication, negation
+from typing import TYPE_CHECKING
+
+from sltn.fol import formula
+from sltn.interpretation.operators import (
+    aggregator,
+    conjunction,
+    disjunction,
+    implication,
+    negation,
+)
+from sltn.interpretation.operators.base import (
+    AggregationOperator,
+    BinaryConnectiveOperator,
+    UnaryConnectiveOperator,
+)
 from sltn.interpretation.operators.utils import (
     DEFAULT_CLASSICAL_THRESHOLD,
     DEFAULT_EPS,
     DEFAULT_STABLE,
 )
-from sltn.fol import formula
 from sltn.parse.tokenizer import BUILTIN_TOKENS
 
 if TYPE_CHECKING:
     from sltn.signature.signature import Signature
 
-# ---------------------------------------------------------------------------
 # Symbol → Logic field mapping
-# ---------------------------------------------------------------------------
+
 _LOGIC_OP_FIELDS = ("And", "Or", "Not", "Implies", "Equiv", "Forall", "Exists", "SatAgg", "StructAgg")
 
 # Printed symbol of each Logic field, taken from the formula classes so that
@@ -58,14 +68,14 @@ def _parse_kind(q_sym: str, key: str) -> str:
 
 
 def _normalize_struct_agg(
-    struct_agg: Optional[Dict[str, Dict[str, AggregationOperator]]],
-) -> Optional[Dict[str, Dict[str, AggregationOperator]]]:
+    struct_agg: dict[str, dict[str, AggregationOperator]] | None,
+) -> dict[str, dict[str, AggregationOperator]] | None:
     """Copy *struct_agg* two levels deep, with quantifier keys spelled ``"forall"``/``"exists"``."""
     if struct_agg is None:
         return None
-    result: Dict[str, Dict[str, AggregationOperator]] = {}
+    result: dict[str, dict[str, AggregationOperator]] = {}
     for axis, ops in struct_agg.items():
-        entry: Dict[str, AggregationOperator] = {}
+        entry: dict[str, AggregationOperator] = {}
         for q_sym, op in ops.items():
             kind = _parse_kind(q_sym, f"StructAgg[{axis!r}][{q_sym!r}]")
             if kind in entry:
@@ -81,15 +91,15 @@ class Logic:
 
     def __init__(
         self,
-        And:        Optional[BinaryConnectiveOperator]                      = None,
-        Or:         Optional[BinaryConnectiveOperator]                      = None,
-        Not:        Optional[UnaryConnectiveOperator]                       = None,
-        Implies:    Optional[BinaryConnectiveOperator]                      = None,
-        Equiv:      Optional[BinaryConnectiveOperator]                      = None,
-        Forall:     Optional[AggregationOperator]                          = None,
-        Exists:     Optional[AggregationOperator]                          = None,
-        SatAgg:     Optional[AggregationOperator]                          = None,
-        StructAgg:  Optional[Dict[str, Dict[str, AggregationOperator]]]    = None,
+        And:        BinaryConnectiveOperator | None                      = None,
+        Or:         BinaryConnectiveOperator | None                      = None,
+        Not:        UnaryConnectiveOperator | None                       = None,
+        Implies:    BinaryConnectiveOperator | None                      = None,
+        Equiv:      BinaryConnectiveOperator | None                      = None,
+        Forall:     AggregationOperator | None                          = None,
+        Exists:     AggregationOperator | None                          = None,
+        SatAgg:     AggregationOperator | None                          = None,
+        StructAgg:  dict[str, dict[str, AggregationOperator]] | None    = None,
         *,
         stable:     bool                                                    = DEFAULT_STABLE,
         eps:        float                                                   = DEFAULT_EPS,
@@ -132,17 +142,17 @@ class Logic:
         self.stable    = stable
         self.eps       = eps
         # Binarisation threshold for atomic truth values; set only by classical().
-        self._threshold: Optional[float] = None
+        self._threshold: float | None = None
 
         # Optional back-reference to the owning Signature, set by Interpretation.
         # When present, it lets composite StructAgg keys ("∀,t" / "∀,T") resolve
         # any structural variable (base, alias, or independently declared) to
         # the canonical Dimension it ranges over. Logic remains usable
         # standalone (e.g. Logic.classical(...)) when no signature is attached.
-        self._signature: Optional["Signature"] = None
+        self._signature: Signature | None = None
 
     @property
-    def StructAgg(self) -> Optional[Dict[str, Dict[str, AggregationOperator]]]:
+    def StructAgg(self) -> dict[str, dict[str, AggregationOperator]] | None:
         """Per-dimension structural aggregators, ``{dim: {"forall": op, "exists": op}}``.
 
         Assigning a dict stores a copy whose quantifier keys are normalised, so
@@ -151,11 +161,10 @@ class Logic:
         return self._struct_agg
 
     @StructAgg.setter
-    def StructAgg(self, value: Optional[Dict[str, Dict[str, AggregationOperator]]]) -> None:
+    def StructAgg(self, value: dict[str, dict[str, AggregationOperator]] | None) -> None:
         self._struct_agg = _normalize_struct_agg(value)
 
-
-    def with_defaults(self, stable: Optional[bool] = None, eps: Optional[float] = None) -> Logic:
+    def with_defaults(self, stable: bool | None = None, eps: float | None = None) -> Logic:
         """Return a copy with any None field replaced by a sensible default.
 
         Defaults are built with ``stable`` and ``eps`` if given, else with this
@@ -224,7 +233,7 @@ class Logic:
     def classical(
         cls,
         *,
-        threshold: Optional[float] = DEFAULT_CLASSICAL_THRESHOLD,
+        threshold: float | None = DEFAULT_CLASSICAL_THRESHOLD,
     ) -> Logic:
         """Return a classical Boolean logic bundle.
 

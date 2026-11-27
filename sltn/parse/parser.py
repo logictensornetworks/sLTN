@@ -40,9 +40,7 @@ from sltn.parse.tokenizer import Token, tokenize
 InfixTable = dict[str, Literal["pred", "fn"]]
 
 
-# ---------------------------------------------------------------------------
 # Untyped expression tree
-# ---------------------------------------------------------------------------
 
 @dataclass
 class _Name:
@@ -229,9 +227,7 @@ class _Parser:
         return node
 
 
-# ---------------------------------------------------------------------------
 # Classification: untyped tree -> Formula / Term AST
-# ---------------------------------------------------------------------------
 
 _CONNECTIVES = {"and": And, "or": Or, "implies": Implies, "iff": Equivalent}
 
@@ -287,9 +283,7 @@ class _Classifier:
         return TermFormula(self.formula(n))
 
 
-# ---------------------------------------------------------------------------
 # Public API
-# ---------------------------------------------------------------------------
 
 def signature_tables(sig: Any) -> tuple[InfixTable, set[str]]:
     """Return the infix table and the term-valued names of *sig*.
@@ -331,7 +325,7 @@ def parse_string(
 
 
 def _infix_table(infix_preds: list[str] | None, infix_fns: list[str] | None) -> InfixTable:
-    return {**{op: "pred" for op in infix_preds or ()}, **{op: "fn" for op in infix_fns or ()}}
+    return {**dict.fromkeys(infix_preds or (), "pred"), **dict.fromkeys(infix_fns or (), "fn")}
 
 
 def parse_formula_string(

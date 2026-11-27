@@ -17,13 +17,13 @@ String parsing for terms lives in :mod:`sltn.parse.parser`.
 from __future__ import annotations
 
 __all__ = [
-    "Term",
-    "Variable",
     "Constant",
-    "StructuralVariable",
-    "_CallTerm",
     "FunctionApplication",
+    "StructuralVariable",
+    "Term",
     "TermAxisSelect",
+    "Variable",
+    "_CallTerm",
 ]
 
 from typing import TYPE_CHECKING
@@ -60,7 +60,7 @@ def _annotated_axis_dims(dims, annotations) -> dict:
     """
     names = _deduplicate_axis_names(dims)
     names[:len(annotations)] = annotations[:len(names)]
-    return dict(zip(names, dims))
+    return dict(zip(names, dims, strict=True))
 
 
 def _call_axis_dims(symbol, args, output_axes) -> dict:
@@ -77,12 +77,10 @@ def _call_axis_dims(symbol, args, output_axes) -> dict:
     in_names = {d.name for d in symbol.input_dims}
     kept = {n: d for n, d in arg_axes.items() if d is None or d.name not in in_names}
     names = output_axes if output_axes is not None else [d.name for d in symbol.output_dims]
-    return kept | dict(zip(names, symbol.output_dims))
+    return kept | dict(zip(names, symbol.output_dims, strict=True))
 
 
-# ---------------------------------------------------------------------------
 # Term Base Class
-# ---------------------------------------------------------------------------
 
 class Term:
     """Abstract syntax node for a FOL term."""
@@ -118,9 +116,7 @@ class Term:
         return {}
 
 
-# ---------------------------------------------------------------------------
 # Name Term (unresolved identifier from the parser)
-# ---------------------------------------------------------------------------
 
 class _NameTerm(Term):
     """Unresolved identifier from the grammar (``str`` only).
@@ -151,9 +147,7 @@ class _NameTerm(Term):
         return self.symbol
 
 
-# ---------------------------------------------------------------------------
 # Variable Term
-# ---------------------------------------------------------------------------
 
 class Variable(Term):
     """Reference to a :class:`~sltn.signature.symbols.VariableSymbol` (after resolution)."""
@@ -184,9 +178,7 @@ class Variable(Term):
         return self.name
 
 
-# ---------------------------------------------------------------------------
 # Constant Term
-# ---------------------------------------------------------------------------
 
 class Constant(Term):
     """Reference to a :class:`~sltn.signature.symbols.ConstantSymbol` (after resolution)."""
@@ -213,9 +205,8 @@ class Constant(Term):
             return f"{self.symbol.name}[{', '.join(self.axis_annotations)}]"
         return self.name
 
-# ---------------------------------------------------------------------------
+
 # Structural Variable Term
-# ---------------------------------------------------------------------------
 
 class StructuralVariable(Term):
     """Reference to a :class:`~sltn.signature.symbols.StructuralVariableSymbol` (after resolution)."""
@@ -243,9 +234,7 @@ class StructuralVariable(Term):
         return self.name
 
 
-# ---------------------------------------------------------------------------
 # Function Application Term
-# ---------------------------------------------------------------------------
 
 class _CallTerm(Term):
     """Unresolved call ``f(t₁, …, tₙ)[out_axes]`` — produced by the parser.
@@ -293,9 +282,7 @@ class _CallTerm(Term):
         return f"{self.symbol}({args_str})"
 
 
-# ---------------------------------------------------------------------------
 # FunctionApplication (post-resolution)
-# ---------------------------------------------------------------------------
 
 class FunctionApplication(Term):
     """A resolved function application in term position: f(t₁, …, tₙ)[out_axes].
@@ -340,10 +327,7 @@ class FunctionApplication(Term):
         return f"{self.name}({args_str})"
 
 
-# ---------------------------------------------------------------------------
 # TermAxisSelect
-# ---------------------------------------------------------------------------
-
 
 class TermAxisSelect(Term):
     """A term that selects a single index along a named structural axis.

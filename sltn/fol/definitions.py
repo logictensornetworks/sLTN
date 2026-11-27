@@ -10,7 +10,8 @@ renaming of structural-axis aliases as needed.
 from __future__ import annotations
 
 import copy
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from sltn.fol.term import (
     _NameTerm, Variable, Constant, StructuralVariable, 
@@ -27,9 +28,7 @@ from sltn.fol.formula import (
 from sltn.parse.tokenizer import _base_name_of
 
 
-# ---------------------------------------------------------------------------
 # Definition expansion
-# ---------------------------------------------------------------------------
 
 def _build_numbered_alias_subst(
     param_names: list[str],
@@ -50,7 +49,7 @@ def _build_numbered_alias_subst(
     ``U * U1`` in a definition body creates a cross-product rather than
     an element-wise product.
     """
-    subst: dict[str, Any] = dict(zip(param_names, args))
+    subst: dict[str, Any] = dict(zip(param_names, args, strict=True))
     aliases: dict[str, Any] = {}
     for param, arg in subst.items():
         for n in range(1, 10):
@@ -237,12 +236,12 @@ def _definition_subst(
     """
     subst = _build_numbered_alias_subst(defn.params, args, _declared_names(sig))
 
-    for pname, arg in zip(defn.params, args):
+    for pname, arg in zip(defn.params, args, strict=True):
         actual_axes = _term_axis_annotations_for_subst(arg)
         formal_axes = canonical.get(pname)
         if not actual_axes or formal_axes is None or len(formal_axes) != len(actual_axes):
             continue
-        for fa, aa in zip(formal_axes, actual_axes):
+        for fa, aa in zip(formal_axes, actual_axes, strict=True):
             if fa != aa:
                 subst[fa] = _NameTerm(aa)
     return subst
@@ -326,7 +325,7 @@ def _substitute(
                 return repl
             canon = (param_axis_canonical or {}).get(name)
             if canon is not None and len(canon) == len(ann):
-                mapping = {c: a for c, a in zip(canon, ann) if c != a}
+                mapping = {c: a for c, a in zip(canon, ann, strict=True) if c != a}
                 if mapping:
                     repl = copy.deepcopy(repl)
                     for dst in set(mapping.values()):
@@ -413,11 +412,10 @@ def _apply_call_axes(root: Any, axes: list[str], sym_name: str) -> None:
             f"already names {len(current)} output axis/axes {list(current)}."
         )
     setattr(root, attr, axes)
+    return None
 
 
-# ---------------------------------------------------------------------------
 # Sort and axis inference on the unresolved AST (to validate definition calls)
-# ---------------------------------------------------------------------------
 
 def _call_target(name: str, sig: Any) -> Any:
     """The function, predicate or definition called *name*, or ``None``."""
@@ -483,9 +481,7 @@ def _axis_dimension_name(axis: str, sig: Any) -> str:
     return dim.name if dim is not None else axis
 
 
-# ---------------------------------------------------------------------------
 # Definition instantiation
-# ---------------------------------------------------------------------------
 
 def _validate_definition_call(sym_name: str, defn: Any, args: list[Any], sig: Any) -> None:
     if len(args) != len(defn.params):
@@ -493,7 +489,7 @@ def _validate_definition_call(sym_name: str, defn: Any, args: list[Any], sig: An
             f"Definition '{sym_name}' expects {len(defn.params)} argument(s), got {len(args)}."
         )
 
-    for i, (arg, expected_sort) in enumerate(zip(args, defn.input_sorts)):
+    for i, (arg, expected_sort) in enumerate(zip(args, defn.input_sorts, strict=False)):
         actual_sort = _sort_name(arg, sig)
         if actual_sort is None:
             raise TypeError(
