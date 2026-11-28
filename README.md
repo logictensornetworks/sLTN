@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-**sLTN** (*Structural Logic Tensor Networks*) is a PyTorch framework for differentiable neuro-symbolic learning and reasoning with first-order logic. Building on Real Logic and [LTNtorch](https://github.com/logictensornetworks/LTNtorch), sLTN introduces a clean separation between logical syntax and neural grounding, a compact formula language, named tensor axes, and **structural dimensions** for reasoning natively over sequences, time series, grids, videos, and graphs.
+**sLTN** (*Structural Logic Tensor Networks*) is a PyTorch framework for differentiable neuro-symbolic learning and reasoning with first-order logic. Building on Real Logic and [LTNtorch](https://github.com/logictensornetworks/LTNtorch), sLTN separates logical syntax from neural grounding, and provides a formula language, named tensor axes, and **structural dimensions** for sequences, time series, grids, videos, and graphs.
 
 For the formal foundations, dimensional calculus, and experimental evaluation, see the companion paper:
 **[sLTN: Structural Logic Tensor Networks](https://arxiv.org/abs/2608.11136)** (*Davide Rinaldi & Luciano Serafini*).
@@ -13,12 +13,12 @@ For the formal foundations, dimensional calculus, and experimental evaluation, s
 
 ## Highlights
 
-- **Strict separation of syntax and semantics.** Declare sorts, dimensions, symbols, and syntactic macros in a pure-Python `Signature` (no PyTorch dependency). Bind symbols to tensors, `nn.Module`s, or callables in an `Interpretation`.
-- **Readable formula DSL.** Write formulas and knowledge bases directly as strings (`forall x, y: (isDog(x) & likes(x, y)) -> happy(y)`), parsed into reusable, inspectable ASTs with static sort and axis validation.
-- **Named axes & automatic alignment.** Every intermediate `sltn.Tensor` tracks `variable`, `structural`, and `domain` axes by name, aligning and broadcasting operands automatically without manual `unsqueeze` or `permute` bookkeeping.
-- **First-class structural dimensions.** Model structured index spaces—such as time steps, token positions, image patches, or graph nodes—independently from batch individuals, complete with structural relations (`next(t, t1)`), axis slicing (`x[t][t=0]`), and per-dimension fuzzy aggregators.
-- **PyTorch-native `Interpretation`.** `Interpretation` subclasses `torch.nn.Module`: grounded networks and `nn.Parameter`s are registered automatically, so `.parameters()`, `.state_dict()`, `.train()` / `.eval()`, `.to(device)`, and PyTorch Lightning work out of the box.
-- **Differentiable Real Logic & multi-objective training.** Full suite of exact and numerically stable fuzzy connectives and aggregators (`AndProd`, `ImpliesReichenbach`, `AggregPMeanError`, `Logic.classical()`, …), plus `kb_describe`, `kb_eval`, and `kb_backward` with optional Jacobian-descent multi-objective optimization via [`torchjd`](https://torchjd.org/).
+- **Strict separation of syntax and semantics.** Declare sorts, dimensions, symbols, and syntactic macros in a pure-Python `Signature` (no PyTorch dependency). Ground symbols with tensors, `nn.Module`s, or callables in an `Interpretation`.
+- **Formula language.** Write formulas and knowledge bases directly as strings (`forall x, y: ((isDog(x) & likes(x, y)) -> happy(y))`), parsed into reusable, inspectable ASTs with static sort and axis validation.
+- **Named axes & automatic alignment.** Every denotation is an `sltn.Tensor` that names its `variable`, `structural`, and `domain` axes, so operands are aligned and broadcast by name, without manual `unsqueeze` or `permute`.
+- **Structural dimensions.** Model index sets such as time steps, token positions, image patches, or graph nodes, separate from the batch of individuals, with structural relations (`next(t, t1)`), axis slicing (`x[t][t=0]`), and per-dimension fuzzy aggregators.
+- **PyTorch-native `Interpretation`.** `Interpretation` subclasses `torch.nn.Module`: grounded networks and `nn.Parameter`s are registered automatically, so `.parameters()`, `.state_dict()`, `.train()` / `.eval()`, `.to(device)`, and PyTorch Lightning work as for any PyTorch module.
+- **Differentiable Real Logic & multi-objective training.** Exact fuzzy connectives and aggregators, with a numerically stable mode (`AndProd`, `ImpliesReichenbach`, `AggregPMeanError`, `Logic.classical()`, …), plus `kb_describe`, `kb_eval`, and `kb_backward` with optional Jacobian-descent multi-objective optimization via [`torchjd`](https://torchjd.org/).
 
 ---
 
@@ -55,7 +55,7 @@ uv pip install -e ".[multiobjective,lightning,notebooks,examples,test]"
 
 ### 1. First-order logic & training a Knowledge Base
 
-A `Signature` defines *what* symbols exist; an `Interpretation` defines *how* they are grounded in PyTorch. Formulas can be parsed once and evaluated across minibatches or multiple interpretations.
+A `Signature` declares the symbols, and an `Interpretation` grounds them in PyTorch. Formulas can be parsed once and evaluated across minibatches or multiple interpretations.
 
 ```python
 import torch
@@ -97,7 +97,7 @@ kb_dict = kb_describe(kb)
 optimizer = torch.optim.Adam(interp.parameters(), lr=1e-2)
 
 for step in range(50):
-    interp["x"] = torch.randn(32, 4)                        # rebind batch data per step
+    interp["x"] = torch.randn(32, 4)                        # ground the batch of this step
     interp["y"] = torch.randn(32, 4)
 
     optimizer.zero_grad()
@@ -109,7 +109,7 @@ print(kb_eval(interp, kb_dict))
 
 ### 2. Reasoning over structural dimensions
 
-When individuals carry internal structure—such as sequences of length `T`—declare a `Dimension` and a `StructuralVariable` ranging over it. Numbered and primed aliases (`t1`, `t2`, `t'`) are resolved automatically over the same dimension.
+When each individual has an internal structure, such as a sequence of length `T`, a `Dimension` and a structural variable ranging over it are declared. Aliases such as `t1`, `t2` and `t'` are created on first use and range over the same dimension.
 
 ```python
 import torch
@@ -140,22 +140,22 @@ interp["Active"] = torch.nn.Sequential(torch.nn.Linear(16, 1), torch.nn.Sigmoid(
 interp["Detect"] = lambda x: torch.sigmoid(x.mean(dim=-1, keepdim=True))
 interp["next"]   = torch.diag(torch.ones(T_len - 1), diagonal=1)
 
-satisfaction = interp(phi)                                  # sltn.Tensor of shape (1,)
+satisfaction = interp(phi)                                  # the denotation: an sltn.Tensor of shape (1,)
 ```
 
-Structural quantifiers over `T` use the current first-order `Forall`/`Exists` unless overridden; override them per dimension with `interp.logic["forall,T"] = ...`.
+Structural quantifiers over `T` use the current first-order `Forall` and `Exists`, unless operators are set for the dimension, e.g. `interp.logic["forall,T"] = ...`.
 
 ---
 
 ## Package Architecture
 
-`sltn` is organized into five subpackages with a strict unidirectional boundary—syntax modules (`signature`, `fol`, `parse`) never import `interpretation`, `tools`, or `torch`:
+`sltn` is organized into five subpackages with a strict one-way dependency. The syntax modules (`signature`, `fol`, `parse`) never import `interpretation`, `tools`, or `torch`.
 
 | Subpackage | Role |
 | :--- | :--- |
 | `sltn.signature` | Symbolic declarations (`Signature`, `Sort`, `Dimension`, constants, variables, structural variables/relations, functions, predicates, macros). |
 | `sltn.fol` | Pure syntactic AST nodes for terms, formulas, quantifiers, knowledge bases (`KB`), and capture-avoiding macro expansion. |
-| `sltn.parse` | Tokenizer, recursive-descent/infix parser, and static validation pipeline (sort checking, axis calculus, quantifier & clause checks). |
+| `sltn.parse` | Tokenizer, precedence-climbing parser, and static validation pipeline (sort checking, axis calculus, quantifier & clause checks). |
 | `sltn.interpretation` | `Interpretation` (`nn.Module`), annotated `Tensor` & `Axis` alignment, `Type` descriptors, `Logic`, and fuzzy operators. |
 | `sltn.tools` | Training and inspection utilities (`kb_describe`, `kb_eval`, `kb_backward`, `cache_benchmark`). |
 
@@ -165,7 +165,7 @@ Structural quantifiers over `T` use the current first-order `Forall`/`Exists` un
 
 | Directory | Contents |
 | :--- | :--- |
-| `notebooks/tutorials_sltn/` | Progressive 5-part tutorial series: **(1)** Signatures & Interpretations, **(2)** FOL Formulas, Connectives & Quantifiers, **(3)** Fuzzy Operators & Gradients, **(4)** Knowledge Bases & Learning, **(5)** Structural LTN. |
+| `notebooks/tutorials_sltn/` | Progressive 6-part tutorial series: **(1)** Signatures & Interpretations, **(2)** FOL Formulas, Connectives & Quantifiers, **(3)** Fuzzy Operators & Gradients, **(4)** Knowledge Bases & Learning, **(5)** Structural LTN, **(6)** Advanced Features. |
 | `notebooks/examples/` | Companion-paper and structured reasoning tasks |
 | `notebooks/ltn_examples/` | Classic LTN benchmarks reimplemented in sLTN: binary, multi-class, and multi-label classification, semi-supervised pattern recognition, regression, clustering, and embedding learning. |
 
@@ -204,6 +204,6 @@ If you use **sLTN** in your research or software, please cite:
 
 ## Acknowledgements & License
 
-**sLTN** was conceived and developed by **Davide Rinaldi** (Nokia Bell Labs) and **Luciano Serafini** (Fondazione Bruno Kessler). It builds on the original [LTNtorch](https://github.com/logictensornetworks/LTNtorch) implementation by **Tommaso Carraro**, who also contributed to refining and finalising this library. Large language models (LLMs) were used to assist with selected development tasks, including testing, tutorials, and bug fixing.
+**sLTN** was conceived and developed by **Davide Rinaldi** (Nokia Bell Labs) and **Luciano Serafini** (Fondazione Bruno Kessler). It builds on the original [LTNtorch](https://github.com/logictensornetworks/LTNtorch) implementation by **Tommaso Carraro** and **Luciano Serafini**. Tommaso Carraro also contributed to refining and finalising this library. Large language models (LLMs) were used to assist with selected development tasks, including testing, tutorials, and bug fixing.
 
 Licensed under the [MIT License](./LICENSE).
