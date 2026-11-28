@@ -1,4 +1,5 @@
 """Tests for structural sLTN features."""
+import itertools
 import torch
 import pytest
 import sltn
@@ -145,6 +146,34 @@ def test_guard_can_introduce_free_structural_axis(sig_interp):
     assert r.value.shape == torch.Size([4, 5, 1])
 
 
+@pytest.mark.parametrize("formula, free", [
+    ("exists t1 | next(t, t1): P(z[t1])", "t"),   # the free axis sorts before the bound one
+    ("exists t | next(t1, t): P(z[t])", "t1"),    # the free axis sorts after the bound one
+])
+def test_guard_with_free_axis_aggregates_the_bound_axis(formula, free):
+    """The quantifier aggregates the bound axis even when the guard inserts a free axis before it."""
+    sig = Signature("next_step")
+    sig.sort("S")
+    sig.dimension("T")
+    sig.structural_variable("t", "T")
+    sig.variable("z", "S", dims=["T"])
+    sig.predicate("P", ["S"])
+    sig.structural_relation("next", ["T", "T"])
+
+    interp = Interpretation(sig)
+    interp["S"] = sltn.Type("R1", shape=(1,))
+    interp["z"] = torch.arange(5.0).view(1, 5, 1)
+    interp["P"] = lambda v: (v + 1) / 10
+    days = torch.arange(5)
+    interp["next"] = (days.unsqueeze(1) + 1 == days.unsqueeze(0)).float()
+    interp.logic["exists,T"] = sltn.interpretation.operators.AggregPMean(p=1)
+
+    r = interp(formula)
+    assert r.free_structural_variables == [free]
+    # P at the successor of the free day; 0 on the last day, which has none
+    assert torch.allclose(r.value.flatten(), torch.tensor([0.2, 0.3, 0.4, 0.5, 0.0]), atol=1e-4)
+
+
 # ---------------------------------------------------------------------------
 # Dimension-level StructAgg grounding
 #
@@ -281,3 +310,70 @@ def test_variable_with_repeated_dimension_can_be_renamed_and_quantified():
 
     r_quant = interp(sig.parse("forall t, t1: P(x[t, t1])[t, t1]"))
     assert r_quant.value.shape == torch.Size([4, 1])
+
+# ---------------------------------------------------------------------------
+# Renaming invariance: a denotation must not depend on the names of the
+# variables, which fix the alphabetical order of the axes after alignment.
+# ---------------------------------------------------------------------------
+
+_STRUCT_NAMES = ["b", "m", "w"]
+_INDIV_NAMES = ["c", "k"]
+
+
+@pytest.fixture(scope="module")
+def renaming_interp():
+    torch.manual_seed(0)
+    sig = Signature("renaming")
+    sig.sort("S")
+    sig.dimension("T")
+    for name in _STRUCT_NAMES:
+        sig.structural_variable(name, "T")
+    for name in _INDIV_NAMES:
+        sig.variable(name, "S", dims=["T"])
+    sig.predicate("P", ["S"])
+    sig.predicate("R", ["S", "S"])
+    sig.predicate("Rise", ["S"], input_dims=["T"], output_dims=["T"])
+    sig.structural_relation("nx", ["T", "T"])
+    sig.structural_relation("W", ["T", "T"])
+
+    interp = Interpretation(sig)
+    interp["S"] = sltn.Type("R1", shape=(1,))
+    data = torch.randn(3, 5, 1)
+    for name in _INDIV_NAMES:
+        interp[name] = data
+    interp["P"] = lambda a: torch.sigmoid(a)
+    interp["R"] = lambda a, b: torch.sigmoid(a - 2 * b)
+    interp["Rise"] = lambda a: torch.sigmoid(a - a.roll(1, dims=1))
+    days = torch.arange(5)
+    interp["nx"] = (days.unsqueeze(1) + 1 == days.unsqueeze(0)).float()
+    interp["W"] = torch.rand(5, 5)
+    return interp
+
+
+@pytest.mark.parametrize("template", [
+    "R(X[D], Y[E])",
+    "forall E | nx(D, E): P(X[E])",
+    "exists E | W(E, D): R(X[E], Y[D])",
+    "forall E | nx(D, E): forall F | nx(E, F): R(X[D], X[F])",
+    "exists Y | R(X[E], Y[D]): P(Y[E])",
+    "Rise(X[D])[E] & P(X[D])",
+    "Rise(X[D])[D][D=-1] & P(Y[E])",
+    "forall (X, Y): R(X[D], Y[E])",
+])
+def test_denotation_is_invariant_under_renaming(renaming_interp, template):
+    """D, E, F name structural variables and X, Y individual ones; every assignment must agree."""
+    results = []
+    for (d, e, f), (x, y) in itertools.product(itertools.permutations(_STRUCT_NAMES),
+                                               itertools.permutations(_INDIV_NAMES)):
+        formula = (template.replace("D", d).replace("E", e).replace("F", f)
+                   .replace("X", x).replace("Y", y))
+        back = {d: "D", e: "E", f: "F", x: "X", y: "Y"}
+        r = renaming_interp(formula)
+        names = [back.get(n, n) for n in r.axis_names]
+        order = sorted(range(len(names)), key=names.__getitem__)
+        results.append((formula, [names[i] for i in order], r.value.permute(*order)))
+
+    _, ref_names, ref_value = results[0]
+    for formula, names, value in results[1:]:
+        assert names == ref_names, formula
+        assert torch.allclose(value, ref_value, atol=1e-5), formula

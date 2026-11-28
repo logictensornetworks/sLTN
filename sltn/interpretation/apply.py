@@ -102,18 +102,20 @@ def apply_quantifier(
         (an empty axis, or a guard that is 0 everywhere), the result is the
         quantifier's neutral value: 1 for ∀, 0 for ∃, whatever *agg_op* is.
     """
-    ax_map = formula.axis_map
+    weights = None
+    if mask is not None:
+        aligned, mask = Tensor.align(formula, mask)
+        # The guard may span axes the body lacks, and vice versa.
+        value, weights = torch.broadcast_tensors(aligned.value, mask.value)
+    else:
+        aligned, value = formula, formula.value
+
+    # Positions are taken after alignment, which may insert the guard's axes.
+    ax_map = aligned.axis_map
     dims = [ax_map[ax] for ax in axis_names if ax in ax_map]
     if not dims:
         return formula
-
-    weights = None
-    if mask is not None:
-        formula, mask = Tensor.align(formula, mask)
-        # The guard may span axes the body lacks, and vice versa.
-        value, weights = torch.broadcast_tensors(formula.value, mask.value)
-    else:
-        value = formula.value
+    formula = aligned
 
     neutral = 1.0 if quantifier == "forall" else 0.0
     if any(value.shape[i] == 0 for i in dims):
